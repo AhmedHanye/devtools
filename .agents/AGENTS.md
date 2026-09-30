@@ -10,5 +10,7 @@
 
 - **Contract-first tickets**: Define behavioral contracts and automated acceptance criteria in issues. Omit execution commands and branch names.
 - **Observable verification**: Write acceptance criteria as checkable automated commands or observable behaviors (test runs, exit codes, HTTP status codes).
-- **Ticket partitioning**: Stage and commit only the files belonging to the active ticket before branching for subsequent tickets.
+- **Ticket partitioning**: Stage only the files belonging to the active ticket before branching for subsequent tickets.
+- **Git commit & push checkpoint**: Never run `git commit`, `git push`, or create pull requests without explicit confirmation from the user. Always present the diff and status for user review before committing or pushing.
+- **Immutable locked skills**: Never modify any skills listed in or belonging to `skills-lock.json` (`.agents/skills/*`). All locked skills are vendor-managed and strictly read-only.
 - **Escalation**: When requirements are ambiguous or tests fail repeatedly, apply `needs-human-review`, post a blocker summary, and yield execution.

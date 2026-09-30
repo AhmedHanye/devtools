@@ -12,7 +12,7 @@ Managing issue status across both repository labels (`status:*`) and GitHub Proj
 4. **Parent Spec status rollup**:
    - When any child ticket begins implementation (`In Progress`), its parent Spec moves to `In Progress`.
    - Parent Specs never move to `In Review` based on child ticket activity; they remain `In Progress` until all child tickets reach `Done` and are verified by the maintainer.
-   - Atomic tickets transition across project states: from `Todo` to `In Progress` when a linked branch or draft pull request is created, to `In Review` when marked ready for review, and to `Done` when merged.
+   - Atomic tickets transition across project states: from `Todo` to `In Progress` when a linked branch is created, to `In Review` when marked ready for review, and to `Done` when merged.
 
 ## Consequences
 
