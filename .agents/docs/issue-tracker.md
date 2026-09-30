@@ -42,10 +42,17 @@ The project tracks work using Specs (parent issues) and Tickets (child sub-issue
   gh api repos/:owner/:repo/issues/<number> --jq .id
   ```
 - **Single source of truth**: Omit manual parent links, child checklists, and `Blocked by: #...` lines from markdown bodies when native sub-issues and dependencies are enabled.
+- **Milestones**: Assigned strictly to **Specs** (parent epics) to track milestone deliverables without metric dilution. Child **Tickets** do not receive milestones.
 - **Query frontier**: List open child tickets with zero unresolved blockers and no assignee.
-- **Claim ticket**: Assign `@me` as the first write operation of the session:
+- **Claim ticket & create linked branch**: Assign `@me` and create the native linked branch:
   ```bash
-  gh issue edit <number> --add-assignee @me
+  gh issue edit <ticket_number> --add-assignee @me
+  gh issue develop <ticket_number> --checkout
+  ```
+  Check the parent Spec: if it is currently in `Todo` or `Blocked / Backlog`, update the parent Spec to `In Progress`. Parent Specs never move to `In Review` based on child ticket activity.
+- **Submit for review**: When implementation and verification pass:
+  ```bash
+  gh pr ready <pr_number>
   ```
 - **Resolve ticket**: Post the solution summary in a comment and close the ticket:
   ```bash

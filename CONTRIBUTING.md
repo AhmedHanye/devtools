@@ -12,11 +12,13 @@ We follow an issue-first, vertical slice workflow:
 
 ## Branch naming and git conventions
 
-Create short-lived branches from `main`:
+Use GitHub's native linked branching for all tickets:
 
-- Format: `<type>/<short-description>` (lowercase, kebab-case, at most 40 characters, omit issue numbers)
-- Allowed types: `feat`, `fix`, `chore`, `refactor`, `docs`, `infra`, `ci`, `test`
-- Examples: `feat/user-auth`, `fix/route-timeout`, `chore/ci-quality-baseline`
+```bash
+gh issue develop <ticket_number> --checkout
+```
+
+This creates and checks out the branch `<ticket_number>-<title-slug>` and officially associates it with the issue under GitHub Development.
 
 ## Commits and pull requests
 
@@ -36,18 +38,21 @@ Examples:
 ### Pull request rules
 
 1. Open draft pull requests early. Run `gh pr create --draft` when creating the branch.
-2. Link the tracking issue in the pull request body using `Closes #<issue>`.
+2. Link the tracking issue in the pull request body using `Closes #<issue>` (auto-linked when using `gh issue develop`).
 3. Provide verification evidence, including test terminal output or observable behavior.
-4. Squash merge into `main` after local verification passes.
+4. When work and verification are complete, mark the PR ready for review: `gh pr ready <pr_number>`.
+5. Squash merge into `main` after review passes.
 
 ## Agent collaboration rules
 
 Coding agents work as automated contributors in this repository. Both humans and agents follow these boundaries:
 
-1. Claiming: Assign `@me` and set status before starting implementation:
+1. Claiming & Branching: Assign `@me`, create the linked branch, and ensure the parent Spec is in `In Progress`:
    ```bash
-   gh issue edit <number> --add-assignee @me --add-label "status:in-progress"
+   gh issue edit <ticket_number> --add-assignee @me
+   gh issue develop <ticket_number> --checkout
    ```
+   If the parent Spec is currently in `Todo` or `Blocked / Backlog`, move the parent Spec to `In Progress` on the Project Board. Parent Specs never move to `In Review` automatically from child tickets.
 2. Issue modifications:
    - Agents may check off completed acceptance criteria (`- [x]`).
    - Agents may post technical discovery comments or blocker alerts.
