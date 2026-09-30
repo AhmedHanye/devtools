@@ -37,9 +37,10 @@ Examples:
 
 1. Open draft pull requests early: `gh pr create --draft`.
 2. Link the tracking issue: `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
-3. Provide verification evidence: include terminal test output, commands, or observable behavior.
-4. Mark ready for review when verification passes: `gh pr ready <pr_number>`.
-5. Squash merge into `main` after review passes: `gh pr merge <pr_number> --squash --delete-branch`.
+3. Follow the pull request structure: PR descriptions must follow `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Do not list commit subjects, branch mechanics, or CLI commands.
+4. Provide verification evidence: include terminal test output, commands, or observable behavior.
+5. Mark ready for review when verification passes: `gh pr ready <pr_number>`.
+6. Squash merge into `main` after review passes: `gh pr merge <pr_number> --squash --delete-branch`.
 
 ## Contributor boundaries
 
