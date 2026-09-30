@@ -5,11 +5,11 @@ Developer tooling monorepo providing development utilities and workflows.
 ## Language
 
 **Spec**:
-A high-level architectural or capability specification tracking a milestone or major feature. Holds the release Milestone. Moves to In Progress when any child ticket begins work; never moves to In Review automatically.
+A high-level capability specification tracking a milestone or major feature. Contains child tickets and holds the release milestone.
 _Avoid_: Epic, story, parent ticket, feature request
 
 **Ticket**:
-An atomic vertical slice delivering end-to-end functionality across schema, logic, UI, and tests. Belongs to a parent Spec; does not hold a Milestone. Execution branch is created natively via `gh issue develop`.
+An atomic vertical slice delivering end-to-end functionality across schema, logic, UI, and tests for a parent Spec. Does not hold a milestone.
 _Avoid_: Sub-task, issue, task, story
 
 **Frontier**:

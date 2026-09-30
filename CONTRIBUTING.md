@@ -1,24 +1,22 @@
 # Contributing to DevTools
 
-This document outlines conventions, development workflows, and collaboration standards for human developers and agents.
-
 ## Development workflow
 
-We follow an issue-first, vertical slice workflow:
+Development follows an issue-first, vertical slice workflow:
 
 1. Every change begins with an issue. Do not open a pull request without a tracking issue.
-2. One ticket, one vertical slice. Break work into narrow, end-to-end vertical slices that can be implemented and tested in a single session.
-3. No direct pushes to `main`. All code enters via reviewed pull requests.
+2. One ticket, one vertical slice. Deliver end-to-end functionality across schema, logic, UI, and tests in a single session.
+3. No direct pushes to `main`. All code lands through reviewed pull requests.
 
-## Branch naming and git conventions
+## Branching
 
-Use GitHub's native linked branching for all tickets:
+Create linked branches directly from issues:
 
 ```bash
 gh issue develop <ticket_number> --checkout
 ```
 
-This creates and checks out the branch `<ticket_number>-<title-slug>` and officially associates it with the issue under GitHub Development.
+This creates and checks out `<ticket_number>-<title-slug>` and links it to the issue in GitHub.
 
 ## Commits and pull requests
 
@@ -37,24 +35,19 @@ Examples:
 
 ### Pull request rules
 
-1. Open draft pull requests early. Run `gh pr create --draft` when creating the branch.
-2. Link the tracking issue in the pull request body using `Closes #<issue>` (auto-linked when using `gh issue develop`).
-3. Provide verification evidence, including test terminal output or observable behavior.
-4. When work and verification are complete, mark the PR ready for review: `gh pr ready <pr_number>`.
-5. Squash merge into `main` after review passes.
+1. Open draft pull requests early: `gh pr create --draft`.
+2. Link the tracking issue: `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
+3. Provide verification evidence: include terminal test output, commands, or observable behavior.
+4. Mark ready for review when verification passes: `gh pr ready <pr_number>`.
+5. Squash merge into `main` after review passes: `gh pr merge <pr_number> --squash --delete-branch`.
 
-## Agent collaboration rules
+## Contributor boundaries
 
-Coding agents work as automated contributors in this repository. Both humans and agents follow these boundaries:
+Contributors and agents observe these boundaries:
 
-1. Claiming & Branching: Assign `@me`, create the linked branch, and ensure the parent Spec is in `In Progress`:
-   ```bash
-   gh issue edit <ticket_number> --add-assignee @me
-   gh issue develop <ticket_number> --checkout
-   ```
-   If the parent Spec is currently in `Todo` or `Blocked / Backlog`, move the parent Spec to `In Progress` on the Project Board. Parent Specs never move to `In Review` automatically from child tickets.
-2. Issue modifications:
-   - Agents may check off completed acceptance criteria (`- [x]`).
-   - Agents may post technical discovery comments or blocker alerts.
-   - Agents must never delete issues, alter the problem statement, or drop acceptance criteria.
-3. Escalation: When requirements are ambiguous or tests fail repeatedly, apply the label `needs-human-review`, post a blocker summary, and yield execution.
+1. Issue operations: follow `.agents/docs/issue-tracker.md` for ticket claiming, dependency management, and project board status updates.
+2. Issue updates:
+   - Check off completed acceptance criteria (`- [x]`).
+   - Post technical discoveries and blocker alerts as issue comments.
+   - Do not delete issues, alter problem statements, or drop acceptance criteria.
+3. Escalation: when requirements are ambiguous or tests fail repeatedly, apply `needs-human-review`, post a blocker summary, and yield execution.
