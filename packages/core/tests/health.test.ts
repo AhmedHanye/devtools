@@ -33,7 +33,10 @@ describe("HealthResponseSchema", () => {
     const parsed = HealthResponseSchema.parse(validPayload);
     expect(parsed).toEqual(validPayload);
 
-    const degradedPayload = { ...validPayload, status: "degraded" as HealthStatus };
+    const degradedPayload = {
+      ...validPayload,
+      status: "degraded" as HealthStatus,
+    };
     expect(HealthResponseSchema.parse(degradedPayload).status).toBe("degraded");
 
     const errorPayload = { ...validPayload, status: "error" as HealthStatus };

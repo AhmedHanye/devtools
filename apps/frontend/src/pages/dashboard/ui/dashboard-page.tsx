@@ -1,6 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui";
 import { Box, Layers, Terminal } from "lucide-react";
 import type * as React from "react";
 import { useServiceHealth } from "../model";
@@ -30,7 +37,8 @@ const STACK_COMPONENTS: StackComponentInfo[] = [
   {
     title: "Loopback Daemon",
     packageName: "@devtools/cli",
-    description: "Serves static export bundle at / and routes /api/* on port 4000.",
+    description:
+      "Serves static export bundle at / and routes /api/* on port 4000.",
     detail: "Single-process daemon serving",
     icon: Terminal,
   },
@@ -55,7 +63,7 @@ export function DashboardPage({ autoFetch = true }: DashboardPageProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Active Services</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Monitored components within the interconnected runtime stack.
           </p>
         </div>
@@ -74,21 +82,25 @@ export function DashboardPage({ autoFetch = true }: DashboardPageProps) {
             return (
               <Card
                 key={item.packageName}
-                className="flex flex-col justify-between border-border bg-card"
+                className="flex flex-col justify-between"
               >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="space-y-1">
-                    <CardTitle className="text-base font-semibold">{item.title}</CardTitle>
-                    <CardDescription className="text-xs">{item.packageName}</CardDescription>
-                  </div>
-                  <div className="rounded-md bg-primary/10 p-2 text-primary">
-                    <Icon className="size-4" />
-                  </div>
+                <CardHeader>
+                  <CardTitle>{item.title}</CardTitle>
+                  <CardDescription>{item.packageName}</CardDescription>
+                  <CardAction>
+                    <div className="bg-primary/10 text-primary rounded-md p-2">
+                      <Icon className="size-4" />
+                    </div>
+                  </CardAction>
                 </CardHeader>
-                <CardContent className="space-y-2 pt-2 text-xs text-muted-foreground">
-                  <p>{item.description}</p>
-                  <div className="flex items-center gap-2 pt-1 font-mono text-[11px] text-foreground">
-                    <span>{item.detail}</span>
+                <CardContent>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-muted-foreground text-sm">
+                      {item.description}
+                    </p>
+                    <div className="text-foreground flex items-center gap-2 pt-1 font-mono text-xs">
+                      <span>{item.detail}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

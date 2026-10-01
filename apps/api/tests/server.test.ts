@@ -17,7 +17,9 @@ describe("Standalone Server Lifecycle", () => {
     activeInstance = startServer({ port: 0, hostname: "127.0.0.1" });
     expect(activeInstance.port).toBeGreaterThan(0);
 
-    const response = await fetch(`http://127.0.0.1:${activeInstance.port}/api/health`);
+    const response = await fetch(
+      `http://127.0.0.1:${activeInstance.port}/api/health`,
+    );
     expect(response.status).toBe(200);
 
     const data = await response.json();

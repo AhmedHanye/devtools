@@ -2,6 +2,7 @@ import {
   Badge,
   Button,
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -9,8 +10,16 @@ import {
   CardTitle,
   Skeleton,
 } from "@/shared/ui";
+import { useIsMounted } from "@/shared/lib";
 import type { HealthResponse } from "@devtools/core";
-import { Activity, AlertCircle, CheckCircle2, Clock, RefreshCw, ShieldAlert } from "lucide-react";
+import {
+  Activity,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react";
 import * as React from "react";
 
 export interface ServiceStatusCardProps {
@@ -21,6 +30,58 @@ export interface ServiceStatusCardProps {
   onRefresh?: () => void;
 }
 
+type ServiceStatus = "ok" | "degraded" | "error" | "unreachable" | "unknown";
+
+function renderStatusBadge(status: ServiceStatus) {
+  switch (status) {
+    case "ok":
+      return (
+        <Badge variant="default">
+          <CheckCircle2 className="size-3.5" />
+          Operational
+        </Badge>
+      );
+    case "degraded":
+      return (
+        <Badge variant="secondary">
+          <AlertCircle className="size-3.5" />
+          Degraded
+        </Badge>
+      );
+    case "error":
+      return (
+        <Badge variant="destructive">
+          <ShieldAlert className="size-3.5" />
+          Error
+        </Badge>
+      );
+    case "unreachable":
+      return (
+        <Badge variant="destructive">
+          <AlertCircle className="size-3.5" />
+          Unreachable
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline">
+          <Activity className="size-3.5" />
+          Unknown
+        </Badge>
+      );
+  }
+}
+
+function formatTimestamp(
+  timestamp: string | null | undefined,
+  mounted: boolean,
+): string {
+  if (!mounted || !timestamp) {
+    return "--:--:--";
+  }
+  return new Date(timestamp).toLocaleTimeString();
+}
+
 export function ServiceStatusCard({
   name,
   data,
@@ -28,77 +89,33 @@ export function ServiceStatusCard({
   error = null,
   onRefresh,
 }: ServiceStatusCardProps) {
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useIsMounted();
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const status = error ? "unreachable" : (data?.status ?? "unknown");
-
-  const getStatusBadge = () => {
-    switch (status) {
-      case "ok":
-        return (
-          <Badge variant="success" className="gap-1.5 font-medium">
-            <CheckCircle2 className="size-3.5" />
-            Operational
-          </Badge>
-        );
-      case "degraded":
-        return (
-          <Badge variant="warning" className="gap-1.5 font-medium">
-            <AlertCircle className="size-3.5" />
-            Degraded
-          </Badge>
-        );
-      case "error":
-        return (
-          <Badge variant="destructive" className="gap-1.5 font-medium">
-            <ShieldAlert className="size-3.5" />
-            Error
-          </Badge>
-        );
-      case "unreachable":
-        return (
-          <Badge variant="destructive" className="gap-1.5 font-medium">
-            <AlertCircle className="size-3.5" />
-            Unreachable
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="gap-1.5 font-medium">
-            <Activity className="size-3.5" />
-            Unknown
-          </Badge>
-        );
-    }
-  };
+  const status: ServiceStatus = error
+    ? "unreachable"
+    : ((data?.status as ServiceStatus) ?? "unknown");
 
   return (
-    <Card className="flex flex-col justify-between border-border bg-card">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="space-y-1">
-          <CardTitle className="text-base font-semibold">{name}</CardTitle>
-          <CardDescription className="text-xs">
-            {data?.version ? `v${data.version}` : "Runtime Daemon"}
-          </CardDescription>
-        </div>
-        <div>{getStatusBadge()}</div>
+    <Card className="flex flex-col justify-between">
+      <CardHeader>
+        <CardTitle>{name}</CardTitle>
+        <CardDescription>
+          {data?.version ? `v${data.version}` : "Runtime Daemon"}
+        </CardDescription>
+        <CardAction>{renderStatusBadge(status)}</CardAction>
       </CardHeader>
-      <CardContent className="space-y-3 pt-4">
+      <CardContent>
         {error ? (
-          <div className="rounded-md bg-destructive/10 p-3 text-xs text-destructive">
+          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-xs">
             <p className="font-semibold">Service Unreachable</p>
-            <p className="mt-1 font-mono text-[11px] break-all">{error.message}</p>
+            <p className="mt-1 font-mono break-all">{error.message}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1.5">
               <Clock className="size-3.5" />
               <span>Uptime:</span>
-              <span className="font-mono font-medium text-foreground">
+              <span className="text-foreground font-mono font-medium">
                 {isLoading && !data ? (
                   <Skeleton className="h-4 w-12" />
                 ) : (
@@ -106,28 +123,30 @@ export function ServiceStatusCard({
                 )}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-1.5">
               <Activity className="size-3.5" />
               <span>Last Checked:</span>
-              <span className="font-mono text-[11px] text-foreground">
-                {mounted && data?.timestamp
-                  ? new Date(data.timestamp).toLocaleTimeString()
-                  : "--:--:--"}
+              <span className="text-foreground font-mono">
+                {formatTimestamp(data?.timestamp, mounted)}
               </span>
             </div>
           </div>
         )}
       </CardContent>
       {onRefresh && (
-        <CardFooter className="pt-2">
+        <CardFooter>
           <Button
             variant="outline"
             size="sm"
-            className="w-full text-xs"
+            className="w-full"
             onClick={onRefresh}
             disabled={isLoading}
           >
-            <RefreshCw className={`size-3 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={
+                isLoading ? "mr-1.5 size-3 animate-spin" : "mr-1.5 size-3"
+              }
+            />
             Refresh Status
           </Button>
         </CardFooter>

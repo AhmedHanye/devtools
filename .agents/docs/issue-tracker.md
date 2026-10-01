@@ -16,6 +16,7 @@ Issues and specs live as GitHub issues. Use the `gh` CLI for all operations. The
 External pull requests are not treated as feature requests. New features begin as issues.
 
 When inspecting pull requests:
+
 - Read a PR: `gh pr view <number> --json number,title,body,labels,comments` and `gh pr diff <number>` for the diff.
 - List PRs: `gh pr list --state open --json number,title,body,labels,author,comments`
 

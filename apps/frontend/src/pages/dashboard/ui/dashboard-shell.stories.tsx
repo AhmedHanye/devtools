@@ -15,7 +15,7 @@ export const Default: Story = {
     title: "DevTools System Dashboard",
     description: "Single-process loopback daemon runtime & service monitor",
     children: (
-      <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+      <div className="border-border text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
         Dashboard content area
       </div>
     ),

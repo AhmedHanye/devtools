@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { API_ERROR_CODES, ApiErrorResponseSchema, HealthResponseSchema } from "@devtools/core";
+import {
+  API_ERROR_CODES,
+  ApiErrorResponseSchema,
+  HealthResponseSchema,
+} from "@devtools/core";
 import { app, createApp } from "../src/index";
 
 describe("Health API Endpoint (/api/health)", () => {
@@ -64,7 +68,9 @@ describe("Health API Endpoint (/api/health)", () => {
         "Access-Control-Request-Method": "GET",
       },
     });
-    expect(resLocalhost.headers.get("access-control-allow-origin")).toBe("http://localhost:3000");
+    expect(resLocalhost.headers.get("access-control-allow-origin")).toBe(
+      "http://localhost:3000",
+    );
 
     const resLoopbackIp = await app.request("/api/health", {
       method: "OPTIONS",
@@ -73,7 +79,9 @@ describe("Health API Endpoint (/api/health)", () => {
         "Access-Control-Request-Method": "GET",
       },
     });
-    expect(resLoopbackIp.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:5173");
+    expect(resLoopbackIp.headers.get("access-control-allow-origin")).toBe(
+      "http://127.0.0.1:5173",
+    );
 
     const resExternal = await app.request("/api/health", {
       method: "OPTIONS",

@@ -31,6 +31,7 @@ Follow Conventional Commits:
 Do not include issue references (e.g. `(#123)`) in commit subjects. Issue tracking and closing are handled at the Pull Request level to keep commit histories clean and avoid issue timeline clutter.
 
 Examples:
+
 - `feat(server): add initial health check endpoint`
 - `fix(web): resolve layout shift on mobile viewports`
 - `chore(ci): update workflow dependencies`

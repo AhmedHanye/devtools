@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { API_ERROR_CODES, type ApiErrorResponse, ApiErrorResponseSchema } from "../src/errors";
+import {
+  API_ERROR_CODES,
+  type ApiErrorResponse,
+  ApiErrorResponseSchema,
+} from "../src/errors";
 
 describe("API_ERROR_CODES", () => {
   it("defines standard HTTP/RPC error codes", () => {
@@ -30,7 +34,9 @@ describe("ApiErrorResponseSchema", () => {
         details: { entity: "task", id: 42 },
       },
     };
-    expect(ApiErrorResponseSchema.parse(withObjectDetails)).toEqual(withObjectDetails);
+    expect(ApiErrorResponseSchema.parse(withObjectDetails)).toEqual(
+      withObjectDetails,
+    );
 
     const withArrayDetails: ApiErrorResponse = {
       error: {
@@ -39,7 +45,9 @@ describe("ApiErrorResponseSchema", () => {
         details: ["field 'port' must be >= 1"],
       },
     };
-    expect(ApiErrorResponseSchema.parse(withArrayDetails)).toEqual(withArrayDetails);
+    expect(ApiErrorResponseSchema.parse(withArrayDetails)).toEqual(
+      withArrayDetails,
+    );
   });
 
   it("rejects empty code or empty message", () => {

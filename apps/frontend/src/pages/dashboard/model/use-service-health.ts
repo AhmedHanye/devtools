@@ -9,7 +9,10 @@ export interface UseServiceHealthOptions {
   pollingInterval?: number;
   initialData?: HealthResponse;
   autoFetch?: boolean;
-  fetchFn?: (options?: { endpoint?: string; signal?: AbortSignal }) => Promise<HealthResponse>;
+  fetchFn?: (options?: {
+    endpoint?: string;
+    signal?: AbortSignal;
+  }) => Promise<HealthResponse>;
 }
 
 export interface UseServiceHealthResult {
@@ -20,7 +23,9 @@ export interface UseServiceHealthResult {
   isPolling: boolean;
 }
 
-export function useServiceHealth(options: UseServiceHealthOptions = {}): UseServiceHealthResult {
+export function useServiceHealth(
+  options: UseServiceHealthOptions = {},
+): UseServiceHealthResult {
   const {
     endpoint = "/api/health",
     pollingInterval = 0,

@@ -71,7 +71,9 @@ describe("Dashboard UI components", () => {
     );
 
     expect(screen.getByText("Unreachable")).toBeDefined();
-    expect(screen.getByText("Failed to reach daemon at 127.0.0.1:4000")).toBeDefined();
+    expect(
+      screen.getByText("Failed to reach daemon at 127.0.0.1:4000"),
+    ).toBeDefined();
   });
 
   it("calls onRefresh when refresh button is clicked", () => {

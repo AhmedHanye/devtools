@@ -25,7 +25,8 @@ export function resolveServerConfig(options: StartServerOptions = {}): {
   }
 
   const rawPort =
-    options.port ?? (process.env.PORT ? Number.parseInt(process.env.PORT, 10) : undefined);
+    options.port ??
+    (process.env.PORT ? Number.parseInt(process.env.PORT, 10) : undefined);
   const rawHost = options.hostname ?? process.env.HOST;
 
   const validated = RuntimeConfigSchema.parse({
@@ -63,7 +64,9 @@ if (import.meta.main) {
   const config = resolveServerConfig();
   try {
     const instance = startServer(config);
-    console.log(`Server listening on http://${instance.server.hostname}:${instance.port}`);
+    console.log(
+      `Server listening on http://${instance.server.hostname}:${instance.port}`,
+    );
 
     const shutdown = () => {
       console.log("Shutting down server...");
@@ -78,7 +81,8 @@ if (import.meta.main) {
       err &&
       typeof err === "object" &&
       (("code" in err && (err as { code?: string }).code === "EADDRINUSE") ||
-        ("message" in err && String((err as { message?: string }).message).includes("in use")))
+        ("message" in err &&
+          String((err as { message?: string }).message).includes("in use")))
     ) {
       console.error(
         `Port ${config.port} is already in use. Set PORT=<port> to use an alternate port.`,

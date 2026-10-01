@@ -3,17 +3,20 @@ import { cn } from "./cn";
 
 describe("cn utility", () => {
   it("merges class names correctly", () => {
-    expect(cn("bg-red-500", "text-white")).toBe("bg-red-500 text-white");
+    expect(cn("bg-primary", "text-primary-foreground")).toBe(
+      "bg-primary text-primary-foreground",
+    );
   });
 
   it("handles conditional classes and falsy values", () => {
-    expect(cn("base-class", false && "hidden", null, undefined, "active")).toBe(
-      "base-class active",
-    );
+    const isHidden = false;
+    expect(
+      cn("flex", isHidden && "hidden", null, undefined, "items-center"),
+    ).toBe("flex items-center");
   });
 
   it("resolves conflicting tailwind classes with twMerge", () => {
     expect(cn("p-4", "p-2")).toBe("p-2");
-    expect(cn("bg-red-500", "bg-blue-500")).toBe("bg-blue-500");
+    expect(cn("bg-primary", "bg-destructive")).toBe("bg-destructive");
   });
 });

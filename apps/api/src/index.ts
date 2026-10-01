@@ -9,7 +9,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import pkg from "../package.json" with { type: "json" };
 
-const APP_VERSION = typeof pkg.version === "string" && pkg.version ? pkg.version : "0.1.0";
+const APP_VERSION =
+  typeof pkg.version === "string" && pkg.version ? pkg.version : "0.1.0";
 
 function isLoopbackOrigin(origin: string): boolean {
   try {
@@ -50,20 +51,32 @@ export function createApp(options: CreateAppOptions = {}) {
         }
         return null;
       },
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
+      allowMethods: [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD",
+      ],
       allowHeaders: ["Content-Type", "Authorization"],
     }),
   );
 
   app.notFound((c) => {
     return c.json(
-      formatError(API_ERROR_CODES.NOT_FOUND, `Route not found: ${c.req.method} ${c.req.path}`),
+      formatError(
+        API_ERROR_CODES.NOT_FOUND,
+        `Route not found: ${c.req.method} ${c.req.path}`,
+      ),
       404,
     );
   });
 
   app.onError((err, c) => {
-    const message = err instanceof Error ? err.message : "Internal Server Error";
+    const message =
+      err instanceof Error ? err.message : "Internal Server Error";
     return c.json(formatError(API_ERROR_CODES.INTERNAL_ERROR, message), 500);
   });
 

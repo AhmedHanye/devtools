@@ -42,7 +42,9 @@ describe("useServiceHealth hook", () => {
   });
 
   it("captures errors when fetch fails without crashing", async () => {
-    const mockFetcher = vi.fn().mockRejectedValue(new Error("Network connection refused"));
+    const mockFetcher = vi
+      .fn()
+      .mockRejectedValue(new Error("Network connection refused"));
 
     const { result } = renderHook(() =>
       useServiceHealth({

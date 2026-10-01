@@ -3,18 +3,26 @@
   "private": true,
   "type": "module",
   "packageManager": "bun@1.2.4",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "check": "biome check .",
-    "check:fix": "biome check --write .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "oxlint . && prettier --check .",
     "typecheck": "bun --filter '*' typecheck",
     "test": "bun --filter '*' test",
-    "lint": "biome lint .",
-    "format": "biome format --write ."
+    "lint:design": "bun --filter '@devtools/frontend' lint:design"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@shadcn/lint": "^0.2.0",
     "@types/bun": "latest",
+    "oxlint": "^1.86.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "^5.7.3"
   }
 }
