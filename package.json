@@ -15,7 +15,7 @@
     "check": "oxlint . && prettier --check .",
     "typecheck": "bun --filter '*' typecheck",
     "test": "bun --filter '*' test",
-    "lint:design": "bun --filter '@devtools/frontend' lint:design"
+    "verify": "bun run check && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run typecheck && bun run test"
   },
   "devDependencies": {
     "@types/bun": "latest",

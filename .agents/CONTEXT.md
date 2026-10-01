@@ -43,3 +43,23 @@ _Avoid_: Session notes, handover, status report
 **Research Spike**:
 A time-boxed investigation of primary sources in `.scratch/research/` that terminates by recording a decision in an ADR.
 _Avoid_: Whitepaper, study, agent research doc
+
+**Workspace Root**:
+The top-level project container holding repository-wide developer tooling, formatting, and the shared TypeScript compiler.
+_Avoid_: Root app, root module
+
+**Leaf Workspace**:
+An isolated application (`apps/*`) or shared library package (`packages/*`) with its own package manifest and boundary.
+_Avoid_: Sub-project, sub-repo
+
+**Direct Dependency**:
+A package declared explicitly in a workspace's own `package.json`.
+_Avoid_: Global dependency, inherited package
+
+**Phantom Dependency**:
+An undeclared package imported inside a workspace that resolves only through parent or sibling hoisting.
+_Avoid_: Implicit import, ghost package
+
+**Shared Core**:
+The `@devtools/core` package providing domain schemas, types, and error definitions used across multiple packages.
+_Avoid_: Common UI, frontend core
