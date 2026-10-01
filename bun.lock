@@ -11,15 +11,27 @@
     },
     "apps/api": {
       "name": "@devtools/api",
+      "dependencies": {
+        "@devtools/core": "workspace:*",
+      },
     },
     "apps/cli": {
       "name": "@devtools/cli",
+      "dependencies": {
+        "@devtools/core": "workspace:*",
+      },
     },
     "apps/frontend": {
       "name": "@devtools/frontend",
+      "dependencies": {
+        "@devtools/core": "workspace:*",
+      },
     },
     "packages/core": {
       "name": "@devtools/core",
+      "dependencies": {
+        "zod": "^3.24.2",
+      },
     },
   },
   "packages": {
@@ -58,5 +70,7 @@
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
+
+    "zod": ["zod@3.25.76", "", {}, "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="],
   }
 }
