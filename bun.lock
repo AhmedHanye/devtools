@@ -13,6 +13,7 @@
       "name": "@devtools/api",
       "dependencies": {
         "@devtools/core": "workspace:*",
+        "hono": "^4.13.12",
       },
     },
     "apps/cli": {
@@ -66,6 +67,8 @@
     "@types/node": ["@types/node@26.6.3", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg=="],
 
     "bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
+
+    "hono": ["hono@4.13.12", "", {}, "sha512-PMZkdxWdFVefl7Y1cWQ65wd3qZYUctDkJC2GoZPENY80HpK01a9F8uDKqJQHUWwEdpQFYy7zC2CkY0P7rnIwVQ=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
