@@ -18,7 +18,6 @@
     "lint:design": "bun --filter '@devtools/frontend' lint:design"
   },
   "devDependencies": {
-    "@shadcn/lint": "^0.2.0",
     "@types/bun": "latest",
     "oxlint": "^1.86.0",
     "prettier": "^3.9.9",
