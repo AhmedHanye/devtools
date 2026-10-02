@@ -1,7 +1,6 @@
 import { HealthResponseSchema } from "@devtools/core";
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_HEALTH_FALLBACK } from "./fixtures";
-import { fetchServiceHealth } from "./health-client";
+import { DEFAULT_HEALTH_FALLBACK, fetchServiceHealth } from "./health-client";
 
 describe("health client & fixtures", () => {
   it("validates DEFAULT_HEALTH_FALLBACK against domain HealthResponseSchema", () => {
