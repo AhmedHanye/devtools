@@ -18,3 +18,10 @@ storybook-static/
 # OS files
 .DS_Store
 Thumbs.db
+
+# SQLite local databases and write-ahead logs
+.devtools/
+.data/
+*.db
+*.db-wal
+*.db-shm
