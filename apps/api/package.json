@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "bun run src/server.ts",
-    "dev": "bun --watch src/server.ts",
+    "dev": "PORT=4000 bun --watch src/server.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

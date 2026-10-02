@@ -4,6 +4,7 @@ import { app } from "./index";
 
 export interface StartServerOptions {
   port?: number;
+  host?: string;
   hostname?: string;
 }
 
@@ -17,9 +18,11 @@ export function resolveServerConfig(options: StartServerOptions = {}): {
   host: string;
   port: number;
 } {
+  const hostInput = options.host ?? options.hostname ?? process.env.HOST;
+
   if (options.port === 0) {
     return {
-      host: options.hostname ?? "127.0.0.1",
+      host: hostInput ?? "127.0.0.1",
       port: 0,
     };
   }
@@ -27,11 +30,10 @@ export function resolveServerConfig(options: StartServerOptions = {}): {
   const rawPort =
     options.port ??
     (process.env.PORT ? Number.parseInt(process.env.PORT, 10) : undefined);
-  const rawHost = options.hostname ?? process.env.HOST;
 
   const validated = RuntimeConfigSchema.parse({
     ...(rawPort !== undefined ? { port: rawPort } : {}),
-    ...(rawHost !== undefined ? { host: rawHost } : {}),
+    ...(hostInput !== undefined ? { host: hostInput } : {}),
   });
 
   return {
