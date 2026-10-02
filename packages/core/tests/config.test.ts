@@ -23,13 +23,12 @@ describe("RuntimeConfigSchema", () => {
     expect(parsed).toEqual(customConfig);
   });
 
-  it("accepts port boundaries at 1 and 65535", () => {
-    expect(RuntimeConfigSchema.parse({ port: 1 }).port).toBe(1);
+  it("accepts port boundaries at 0 and 65535", () => {
+    expect(RuntimeConfigSchema.parse({ port: 0 }).port).toBe(0);
     expect(RuntimeConfigSchema.parse({ port: 65535 }).port).toBe(65535);
   });
 
-  it("rejects port numbers outside valid 1-65535 range", () => {
-    expect(() => RuntimeConfigSchema.parse({ port: 0 })).toThrow();
+  it("rejects port numbers outside valid 0-65535 range", () => {
     expect(() => RuntimeConfigSchema.parse({ port: -1 })).toThrow();
     expect(() => RuntimeConfigSchema.parse({ port: 65536 })).toThrow();
     expect(() => RuntimeConfigSchema.parse({ port: 100000 })).toThrow();
