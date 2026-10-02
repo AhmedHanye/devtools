@@ -22,7 +22,7 @@ Architectural rules and development standards for `apps/frontend`.
    - Control component appearance with component variants (`variant="outline"`, `size="sm"`). Use `className` on components strictly for layout, alignment, and positioning (`flex`, `grid`, `gap-*`, `m-*`).
    - Declare static class names with theme utilities instead of dynamic string interpolation or arbitrary bracket values.
    - Use `flex gap-*` and `grid gap-*` for element layout. Use `size-*` utilities for symmetric dimensions.
-3. Express distinct component states through specialized variant components (`<CompactStatusCard />`, `<EditStatusCard />`) instead of multi-state boolean flags.
+3. Express distinct component states through specialized variant components instead of multi-state boolean flags.
 4. Pass layout content through `children` and compound components. Use render callback props for dynamic list iteration.
 5. React 19 patterns:
    - Pass `ref` as a standard prop in the component interface.
@@ -34,7 +34,7 @@ Architectural rules and development standards for `apps/frontend`.
 1. Guard client-only subtrees with `useIsMounted()` from `@/shared/lib`, using `useSyncExternalStore` for tear-free hydration.
 2. Read client search parameters through `useNativeSearchParams()` from `@/shared/lib` to preserve static prerendering without top-level Suspense boundaries.
 3. Guard browser globals (`window`, `document`, `localStorage`, `sessionStorage`) with `typeof window !== "undefined"`. Wrap storage access with in-memory fallbacks for server-side evaluation.
-4. Supply deterministic static fallback fixtures (such as `DEFAULT_HEALTH_FALLBACK`) in data hooks and clients for static export generation.
+4. Model initial cold loads with explicit loading skeletons; defer live telemetry rendering to verified async fetch results.
 
 ## State and asynchronous boundaries
 
@@ -42,7 +42,8 @@ Architectural rules and development standards for `apps/frontend`.
 2. Derive calculated state synchronously during rendering. Synchronize with effects strictly for external imperative subscriptions and browser APIs.
 3. Declare Zod schemas statically at module scope for schema caching and type inference.
 4. In hooks managing polling lifecycles, scope an `AbortController` per tick and abort in-flight requests on unmount.
-5. Declare pure helper functions and formatters that do not close over component state at module scope.
+5. Wrap event callbacks passed to fetch handlers to ensure DOM event arguments are discarded before reaching `AbortSignal` parameters.
+6. Declare pure helper functions and formatters that do not close over component state at module scope.
 
 ## Verification pipeline
 

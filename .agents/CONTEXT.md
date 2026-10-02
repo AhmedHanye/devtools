@@ -1,8 +1,20 @@
 # DevTools
 
-Developer tooling monorepo providing development utilities and workflows.
+Developer tooling monorepo providing development utilities and workflows across CLI, daemon, API, and frontend interfaces.
 
 ## Language
+
+**Daemon**:
+The single production Bun process that serves compiled frontend static assets and routes API requests in-process on a single port.
+_Avoid_: Background worker, service runner
+
+**Runtime Stack**:
+The interconnected pipeline linking CLI commands, local daemon, Hono API routes, and Next.js static frontend.
+_Avoid_: App bundle, platform
+
+**Slice Boundary**:
+The explicit encapsulation boundary (`index.ts`) of an architectural slice, exposing only its root entry point.
+_Avoid_: Export barrel, module index
 
 **Spec**:
 A high-level capability specification tracking a milestone or major feature. Contains child tickets and holds the release milestone.
