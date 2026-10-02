@@ -1,13 +1,15 @@
 "use client";
 
-import { DEFAULT_HEALTH_FALLBACK, fetchServiceHealth } from "@/shared/api";
+import { fetchServiceHealth } from "@/shared/api";
 import type { HealthResponse } from "@devtools/core";
 import { useCallback, useEffect, useState } from "react";
+
+export type ServiceHealthStatus = "idle" | "loading" | "success" | "error";
 
 export interface UseServiceHealthOptions {
   endpoint?: string;
   pollingInterval?: number;
-  initialData?: HealthResponse;
+  initialData?: HealthResponse | null;
   autoFetch?: boolean;
   fetchFn?: (options?: {
     endpoint?: string;
@@ -16,8 +18,8 @@ export interface UseServiceHealthOptions {
 }
 
 export interface UseServiceHealthResult {
+  status: ServiceHealthStatus;
   data: HealthResponse | null;
-  isLoading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
   isPolling: boolean;
@@ -29,31 +31,40 @@ export function useServiceHealth(
   const {
     endpoint = "/api/health",
     pollingInterval = 0,
-    initialData = DEFAULT_HEALTH_FALLBACK,
+    initialData = null,
     autoFetch = true,
     fetchFn = fetchServiceHealth,
   } = options;
 
+  const [status, setStatus] = useState<ServiceHealthStatus>(() =>
+    initialData ? "success" : autoFetch ? "loading" : "idle",
+  );
   const [data, setData] = useState<HealthResponse | null>(initialData);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
 
   const executeFetch = useCallback(
-    async (signal?: AbortSignal) => {
-      setIsLoading(true);
+    async (signalOrEvent?: unknown) => {
+      const signal =
+        signalOrEvent instanceof AbortSignal ? signalOrEvent : undefined;
+
+      setStatus("loading");
       try {
         const result = await fetchFn({ endpoint, signal });
         setData(result);
         setError(null);
+        setStatus("success");
       } catch (err: unknown) {
         if (signal?.aborted) return;
         setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setIsLoading(false);
+        setStatus("error");
       }
     },
     [endpoint, fetchFn],
   );
+
+  const refresh = useCallback(async () => {
+    await executeFetch();
+  }, [executeFetch]);
 
   useEffect(() => {
     if (!autoFetch) {
@@ -82,10 +93,10 @@ export function useServiceHealth(
   }, [autoFetch, executeFetch, pollingInterval]);
 
   return {
+    status,
     data,
-    isLoading,
     error,
-    refresh: executeFetch,
+    refresh,
     isPolling: pollingInterval > 0 && autoFetch,
   };
 }
