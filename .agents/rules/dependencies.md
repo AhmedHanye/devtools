@@ -13,7 +13,7 @@ Rules for package management, workspace boundaries, and dependency placement acr
 
 ## Workspace roles
 
-1. The workspace root holds only repository orchestration tools (`oxlint`, `prettier`, `typescript`, `@types/bun`). It holds zero application runtime packages.
+1. The workspace root holds only repository orchestration and static analysis tools (for example, `oxlint`, `prettier`, `typescript`, `fallow`, `@types/bun`). It holds zero application runtime packages.
 2. Each leaf workspace (`apps/*`, `packages/*`) manages its own runtime and build dependencies in its own `package.json`.
 3. The shared core package (`packages/core`) provides domain schemas, types, and error definitions. It never holds frontend-specific types, UI components, or browser APIs. Leaf applications consume it via the `workspace:*` protocol.
 

@@ -19,3 +19,4 @@
 - **Git commit & push checkpoint**: Require explicit confirmation from the user before executing `git commit`, `git push`, or opening pull requests. Present `git status` and a compact summary (`git diff --stat`) for review prior to committing or pushing; omit raw diffs.
 - **Immutable locked skills**: Treat all skills declared in `skills-lock.json` (`.agents/skills/*`) as vendor-managed, read-only assets.
 - **Escalation**: When requirements are ambiguous or tests fail repeatedly, apply `needs-human-review`, post a blocker summary, and yield execution.
+- **Package manager & runner**: Always use `bun` and `bunx` exclusively instead of `npm`, `npx`, `pnpm`, or `yarn`.
