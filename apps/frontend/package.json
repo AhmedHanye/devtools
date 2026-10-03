@@ -11,7 +11,8 @@
     "lint:fsd": "steiger ./src",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint:design": "oxlint -c .oxlintrc.json"
+    "lint:design": "oxlint -c .oxlintrc.json",
+    "doctor": "react-doctor"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -34,7 +35,9 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "happy-dom": "^20.14.5",
+    "oxlint-plugin-react-doctor": "^0.9.14",
     "postcss": "^8.5.28",
+    "react-doctor": "^0.9.14",
     "steiger": "^0.7.0",
     "storybook": "^10.6.1",
     "tailwindcss": "^4.3.3",
