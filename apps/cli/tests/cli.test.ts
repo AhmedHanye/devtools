@@ -2,43 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
 import { HealthResponseSchema } from "@devtools/core";
 import { createProgram, runWebCommand } from "../src/cli";
+import { getFreePort, waitForServer } from "./support/network";
 
 const binPath = resolve(__dirname, "../bin/devtools.js");
-
-function getFreePort(): number {
-  const temp = Bun.serve({
-    port: 0,
-    hostname: "127.0.0.1",
-    fetch() {
-      return new Response();
-    },
-  });
-  const port = temp.port ?? 0;
-  temp.stop(true);
-  if (port === 0) {
-    throw new Error("Failed to allocate ephemeral port");
-  }
-  return port;
-}
-
-async function waitForServer(
-  port: number,
-  host = "127.0.0.1",
-  maxRetries = 40,
-  intervalMs = 50,
-): Promise<boolean> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const res = await fetch(`http://${host}:${port}/api/health`);
-      if (res.status === 200) {
-        return true;
-      }
-    } catch {
-      await Bun.sleep(intervalMs);
-    }
-  }
-  return false;
-}
 
 describe("CLI Subprocess Integration Tests", () => {
   test("boots daemon via 'devtools web --port <port> --host 127.0.0.1', serves routes, and exits code 0 on SIGTERM", async () => {

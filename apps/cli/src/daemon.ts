@@ -2,7 +2,9 @@ import { existsSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { createApp } from "@devtools/api";
 import { RuntimeConfigSchema } from "@devtools/core";
+import { db, resolveDatabasePath, runMigrations } from "@devtools/db";
 import type { Server } from "bun";
+import pc from "picocolors";
 
 export interface StartDaemonOptions {
   port?: number;
@@ -52,18 +54,6 @@ export function resolveDaemonConfig(options: StartDaemonOptions = {}): {
         : undefined;
   const rawHost = options.host ?? process.env.HOST;
   const rawStaticDir = options.staticDir ?? process.env.DEVTOOLS_STATIC_DIR;
-
-  if (rawPort === 0) {
-    const validated = RuntimeConfigSchema.parse({
-      ...(rawHost !== undefined ? { host: rawHost } : {}),
-      ...(rawStaticDir !== undefined ? { staticDir: rawStaticDir } : {}),
-    });
-    return {
-      host: validated.host,
-      port: 0,
-      staticDir: validated.staticDir,
-    };
-  }
 
   const validated = RuntimeConfigSchema.parse({
     ...(rawPort !== undefined ? { port: rawPort } : {}),
@@ -155,6 +145,17 @@ export function startDaemon(options: StartDaemonOptions = {}): DaemonInstance {
       `Static assets directory not found at "${staticDir}". Run "bun run build" in @devtools/frontend to generate static assets, or pass --static-dir <path>.`,
     );
   }
+
+  try {
+    runMigrations(db);
+  } catch (error) {
+    console.error("Fatal: failed to initialize persistence database:", error);
+    process.exit(1);
+  }
+
+  console.log(
+    pc.dim(`Persistence initialized: SQLite (${resolveDatabasePath()})`),
+  );
 
   const api = createApp({ basePath: "/api" });
 

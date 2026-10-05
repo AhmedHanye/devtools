@@ -145,7 +145,7 @@ export function DashboardPage({ autoFetch = true }: DashboardPageProps) {
 
   return (
     <DashboardShell host={host}>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Active Services</h2>
           <p className="text-muted-foreground text-sm">

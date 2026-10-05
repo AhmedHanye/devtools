@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ApiErrorResponseSchema, HealthResponseSchema } from "@devtools/core";
+import { db, resetDb, systemMetadata } from "@devtools/db";
 import {
   type DaemonInstance,
   resolveDaemonConfig,
@@ -18,6 +19,14 @@ describe("Unified Loopback Daemon Lifecycle and Routing", () => {
       await activeDaemon.stop();
       activeDaemon = null;
     }
+    resetDb();
+  });
+
+  test("initializes persistence database migrations on daemon startup", async () => {
+    resetDb();
+    activeDaemon = startDaemon({ port: 0, host: "127.0.0.1" });
+    const records = await db.select().from(systemMetadata);
+    expect(Array.isArray(records)).toBe(true);
   });
 
   test("boots on ephemeral port 0 and co-locates static assets and API routes", async () => {
@@ -188,6 +197,10 @@ describe("Daemon Configuration & Static Directory Resolution", () => {
     const config = resolveDaemonConfig({ port: 0 });
     expect(config.port).toBe(0);
     expect(config.host).toBe("127.0.0.1");
+  });
+
+  test("resolveDaemonConfig uniformly validates host even with port 0", () => {
+    expect(() => resolveDaemonConfig({ port: 0, host: "" })).toThrow();
   });
 
   test("resolveStaticDir resolves explicit custom path and env overrides", () => {

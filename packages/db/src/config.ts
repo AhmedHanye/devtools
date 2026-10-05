@@ -1,10 +1,43 @@
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
 export interface DatabaseConfig {
   path: string;
   isMemory: boolean;
+}
+
+/**
+ * Walks up from startDir to discover the monorepo workspace root
+ * by looking for .git or a package.json containing "workspaces".
+ */
+export function findWorkspaceRoot(
+  startDir: string = process.cwd(),
+): string | null {
+  let current = resolve(startDir);
+  while (true) {
+    if (existsSync(join(current, ".git"))) {
+      return current;
+    }
+    const pkgPath = join(current, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const content = readFileSync(pkgPath, "utf-8");
+        const parsed = JSON.parse(content);
+        if (parsed && parsed.workspaces) {
+          return current;
+        }
+      } catch {
+        // Ignore read/parse errors
+      }
+    }
+    const parent = dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return null;
 }
 
 /**
@@ -37,9 +70,10 @@ export function resolveDatabasePath(customPath?: string): string {
     return ":memory:";
   }
 
-  // 3. Local Development (Django-style in-repo database)
+  // 3. Local Development (Django-style in-repo database anchored to workspace root)
   if (process.env.NODE_ENV !== "production") {
-    const devDbPath = resolve(process.cwd(), ".devtools", "devtools.db");
+    const root = findWorkspaceRoot() ?? process.cwd();
+    const devDbPath = resolve(root, ".devtools", "devtools.db");
     return ensureParentDirectory(devDbPath);
   }
 

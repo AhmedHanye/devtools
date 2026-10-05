@@ -13,7 +13,11 @@ export {
   createConnection,
   type ConnectionOptions,
 } from "./connection";
-export { resolveDatabasePath, type DatabaseConfig } from "./config";
+export {
+  resolveDatabasePath,
+  findWorkspaceRoot,
+  type DatabaseConfig,
+} from "./config";
 export { runMigrations, type MigrationOptions } from "./migrator";
 
 // Schema exports

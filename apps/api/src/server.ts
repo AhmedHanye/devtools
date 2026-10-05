@@ -20,13 +20,6 @@ export function resolveServerConfig(options: StartServerOptions = {}): {
 } {
   const hostInput = options.host ?? options.hostname ?? process.env.HOST;
 
-  if (options.port === 0) {
-    return {
-      host: hostInput ?? "127.0.0.1",
-      port: 0,
-    };
-  }
-
   const rawPort =
     options.port ??
     (process.env.PORT ? Number.parseInt(process.env.PORT, 10) : undefined);

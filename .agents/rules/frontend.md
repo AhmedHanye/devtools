@@ -21,7 +21,6 @@ Architectural rules and development standards for `apps/frontend`.
    - Use semantic theme tokens (`bg-primary`, `text-muted-foreground`, `bg-background`, `border-border`).
    - Control component appearance with component variants (`variant="outline"`, `size="sm"`). Use `className` on components strictly for layout, alignment, and positioning (`flex`, `grid`, `gap-*`, `m-*`).
    - Declare static class names with theme utilities instead of dynamic string interpolation or arbitrary bracket values.
-   - Use `flex gap-*` and `grid gap-*` for element layout. Use `size-*` utilities for symmetric dimensions.
 3. Express distinct component states through specialized variant components instead of multi-state boolean flags.
 4. Pass layout content through `children` and compound components. Use render callback props for dynamic list iteration.
 5. React 19 patterns:

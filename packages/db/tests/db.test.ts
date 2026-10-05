@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import {
   createDb,
   createSqliteConnection,
   db,
   eq,
+  findWorkspaceRoot,
   getDb,
   integer,
   resetDb,
@@ -74,6 +75,31 @@ describe("Database Configuration & Path Resolution", () => {
     const resolved = resolveDatabasePath();
     expect(resolved).toContain(".devtools");
     expect(resolved.endsWith("devtools.db")).toBe(true);
+  });
+
+  it("findWorkspaceRoot discovers monorepo root from nested subdirectories", () => {
+    const repoRoot = resolve(__dirname, "../../..");
+    const nestedDir = join(__dirname, "../src/schema");
+    expect(findWorkspaceRoot(nestedDir)).toBe(repoRoot);
+  });
+
+  it("anchors development database to workspace root even when running from nested cwd", () => {
+    delete process.env.DEVTOOLS_DB_PATH;
+    delete process.env.DATABASE_URL;
+    process.env.NODE_ENV = "development";
+    delete process.env.BUN_ENV;
+
+    const originalCwd = process.cwd();
+    const repoRoot = resolve(__dirname, "../../..");
+    const nestedSubdir = join(__dirname, "../src");
+
+    try {
+      process.chdir(nestedSubdir);
+      const resolved = resolveDatabasePath();
+      expect(resolved).toBe(join(repoRoot, ".devtools", "devtools.db"));
+    } finally {
+      process.chdir(originalCwd);
+    }
   });
 });
 
