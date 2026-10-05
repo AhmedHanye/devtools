@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   createDb,
   createSqliteConnection,
+  db,
   eq,
   getDb,
   integer,
@@ -185,6 +186,19 @@ describe("Migrations & Database Client Operations", () => {
     const db2 = getDb();
     expect(db1).toBe(db2);
     resetDb();
+  });
+
+  it("proxies db export dynamically and re-instantiates cleanly after resetDb()", () => {
+    resetDb();
+    const firstInstance = getDb();
+    // Access property on db proxy
+    expect(db.query).toBeDefined();
+    // Reset db clears singleton
+    resetDb();
+    const secondInstance = getDb();
+    expect(firstInstance).not.toBe(secondInstance);
+    // db proxy continues to work against the new instance without throwing
+    expect(db.query).toBeDefined();
   });
 });
 

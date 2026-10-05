@@ -1,18 +1,7 @@
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/shared/lib/cn";
-
-const skeletonVariants = cva("bg-muted animate-pulse", {
-  variants: {
-    variant: {
-      default: "rounded-md",
-      card: "rounded-xl",
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-  },
-});
+import type { VariantProps } from "class-variance-authority";
+import { cn } from "@/shared/lib";
+import { skeletonVariants } from "./skeleton.variants";
 
 function Skeleton({
   className,
@@ -28,4 +17,4 @@ function Skeleton({
   );
 }
 
-export { Skeleton, skeletonVariants };
+export { Skeleton };

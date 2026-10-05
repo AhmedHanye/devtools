@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
 import { HealthResponseSchema } from "@devtools/core";
+import { createProgram, runWebCommand } from "../src/cli";
 
 const binPath = resolve(__dirname, "../bin/devtools.js");
 
@@ -195,5 +196,35 @@ describe("CLI Subprocess Integration Tests", () => {
     } finally {
       proc.kill();
     }
+  });
+});
+
+describe("CLI Command Structure & Parser Unit Tests", () => {
+  test("createProgram initializes command options and metadata", () => {
+    const program = createProgram();
+    expect(program.name()).toBe("devtools");
+    expect(program.version()).toBe("0.1.0");
+
+    const webCommand = program.commands.find((cmd) => cmd.name() === "web");
+    expect(webCommand).toBeDefined();
+
+    const optionNames = webCommand?.options.map((opt) => opt.name());
+    expect(optionNames).toContain("port");
+    expect(optionNames).toContain("host");
+    expect(optionNames).toContain("static-dir");
+  });
+
+  test("createProgram parses web options accurately", () => {
+    const program = createProgram();
+    program.parse(["web", "--port", "5000", "--host", "0.0.0.0"], {
+      from: "user",
+    });
+    const webCommand = program.commands.find((cmd) => cmd.name() === "web");
+    expect(webCommand?.opts().port).toBe(5000);
+    expect(webCommand?.opts().host).toBe("0.0.0.0");
+  });
+
+  test("runWebCommand exports correctly as a callable async function", () => {
+    expect(typeof runWebCommand).toBe("function");
   });
 });

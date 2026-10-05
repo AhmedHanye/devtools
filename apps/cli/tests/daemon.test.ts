@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { ApiErrorResponseSchema, HealthResponseSchema } from "@devtools/core";
 import {
   type DaemonInstance,
+  resolveDaemonConfig,
+  resolveStaticDir,
   serveStaticAsset,
   startDaemon,
 } from "../src/daemon";
@@ -142,5 +144,58 @@ describe("Unified Loopback Daemon Lifecycle and Routing", () => {
     }).toThrow(
       'Static assets directory not found at "/nonexistent/static/path". Run "bun run build" in @devtools/frontend to generate static assets, or pass --static-dir <path>.',
     );
+  });
+});
+
+describe("Daemon Configuration & Static Directory Resolution", () => {
+  const originalEnv = { ...process.env };
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  test("resolveDaemonConfig returns defaults when options and env are empty", () => {
+    delete process.env.PORT;
+    delete process.env.HOST;
+    delete process.env.DEVTOOLS_STATIC_DIR;
+
+    const config = resolveDaemonConfig({});
+    expect(config.host).toBe("127.0.0.1");
+    expect(config.port).toBe(4000);
+    expect(config.staticDir).toBeUndefined();
+  });
+
+  test("resolveDaemonConfig respects explicit options over env", () => {
+    process.env.PORT = "3000";
+    process.env.HOST = "10.0.0.1";
+
+    const config = resolveDaemonConfig({ port: 5000, host: "0.0.0.0" });
+    expect(config.host).toBe("0.0.0.0");
+    expect(config.port).toBe(5000);
+  });
+
+  test("resolveDaemonConfig respects environment overrides", () => {
+    process.env.PORT = "4500";
+    process.env.HOST = "192.168.1.50";
+
+    const config = resolveDaemonConfig({});
+    expect(config.host).toBe("192.168.1.50");
+    expect(config.port).toBe(4500);
+  });
+
+  test("resolveDaemonConfig supports ephemeral port 0", () => {
+    delete process.env.HOST;
+    const config = resolveDaemonConfig({ port: 0 });
+    expect(config.port).toBe(0);
+    expect(config.host).toBe("127.0.0.1");
+  });
+
+  test("resolveStaticDir resolves explicit custom path and env overrides", () => {
+    const custom = resolveStaticDir("/custom/test/dir");
+    expect(custom).toContain("custom/test/dir");
+
+    process.env.DEVTOOLS_STATIC_DIR = "/env/static/dir";
+    const fromEnv = resolveStaticDir();
+    expect(fromEnv).toContain("env/static/dir");
   });
 });

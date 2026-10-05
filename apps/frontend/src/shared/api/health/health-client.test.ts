@@ -1,16 +1,7 @@
-import { HealthResponseSchema } from "@devtools/core";
 import { describe, expect, it, vi } from "vitest";
-import { DEFAULT_HEALTH_FALLBACK, fetchServiceHealth } from "./health-client";
+import { fetchServiceHealth } from "./health-client";
 
 describe("health client & fixtures", () => {
-  it("validates DEFAULT_HEALTH_FALLBACK against domain HealthResponseSchema", () => {
-    const parsed = HealthResponseSchema.safeParse(DEFAULT_HEALTH_FALLBACK);
-    expect(parsed.success).toBe(true);
-    if (parsed.success) {
-      expect(parsed.data.status).toBe("ok");
-    }
-  });
-
   it("fetches and returns validated HealthResponse", async () => {
     const mockPayload = {
       status: "ok",

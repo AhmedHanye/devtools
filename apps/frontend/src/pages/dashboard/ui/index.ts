@@ -1,1 +1,1 @@
-export { DashboardPage, type DashboardPageProps } from "./dashboard-page";
+export { DashboardPage } from "./dashboard-page";

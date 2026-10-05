@@ -29,4 +29,8 @@ export function resetDb(): void {
   _instance = null;
 }
 
-export const db = getDb();
+export const db: DevtoolsDb = new Proxy({} as DevtoolsDb, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getDb(), prop, receiver);
+  },
+});

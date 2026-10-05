@@ -4,7 +4,7 @@ import { fetchServiceHealth } from "@/shared/api";
 import type { HealthResponse } from "@devtools/core";
 import { useCallback, useEffect, useState } from "react";
 
-export type ServiceHealthStatus = "idle" | "loading" | "success" | "error";
+type ServiceHealthStatus = "idle" | "loading" | "success" | "error";
 
 export interface UseServiceHealthOptions {
   endpoint?: string;
@@ -17,13 +17,35 @@ export interface UseServiceHealthOptions {
   }) => Promise<HealthResponse>;
 }
 
-export interface UseServiceHealthResult {
-  status: ServiceHealthStatus;
-  data: HealthResponse | null;
-  error: Error | null;
-  refresh: () => Promise<void>;
-  isPolling: boolean;
-}
+export type UseServiceHealthResult =
+  | {
+      status: "idle";
+      data: null;
+      error: null;
+      refresh: () => Promise<void>;
+      isPolling: boolean;
+    }
+  | {
+      status: "loading";
+      data: HealthResponse | null;
+      error: null;
+      refresh: () => Promise<void>;
+      isPolling: boolean;
+    }
+  | {
+      status: "success";
+      data: HealthResponse;
+      error: null;
+      refresh: () => Promise<void>;
+      isPolling: boolean;
+    }
+  | {
+      status: "error";
+      data: null;
+      error: Error;
+      refresh: () => Promise<void>;
+      isPolling: boolean;
+    };
 
 export function useServiceHealth(
   options: UseServiceHealthOptions = {},
@@ -92,11 +114,43 @@ export function useServiceHealth(
     };
   }, [autoFetch, executeFetch, pollingInterval]);
 
+  const isPolling = pollingInterval > 0 && autoFetch;
+
+  if (status === "error") {
+    return {
+      status: "error",
+      data: null,
+      error: error ?? new Error("Unknown error occurred"),
+      refresh,
+      isPolling,
+    };
+  }
+
+  if (status === "success" && data !== null) {
+    return {
+      status: "success",
+      data,
+      error: null,
+      refresh,
+      isPolling,
+    };
+  }
+
+  if (status === "loading") {
+    return {
+      status: "loading",
+      data,
+      error: null,
+      refresh,
+      isPolling,
+    };
+  }
+
   return {
-    status,
-    data,
-    error,
+    status: "idle",
+    data: null,
+    error: null,
     refresh,
-    isPolling: pollingInterval > 0 && autoFetch,
+    isPolling,
   };
 }

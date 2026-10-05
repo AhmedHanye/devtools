@@ -1,198 +1,33 @@
 "use client";
 
-import { useIsMounted } from "@/shared/lib";
+import { useIsMounted, useNativeSearchParams } from "@/shared/lib";
 import {
   Badge,
-  Button,
   Card,
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-  Skeleton,
 } from "@/shared/ui";
-import type { HealthResponse } from "@devtools/core";
-import {
-  Activity,
-  AlertCircle,
-  Box,
-  CheckCircle2,
-  Clock,
-  Layers,
-  LayoutDashboard,
-  Radio,
-  RefreshCw,
-  ShieldAlert,
-  Terminal,
-} from "lucide-react";
+import { Box, Layers, LayoutDashboard, Radio, Terminal } from "lucide-react";
 import type * as React from "react";
 import { useServiceHealth } from "../model";
-
-type ServiceStatus = "ok" | "degraded" | "error" | "unreachable" | "unknown";
-
-interface StatusBadgeConfig {
-  variant: "default" | "secondary" | "destructive" | "outline";
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-}
-
-const STATUS_BADGE_CONFIGS: Record<ServiceStatus, StatusBadgeConfig> = {
-  ok: {
-    variant: "default",
-    icon: CheckCircle2,
-    label: "Operational",
-  },
-  degraded: {
-    variant: "secondary",
-    icon: AlertCircle,
-    label: "Degraded",
-  },
-  error: {
-    variant: "destructive",
-    icon: ShieldAlert,
-    label: "Error",
-  },
-  unreachable: {
-    variant: "destructive",
-    icon: AlertCircle,
-    label: "Unreachable",
-  },
-  unknown: {
-    variant: "outline",
-    icon: Activity,
-    label: "Unknown",
-  },
-};
-
-function StatusBadge({ status }: { status: ServiceStatus }) {
-  const config = STATUS_BADGE_CONFIGS[status] ?? STATUS_BADGE_CONFIGS.unknown;
-  const Icon = config.icon;
-  return (
-    <Badge variant={config.variant}>
-      <Icon className="size-3.5" />
-      {config.label}
-    </Badge>
-  );
-}
-
-function formatTimestamp(
-  timestamp: string | null | undefined,
-  mounted: boolean,
-): string {
-  if (!mounted || !timestamp) {
-    return "--:--:--";
-  }
-  return new Date(timestamp).toLocaleTimeString();
-}
-
-interface ServiceStatusCardProps {
-  name: string;
-  data: HealthResponse | null;
-  isLoading?: boolean;
-  error?: Error | null;
-  onRefresh?: () => void;
-}
-
-function ServiceStatusCard({
-  name,
-  data,
-  isLoading = false,
-  error = null,
-  onRefresh,
-}: ServiceStatusCardProps) {
-  const mounted = useIsMounted();
-
-  const status: ServiceStatus = error
-    ? "unreachable"
-    : ((data?.status as ServiceStatus) ?? "unknown");
-
-  return (
-    <Card className="flex flex-col justify-between">
-      <CardHeader>
-        <CardTitle>{name}</CardTitle>
-        <CardDescription>
-          {isLoading && !data ? (
-            <Skeleton className="h-4 w-24" />
-          ) : data?.version ? (
-            `v${data.version}`
-          ) : (
-            "Runtime Daemon"
-          )}
-        </CardDescription>
-        <CardAction>
-          {isLoading && !data ? (
-            <Skeleton className="h-5 w-20" />
-          ) : (
-            <StatusBadge status={status} />
-          )}
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        {error ? (
-          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-xs">
-            <p className="font-semibold">Service Unreachable</p>
-            <p className="mt-1 font-mono break-all">{error.message}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-muted-foreground flex items-center gap-1.5">
-              <Clock className="size-3.5" />
-              <span>Uptime:</span>
-              <span className="text-foreground font-mono font-medium">
-                {isLoading && !data ? (
-                  <Skeleton className="h-4 w-12" />
-                ) : (
-                  `${Math.round(data?.uptime ?? 0)}s`
-                )}
-              </span>
-            </div>
-            <div className="text-muted-foreground flex items-center gap-1.5">
-              <Activity className="size-3.5" />
-              <span>Last Checked:</span>
-              <span className="text-foreground font-mono">
-                {isLoading && !data ? (
-                  <Skeleton className="h-4 w-16" />
-                ) : (
-                  formatTimestamp(data?.timestamp, mounted)
-                )}
-              </span>
-            </div>
-          </div>
-        )}
-      </CardContent>
-      {onRefresh && (
-        <CardFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
-            <RefreshCw
-              className={
-                isLoading ? "me-1.5 size-3 animate-spin" : "me-1.5 size-3"
-              }
-            />
-            Refresh Status
-          </Button>
-        </CardFooter>
-      )}
-    </Card>
-  );
-}
+import { ServiceStatusCard } from "./service-status-card";
+import { ServiceStatusCardError } from "./service-status-card-error";
+import { ServiceStatusCardSkeleton } from "./service-status-card-skeleton";
 
 interface DashboardShellProps {
   title?: string;
   description?: string;
+  host?: string;
   children: React.ReactNode;
 }
 
 function DashboardShell({
   title = "DevTools System Dashboard",
   description = "Single-process loopback daemon runtime & service monitor",
+  host = "127.0.0.1:4000",
   children,
 }: DashboardShellProps) {
   return (
@@ -211,7 +46,7 @@ function DashboardShell({
           <div className="flex items-center gap-2">
             <Badge variant="outline">
               <Radio className="text-primary size-3 animate-pulse" />
-              127.0.0.1:4000
+              {host}
             </Badge>
           </div>
         </div>
@@ -264,16 +99,52 @@ const STACK_COMPONENTS: StackComponentInfo[] = [
 ];
 
 export function DashboardPage({ autoFetch = true }: DashboardPageProps) {
-  const { data, status, error, refresh } = useServiceHealth({
+  const health = useServiceHealth({
     endpoint: "/api/health",
     pollingInterval: 5000,
     autoFetch,
   });
 
-  const isLoading = status === "loading";
+  const mounted = useIsMounted();
+  const searchParams = useNativeSearchParams();
+  const host =
+    searchParams.get("host") ||
+    (mounted && typeof window !== "undefined"
+      ? window.location.host
+      : "127.0.0.1:4000");
+
+  let statusCard: React.ReactNode;
+  if (health.status === "error") {
+    statusCard = (
+      <ServiceStatusCardError
+        name="DevTools API Service"
+        error={health.error}
+        onRefresh={health.refresh}
+      />
+    );
+  } else if (health.status === "success") {
+    statusCard = (
+      <ServiceStatusCard
+        name="DevTools API Service"
+        data={health.data}
+        onRefresh={health.refresh}
+      />
+    );
+  } else if (health.status === "loading" && health.data !== null) {
+    statusCard = (
+      <ServiceStatusCard
+        name="DevTools API Service"
+        data={health.data}
+        onRefresh={health.refresh}
+        isRefreshing={true}
+      />
+    );
+  } else {
+    statusCard = <ServiceStatusCardSkeleton name="DevTools API Service" />;
+  }
 
   return (
-    <DashboardShell>
+    <DashboardShell host={host}>
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Active Services</h2>
@@ -283,13 +154,7 @@ export function DashboardPage({ autoFetch = true }: DashboardPageProps) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-          <ServiceStatusCard
-            name="DevTools API Service"
-            data={data}
-            isLoading={isLoading}
-            error={error}
-            onRefresh={refresh}
-          />
+          {statusCard}
 
           {STACK_COMPONENTS.map((item) => {
             const Icon = item.icon;
