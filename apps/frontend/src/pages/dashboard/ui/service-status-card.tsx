@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsMounted } from "@/shared/lib";
+import { cn, useIsMounted } from "@/shared/lib";
 import {
   Badge,
   Button,
@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui";
-import type { HealthResponse } from "@devtools/core";
+import type { HealthResponse, HealthStatus } from "@devtools/core";
 import {
   Activity,
   AlertCircle,
@@ -22,15 +22,13 @@ import {
 } from "lucide-react";
 import type * as React from "react";
 
-type ServiceStatus = "ok" | "degraded" | "unknown";
-
 interface StatusBadgeConfig {
   variant: "default" | "secondary" | "outline";
   icon: React.ComponentType<{ className?: string }>;
   label: string;
 }
 
-const STATUS_BADGE_CONFIGS: Record<ServiceStatus, StatusBadgeConfig> = {
+const STATUS_BADGE_CONFIGS: Record<HealthStatus, StatusBadgeConfig> = {
   ok: {
     variant: "default",
     icon: CheckCircle2,
@@ -41,15 +39,15 @@ const STATUS_BADGE_CONFIGS: Record<ServiceStatus, StatusBadgeConfig> = {
     icon: AlertCircle,
     label: "Degraded",
   },
-  unknown: {
+  error: {
     variant: "outline",
     icon: Activity,
-    label: "Unknown",
+    label: "Error",
   },
 };
 
-function StatusBadge({ status }: { status: ServiceStatus }) {
-  const config = STATUS_BADGE_CONFIGS[status] ?? STATUS_BADGE_CONFIGS.unknown;
+function StatusBadge({ status }: { status: HealthStatus }) {
+  const config = STATUS_BADGE_CONFIGS[status] ?? STATUS_BADGE_CONFIGS.error;
   const Icon = config.icon;
   return (
     <Badge variant={config.variant}>
@@ -87,7 +85,7 @@ export function ServiceStatusCard({
   isRefreshing = false,
 }: ServiceStatusCardProps) {
   const mounted = useIsMounted();
-  const status: ServiceStatus = (data.status as ServiceStatus) ?? "unknown";
+  const status: HealthStatus = data.status;
 
   return (
     <Card className="flex flex-col justify-between">
@@ -128,9 +126,7 @@ export function ServiceStatusCard({
             disabled={isRefreshing}
           >
             <RefreshCw
-              className={
-                isRefreshing ? "me-1.5 size-3 animate-spin" : "me-1.5 size-3"
-              }
+              className={cn("me-1.5 size-3", isRefreshing && "animate-spin")}
             />
             Refresh Status
           </Button>

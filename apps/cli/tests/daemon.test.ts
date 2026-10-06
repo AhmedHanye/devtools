@@ -89,6 +89,15 @@ describe("Unified Loopback Daemon Lifecycle and Routing", () => {
     expect(res.status).toBe(403);
   });
 
+  test("blocks sibling directory traversal attempts with 403 Forbidden", async () => {
+    activeDaemon = startDaemon({ port: 0, host: "127.0.0.1" });
+    const res = await serveStaticAsset(
+      activeDaemon.staticDir,
+      "/../dist-sibling/something.html",
+    );
+    expect(res.status).toBe(403);
+  });
+
   test("rejects non-GET/HEAD methods on static assets with 405 Method Not Allowed", async () => {
     activeDaemon = startDaemon({ port: 0, host: "127.0.0.1" });
     const baseUrl = `http://127.0.0.1:${activeDaemon.port}`;

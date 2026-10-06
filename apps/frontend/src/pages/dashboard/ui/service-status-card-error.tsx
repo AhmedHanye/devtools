@@ -1,3 +1,4 @@
+import { cn } from "@/shared/lib";
 import {
   Badge,
   Button,
@@ -52,9 +53,7 @@ export function ServiceStatusCardError({
             disabled={isRetrying}
           >
             <RefreshCw
-              className={
-                isRetrying ? "me-1.5 size-3 animate-spin" : "me-1.5 size-3"
-              }
+              className={cn("me-1.5 size-3", isRetrying && "animate-spin")}
             />
             Retry Connection
           </Button>

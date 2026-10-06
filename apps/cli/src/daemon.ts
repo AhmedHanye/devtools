@@ -1,5 +1,5 @@
 import { existsSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { createApp } from "@devtools/api";
 import { RuntimeConfigSchema } from "@devtools/core";
 import { db, resolveDatabasePath, runMigrations } from "@devtools/db";
@@ -84,7 +84,7 @@ export async function serveStaticAsset(
   const decodedPath = decodeURIComponent(urlPath);
   const safePath = resolve(baseDir, "." + decodedPath);
 
-  if (!safePath.startsWith(baseDir)) {
+  if (safePath !== baseDir && !safePath.startsWith(baseDir + sep)) {
     return new Response("Forbidden", { status: 403 });
   }
 
@@ -149,8 +149,9 @@ export function startDaemon(options: StartDaemonOptions = {}): DaemonInstance {
   try {
     runMigrations(db);
   } catch (error) {
-    console.error("Fatal: failed to initialize persistence database:", error);
-    process.exit(1);
+    throw new Error(
+      `Fatal: failed to initialize persistence database: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   console.log(
