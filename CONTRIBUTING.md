@@ -41,7 +41,7 @@ Examples:
 1. Link the tracking issue: `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
 2. Follow the pull request structure: PR descriptions must follow `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Do not list commit subjects, branch mechanics, or CLI commands.
 3. Provide verification evidence: include terminal test output, commands, or observable behavior.
-4. Open the pull request: `gh pr create`.
+4. Open the pull request and update status: run `gh pr create`, then update the tracking issue to `In Review` on the project board via `gh project item-edit`.
 5. Squash merge into `main` after review passes: `gh pr merge <pr_number> --squash --delete-branch`.
 
 ## Contributor boundaries
