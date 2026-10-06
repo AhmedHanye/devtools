@@ -46,7 +46,7 @@ The project organizes work into Specs (parent issues) and Tickets (child sub-iss
 
 ## Project board status lifecycle
 
-Status is tracked exclusively on the project board (`Todo`, `In Progress`, `In Review`, `Done`). Repository `status:*` labels are removed per ADR 0002.
+Status is tracked exclusively on the project board (`Todo`, `In Progress`, `In Review`, `Done`). Repository `status:*` labels are not used.
 
 - Claim ticket: assign `@me` and create the native linked branch:
   ```bash

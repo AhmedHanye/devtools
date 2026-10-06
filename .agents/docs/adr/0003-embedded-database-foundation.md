@@ -7,8 +7,8 @@ DevTools requires an embedded local persistence layer to store configuration, au
 ## Decision
 
 1. **Native Engine and ORM**:
-   - Utilize Bun's native `bun:sqlite` engine for microsecond synchronous queries and zero external compilation overhead.
-   - Utilize Drizzle ORM (`drizzle-orm` and `drizzle-kit`) for lightweight TypeScript SQL-first query building, type-safe schema definitions, relational querying (`db.query.*`), and automated migrations.
+   - Use Bun's native `bun:sqlite` engine for microsecond synchronous queries and zero external compilation overhead.
+   - Use Drizzle ORM (`drizzle-orm` and `drizzle-kit`) for lightweight TypeScript SQL-first query building, type-safe schema definitions, relational querying (`db.query.*`), and automated migrations.
 
 2. **Concurrency Safeguards & SQLite PRAGMAs**:
    Every database connection automatically applies strict concurrency and integrity safeguards upon initialization:
@@ -24,7 +24,7 @@ DevTools requires an embedded local persistence layer to store configuration, au
    - Parent directories are automatically ensured with recursive directory creation (`mkdirSync(..., { recursive: true })`) before opening SQLite connections.
 
 4. **Monorepo Package Boundary & Modular Schema Architecture**:
-   - `@devtools/db` (`packages/db`) serves strictly as generic database infrastructure: manages connections, PRAGMAs, schema aggregation boundary, migration runners, and re-exported Drizzle primitives/types.
+   - `@devtools/db` (`packages/db`) is generic database infrastructure: manages connections, PRAGMAs, schema aggregation boundary, migration runners, and re-exported Drizzle primitives/types.
    - `@devtools/db` does not house domain business logic. Downstream feature packages (`packages/feature-*`), `apps/api`, and `apps/cli` import the typed client and schemas to implement domain repositories, services, and queries.
    - Modular schemas live in `packages/db/src/schema/<domain>.ts` and are aggregated in `packages/db/src/schema/index.ts`, maintaining an acyclic DAG (`feature -> @devtools/db`).
 
