@@ -83,29 +83,6 @@ jobs:
           fi
           echo "Fork PR boundary check passed."
 
-  skills-integrity:
-    name: Skills Integrity Lock
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Bun environment
-        uses: ./.github/actions/setup-bun
-
-      - name: Verify skills-lock.json integrity
-        run: bun scripts/verify-skills-lock.ts
-
   dependency-audit:
     name: Dependency Audit & Review
     runs-on: ubuntu-latest

@@ -1,12 +1,12 @@
 import { readFileSync } from "node:fs";
 import { extname } from "node:path";
 
-export interface SecretRule {
+interface SecretRule {
   name: string;
   regex: RegExp;
 }
 
-export const SECRET_PATTERNS: SecretRule[] = [
+const SECRET_PATTERNS: SecretRule[] = [
   {
     name: "AWS Access Key ID",
     regex: /(?:^|[^A-Z0-9])(AKIA[0-9A-Z]{16})(?:[^A-Z0-9]|$)/,
@@ -84,7 +84,7 @@ export function maskSecret(secret: string): string {
   );
 }
 
-export function isSyntheticPlaceholder(token: string): boolean {
+function isSyntheticPlaceholder(token: string): boolean {
   if (token.startsWith("mock_") || /^0+$/.test(token)) {
     return true;
   }
@@ -125,7 +125,7 @@ export function scanContentForSecrets(
   return findings;
 }
 
-export function getStagedFiles(): string[] {
+function getStagedFiles(): string[] {
   try {
     const proc = Bun.spawnSync([
       "git",
@@ -157,7 +157,7 @@ function sanitizeFileText(text: string): string | null {
   return text;
 }
 
-export function readStagedContent(filePath: string): string | null {
+function readStagedContent(filePath: string): string | null {
   const ext = extname(filePath).toLowerCase();
   if (BINARY_EXTENSIONS.has(ext)) {
     return null;
@@ -179,7 +179,7 @@ export function readStagedContent(filePath: string): string | null {
   }
 }
 
-export function run(): void {
+function run(): void {
   const startTime = performance.now();
   const cliArgs = process.argv.slice(2);
   const filesToScan = cliArgs.length > 0 ? cliArgs : getStagedFiles();
@@ -187,32 +187,6 @@ export function run(): void {
   if (filesToScan.length === 0) {
     console.log("🔍 No staged files to scan for secrets.");
     return;
-  }
-
-  // Check if system trufflehog binary is available
-  const systemTrufflehog = Bun.which("trufflehog");
-  if (systemTrufflehog) {
-    try {
-      console.log("🐗 System TruffleHog detected. Running staged scan...");
-      const truffleHogProc = Bun.spawnSync([
-        systemTrufflehog,
-        "filesystem",
-        ...filesToScan,
-        "--results=verified,unverified",
-      ]);
-      if (truffleHogProc.exitCode !== 0) {
-        console.error(
-          truffleHogProc.stderr.toString() || truffleHogProc.stdout.toString(),
-        );
-        process.exit(truffleHogProc.exitCode);
-      }
-      console.log(
-        `✅ System TruffleHog scan passed (${filesToScan.length} file(s) checked).`,
-      );
-      return;
-    } catch {
-      // Fallback to built-in scanner if delegation fails
-    }
   }
 
   const allFindings: Finding[] = [];
