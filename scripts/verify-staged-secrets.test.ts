@@ -23,26 +23,26 @@ describe("isIgnoredLine", () => {
     );
     expect(isIgnoredLine("<!-- trufflehog:ignore -->")).toBe(true);
     expect(
-      isIgnoredLine(["const key = 'AKIA", "1234567890123456';"].join("")),
+      isIgnoredLine("const key = 'AKIA1234567890123456';"), // trufflehog:ignore
     ).toBe(false);
   });
 });
 
 describe("maskSecret", () => {
   it("masks secret while keeping prefix visible", () => {
-    expect(maskSecret(["AKIA", "IOSFODNN7EXAMPLE"].join(""))).toBe(
-      "AKIAIO**************",
+    const awsSample = "AKIAIOSFODNN7EXAMPLE"; // trufflehog:ignore
+    expect(maskSecret(awsSample)).toBe("AKIAIO**************");
+    const ghpSample = "ghp_123456789012345678901234567890123456"; // trufflehog:ignore
+    expect(maskSecret(ghpSample)).toBe(
+      "ghp_12**********************************",
     );
-    expect(
-      maskSecret(["ghp_", "123456789012345678901234567890123456"].join("")),
-    ).toBe("ghp_12**********************************");
     expect(maskSecret("short")).toBe("*****");
   });
 });
 
 describe("scanContentForSecrets", () => {
   it("detects unsuppressed AWS access key IDs", () => {
-    const awsKey = ["AKIA", "IOSFODNN7EXAMPLE"].join(""); // trufflehog:ignore
+    const awsKey = "AKIAIOSFODNN7EXAMPLE"; // trufflehog:ignore
     const content = `\nconst awsKey = "${awsKey}";\nconsole.log(awsKey);\n`;
     const findings = scanContentForSecrets(content, "test.ts");
     expect(findings).toHaveLength(1);
@@ -51,14 +51,14 @@ describe("scanContentForSecrets", () => {
   });
 
   it("suppresses AWS access key IDs with trufflehog:ignore", () => {
-    const awsKey = ["AKIA", "IOSFODNN7EXAMPLE"].join(""); // trufflehog:ignore
+    const awsKey = "AKIAIOSFODNN7EXAMPLE"; // trufflehog:ignore
     const content = `\nconst awsKey = "${awsKey}"; // trufflehog:ignore\nconsole.log(awsKey);\n`;
     const findings = scanContentForSecrets(content, "test.ts");
     expect(findings).toHaveLength(0);
   });
 
   it("detects GitHub personal access tokens", () => {
-    const fakeToken = ["ghp_", "A".repeat(36)].join(""); // trufflehog:ignore
+    const fakeToken = "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"; // trufflehog:ignore
     const content = `GITHUB_TOKEN=${fakeToken}`;
     const findings = scanContentForSecrets(content, ".env.example");
     expect(findings).toHaveLength(1);
@@ -66,18 +66,14 @@ describe("scanContentForSecrets", () => {
   });
 
   it("suppresses GitHub token with hash comment trufflehog:ignore", () => {
-    const fakeToken = ["ghp_", "A".repeat(36)].join(""); // trufflehog:ignore
+    const fakeToken = "ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"; // trufflehog:ignore
     const content = `GITHUB_TOKEN=${fakeToken} # trufflehog:ignore`;
     const findings = scanContentForSecrets(content, ".env.example");
     expect(findings).toHaveLength(0);
   });
 
   it("detects Slack bot/user tokens", () => {
-    const slackToken = [
-      // trufflehog:ignore
-      "xoxb-",
-      "123456789012-1234567890123-abcdefghijklmnopqrstuv",
-    ].join("");
+    const slackToken = "xoxb-dummytesttokendonotuse1234"; // trufflehog:ignore
     const content = `const slack = "${slackToken}";`;
     const findings = scanContentForSecrets(content, "slack.ts");
     expect(findings).toHaveLength(1);
@@ -85,11 +81,7 @@ describe("scanContentForSecrets", () => {
   });
 
   it("detects OpenAI API keys", () => {
-    const openAiKey = [
-      // trufflehog:ignore
-      "sk-",
-      "proj-abcdefghijklmnopqrstuvwxyz01234567890123456789",
-    ].join("");
+    const openAiKey = "sk-proj-abcdefghijklmnopqrstuvwxyz01234567890123456789"; // trufflehog:ignore
     const content = `const openAi = "${openAiKey}";`;
     const findings = scanContentForSecrets(content, "ai.ts");
     expect(findings).toHaveLength(1);
@@ -97,7 +89,7 @@ describe("scanContentForSecrets", () => {
   });
 
   it("detects Stripe secret keys", () => {
-    const stripeKey = ["sk_live_", "51Abcdefghijklmnopqrstuvwx"].join(""); // trufflehog:ignore
+    const stripeKey = "sk_test_51Abcdefghijklmnopqrstuvwx"; // trufflehog:ignore
     const content = `const stripe = "${stripeKey}";`;
     const findings = scanContentForSecrets(content, "stripe.ts");
     expect(findings).toHaveLength(1);
@@ -105,12 +97,8 @@ describe("scanContentForSecrets", () => {
   });
 
   it("detects private keys", () => {
-    const privateKey = [
-      // trufflehog:ignore
-      "-----BEGIN ",
-      "RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0...\n-----END ",
-      "RSA PRIVATE KEY-----",
-    ].join("");
+    const privateKey =
+      "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0...\n-----END RSA PRIVATE KEY-----"; // trufflehog:ignore
     const findings = scanContentForSecrets(privateKey, "key.pem");
     expect(findings.length).toBeGreaterThan(0);
     expect(findings[0].rule).toBe("Private Key");
