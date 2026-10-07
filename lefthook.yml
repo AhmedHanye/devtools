@@ -19,6 +19,9 @@ pre-commit:
       glob: "apps/frontend/**/*.{js,jsx,ts,tsx}"
       run: bunx react-doctor apps/frontend --staged --blocking error --no-telemetry --no-supply-chain
 
+    verify-secrets:
+      run: bun scripts/verify-staged-secrets.ts {staged_files}
+
 commit-msg:
   commands:
     conventional-commits:
