@@ -54,6 +54,31 @@ describe("validateCommitMessage", () => {
     expect(
       validateCommitMessage("Merge pull request #12 from branch").valid,
     ).toBe(true);
+    expect(validateCommitMessage("Merge tag 'v1.0.0' into main").valid).toBe(
+      true,
+    );
+    expect(
+      validateCommitMessage(
+        "Merge remote-tracking branch 'origin/main' into main",
+      ).valid,
+    ).toBe(true);
+  });
+
+  it("rejects informal non-conventional merge commits", () => {
+    expect(validateCommitMessage("Merge fixes").valid).toBe(false);
+    expect(validateCommitMessage("Merge changes from review").valid).toBe(
+      false,
+    );
+  });
+
+  it("accepts commit subjects containing hex colors without false positive issue detection", () => {
+    expect(
+      validateCommitMessage("feat(ui): set background color to #ffffff").valid,
+    ).toBe(true);
+    expect(
+      validateCommitMessage("fix(ui): adjust contrast for #123abc border")
+        .valid,
+    ).toBe(true);
   });
 
   it("rejects commit subjects containing PR/issue references per CONTRIBUTING.md", () => {
@@ -62,6 +87,12 @@ describe("validateCommitMessage", () => {
     );
     expect(result.valid).toBe(false);
     expect(result.error).toContain("issue reference");
+
+    const inlineResult = validateCommitMessage(
+      "fix(server): resolve timeout issue #45",
+    );
+    expect(inlineResult.valid).toBe(false);
+    expect(inlineResult.error).toContain("issue reference");
   });
 
   it("rejects non-conventional commit messages", () => {

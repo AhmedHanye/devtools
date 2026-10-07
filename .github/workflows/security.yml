@@ -25,71 +25,12 @@ env:
   REACT_DOCTOR_NO_TELEMETRY: "1"
 
 jobs:
-  fork-guard:
-    name: Fork Boundary Guard
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
-    permissions:
-      contents: read
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
-        with:
-          egress-policy: audit
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Validate fork PR protected boundaries
-        shell: bash
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          echo "Inspecting pull request modified files from fork..."
-          PROTECTED_PATTERNS=(
-            "^\.agents/"
-            "^\.github/"
-            "^skills-lock\.json$"
-            "^lefthook\.yml$"
-            "^package\.json$"
-            "^bun\.lock$"
-            "^\.vscode/"
-          )
-
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF...HEAD")
-
-          VIOLATIONS=()
-          for file in $CHANGED_FILES; do
-            for pattern in "${PROTECTED_PATTERNS[@]}"; do
-              if [[ "$file" =~ $pattern ]]; then
-                VIOLATIONS+=("$file")
-                break
-              fi
-            done
-          done
-
-          if [ ${#VIOLATIONS[@]} -gt 0 ]; then
-            echo "::error::Fork PR security boundary violation detected!"
-            echo "The following protected files cannot be modified by external forks:"
-            for v in "${VIOLATIONS[@]}"; do
-              echo "  - $v"
-            done
-            echo "Per repository governance, only the repository owner (@AhmedHanye) may modify agent instructions (.agents/), workflows (.github/), or core toolchain configs."
-            exit 1
-          fi
-          echo "Fork PR boundary check passed."
-
   dependency-audit:
     name: Dependency Audit & Review
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0

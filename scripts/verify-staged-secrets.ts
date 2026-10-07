@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import { extname } from "node:path";
+import { extname, isAbsolute, relative, resolve } from "node:path";
 
 interface SecretRule {
   name: string;
@@ -125,64 +124,167 @@ export function scanContentForSecrets(
   return findings;
 }
 
-function getStagedFiles(): string[] {
+export interface GitRunnerResult {
+  exitCode: number;
+  stdout: { toString(): string } | string;
+  stderr?: { toString(): string } | string;
+}
+
+let cachedRepoRoot: string | null = null;
+export function getRepoRoot(): string {
+  if (cachedRepoRoot) return cachedRepoRoot;
   try {
-    const proc = Bun.spawnSync([
+    const proc = Bun.spawnSync(["git", "rev-parse", "--show-toplevel"]);
+    if (proc.exitCode === 0) {
+      cachedRepoRoot = proc.stdout.toString().trim();
+      return cachedRepoRoot;
+    }
+  } catch {
+    // Fall back to process.cwd()
+  }
+  return process.cwd();
+}
+
+export function toRepoRelativePath(
+  filePath: string,
+  repoRoot: string = getRepoRoot(),
+  cwd: string = process.cwd(),
+): string {
+  if (isAbsolute(filePath)) {
+    return relative(repoRoot, filePath).replace(/\\/g, "/");
+  }
+
+  if (filePath.startsWith("./") || filePath.startsWith("../")) {
+    const abs = resolve(cwd, filePath);
+    return relative(repoRoot, abs).replace(/\\/g, "/");
+  }
+
+  if (cwd === repoRoot) {
+    return filePath.replace(/\\/g, "/");
+  }
+
+  const relCwdFromRepo = relative(repoRoot, cwd).replace(/\\/g, "/");
+  if (filePath.startsWith(relCwdFromRepo + "/")) {
+    return filePath.replace(/\\/g, "/");
+  }
+
+  const abs = resolve(cwd, filePath);
+  const relFromRepo = relative(repoRoot, abs).replace(/\\/g, "/");
+  if (relFromRepo.startsWith("../")) {
+    return filePath.replace(/\\/g, "/");
+  }
+  return relFromRepo;
+}
+
+export function parseStagedFilesOutput(output: string): string[] {
+  if (!output) {
+    return [];
+  }
+  return output
+    .split("\0")
+    .map((filePath) => filePath.trim())
+    .filter(Boolean);
+}
+
+export function getStagedDeletedFiles(
+  spawnFn: (args: string[]) => GitRunnerResult = (args) => Bun.spawnSync(args),
+): Set<string> {
+  try {
+    const proc = spawnFn([
+      "git",
+      "diff",
+      "--name-only",
+      "--cached",
+      "--diff-filter=D",
+      "-z",
+    ]);
+    if (proc.exitCode === 0) {
+      return new Set(parseStagedFilesOutput(proc.stdout.toString()));
+    }
+  } catch {
+    // Ignore and return empty set
+  }
+  return new Set();
+}
+
+export function getStagedFiles(
+  spawnFn: (args: string[]) => GitRunnerResult = (args) => Bun.spawnSync(args),
+  onExit: (code: number) => never = (code) => process.exit(code),
+): string[] {
+  let proc: GitRunnerResult;
+  try {
+    proc = spawnFn([
       "git",
       "diff",
       "--name-only",
       "--cached",
       "--diff-filter=d",
+      "-z",
     ]);
-    if (proc.exitCode !== 0) {
-      return [];
-    }
-    const output = proc.stdout.toString().trim();
-    if (!output) {
-      return [];
-    }
-    return output
-      .split("\n")
-      .map((f) => f.trim())
-      .filter(Boolean);
-  } catch {
-    return [];
+  } catch (err) {
+    console.error("❌ Exception while executing git diff:", err);
+    return onExit(1);
   }
+
+  if (proc.exitCode !== 0) {
+    console.error(
+      `❌ Failed to query staged files with git diff (exit code ${proc.exitCode}): ${proc.stderr?.toString() ?? ""}`,
+    );
+    return onExit(1);
+  }
+  const output = proc.stdout.toString();
+  return parseStagedFilesOutput(output);
 }
 
-function sanitizeFileText(text: string): string | null {
+export function sanitizeFileText(text: string): string | null {
   if (text.includes("\0")) {
     return null;
   }
   return text;
 }
 
-function readStagedContent(filePath: string): string | null {
+export function readStagedContent(
+  filePath: string,
+  repoRoot: string = getRepoRoot(),
+  spawnFn: (args: string[]) => GitRunnerResult = (args) => Bun.spawnSync(args),
+  onExit: (code: number) => never = (code) => process.exit(code),
+): string | null {
   const ext = extname(filePath).toLowerCase();
   if (BINARY_EXTENSIONS.has(ext)) {
     return null;
   }
 
+  const normalizedPath = toRepoRelativePath(filePath, repoRoot);
+
+  let proc: GitRunnerResult;
   try {
-    const proc = Bun.spawnSync(["git", "show", `:${filePath}`]);
-    if (proc.exitCode === 0) {
-      return sanitizeFileText(proc.stdout.toString());
-    }
-  } catch {
-    // Fall back to disk read
+    proc = spawnFn(["git", "show", `:${normalizedPath}`]);
+  } catch (err) {
+    console.error(
+      `❌ Exception reading staged blob for ${normalizedPath}:`,
+      err,
+    );
+    return onExit(1);
   }
 
-  try {
-    return sanitizeFileText(readFileSync(filePath, "utf-8"));
-  } catch {
-    return null;
+  if (proc.exitCode === 0) {
+    return sanitizeFileText(proc.stdout.toString());
   }
+
+  console.error(
+    `❌ Unable to read staged blob for ${normalizedPath} (exit code ${proc.exitCode}): ${proc.stderr?.toString() ?? ""}`,
+  );
+  return onExit(1);
 }
 
 function run(): void {
   const startTime = performance.now();
   const cliArgs = process.argv.slice(2);
-  const filesToScan = cliArgs.length > 0 ? cliArgs : getStagedFiles();
+  const deletedFiles = getStagedDeletedFiles();
+  const rawFiles = cliArgs.length > 0 ? cliArgs : getStagedFiles();
+  const filesToScan = rawFiles
+    .map((filePath) => toRepoRelativePath(filePath))
+    .filter((filePath) => !deletedFiles.has(filePath));
 
   if (filesToScan.length === 0) {
     console.log("🔍 No staged files to scan for secrets.");

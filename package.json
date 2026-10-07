@@ -20,8 +20,10 @@
     "format:check": "prettier --check .",
     "check": "oxlint . && prettier --check .",
     "typecheck": "bun --filter '*' typecheck",
-    "test": "bun --filter '*' test",
+    "test": "bun --filter '*' test && bun test scripts/",
     "build": "bun --filter '*' build",
+    "audit": "bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm",
+    "pin:actions": ".agents/skills/github-actions/scripts/pin-action.sh",
     "verify": "bun run check && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run typecheck && bun run test"
   },
   "devDependencies": {

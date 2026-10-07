@@ -6,10 +6,10 @@ The DevTools project takes repository, dependency, and software security serious
 
 Only the latest active minor release line receives security updates and patches. Older versions and unreleased tags are not supported.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.0.x   | :white_check_mark: |
-| < 0.0.1 | :x:                |
+| Version        | Supported          |
+| -------------- | ------------------ |
+| >= 0.0.1 < 0.1 | :white_check_mark: |
+| < 0.0.1        | :x:                |
 
 ## Reporting a Vulnerability
 

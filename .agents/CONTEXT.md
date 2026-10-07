@@ -74,7 +74,7 @@ The designated maintainer account (`@AhmedHanye`) holding mandatory review respo
 The confidential disclosure channel within GitHub Security Advisories enabling researchers to submit vulnerability reports under a 48-hour triage SLA without public disclosure.
 
 **Fork Security Boundary**:
-The automated CI guard (`fork-guard`) preventing external fork pull requests from modifying protected workflows, toolchain manifests, or agent instruction files.
+The repository perimeter protection enforced via GitHub Branch Rulesets and mandatory Code Owner review (`@AhmedHanye`) ensuring external fork pull requests cannot modify protected workflows, toolchain manifests, or agent instruction files without explicit maintainer approval.
 
 **Branch Ruleset**:
 The repository policy configuration on `main` enforcing required CI status checks, linear squash merges, and Code Owner review gates with maintainer bypass authorization.

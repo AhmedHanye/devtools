@@ -18,7 +18,14 @@ const CONVENTIONAL_REGEX = new RegExp(
   `^(${ALLOWED_TYPES.join("|")})(\\([a-zA-Z0-9_\\-./]+\\))?(!)?: (.+)$`,
 );
 
-const ISSUE_REF_REGEX = /\(#\d+\)|#\d+/;
+const ISSUE_REF_REGEX = /(?:^|\s|\()#\d+\b/;
+
+const ALLOWED_MERGE_PREFIXES = [
+  "Merge branch ",
+  "Merge pull request ",
+  "Merge tag ",
+  "Merge remote-tracking branch ",
+] as const;
 
 export interface ValidationResult {
   valid: boolean;
@@ -42,11 +49,7 @@ export function validateCommitMessage(content: string): ValidationResult {
   const subject = firstNonCommentLine.trim();
 
   // Allow automatic merge commits
-  if (
-    subject.startsWith("Merge branch ") ||
-    subject.startsWith("Merge pull request ") ||
-    subject.startsWith("Merge ")
-  ) {
+  if (ALLOWED_MERGE_PREFIXES.some((prefix) => subject.startsWith(prefix))) {
     return { valid: true, subject };
   }
 
