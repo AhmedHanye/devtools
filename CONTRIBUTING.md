@@ -53,20 +53,20 @@ Examples:
 ### Pull request rules
 
 1. **Link the tracking issue:** `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
-2. **Assign the code owner:** Always assign the maintainer when opening a pull request:
+2. **Self-assign the pull request:** Always self-assign as the Directly Responsible Individual (DRI) when opening a pull request (maintainer review is automatically requested via CODEOWNERS):
    ```bash
    gh pr create --assignee "@me"
    ```
 3. **Follow the pull request structure:** PR descriptions must describe user-facing changes to `main` following `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Never include internal session scratch paths, raw scratch logs, or agent execution notes in pull request descriptions.
 4. **Provide verification evidence:** Include terminal test output, commands, or observable behavior confirming all acceptance criteria.
 5. **Open the pull request and update status:** Run `gh pr create`, then update the tracking issue to `In Review` on the project board via `gh project item-edit`.
-6. **Review thread resolution:** Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by maintainers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility:
+6. **Review thread resolution:** Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility:
    - _Valid defect:_ Implement the code fix, confirm test passes, post a comment referencing the fix commit, and resolve the thread via GitHub GraphQL:
      ```bash
      gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<thread_node_id>"}) { clientMutationId } }'
      ```
    - _False positive / Hallucination:_ Post a technical comment detailing why the remark is invalid or contradicts repo design, and resolve the thread via GraphQL.
-   - _Ambiguous or high-risk finding:_ Leave the thread unresolved, apply the `needs-human-review` label, and escalate to the maintainer.
+   - _Ambiguous or high-risk finding:_ Leave the thread unresolved, apply the `needs-human-review` label, and escalate.
 7. **Squash merge into `main` after review passes:** `gh pr merge <pr_number> --squash --delete-branch`. Linear history with squash merging is enforced by repository rulesets.
 
 ## Verification and quality standards
@@ -109,7 +109,7 @@ Contributors and automated agents observe these security and contribution bounda
    Every package imported in a workspace (`apps/*`, `packages/*`) must be explicitly declared in that workspace's local `package.json`. Relying on hoisted root packages is strictly prohibited and caught by Fallow architectural analysis.
 
 3. **Fork security boundary:**
-   External pull requests submitted from forks are guarded by CI (`fork-guard`). External contributors cannot modify protected workflows (`.github/workflows/`), agent configurations (`.agents/`), or toolchain configurations (`bunfig.toml`, `lefthook.yml`, `package.json`) without maintainer co-authorship.
+   Protected workflows (`.github/workflows/`), agent configurations (`.agents/`), and toolchain configurations (`bunfig.toml`, `lefthook.yml`, `package.json`) are guarded by GitHub Branch Rulesets and mandatory Code Owner review (`@AhmedHanye`). External pull requests modifying these protected boundaries cannot be merged without explicit maintainer approval.
 
 4. **Issue operations:**
    Follow `.agents/docs/issue-tracker.md` for ticket claiming, dependency management, and project board status updates.
