@@ -31,3 +31,12 @@ When adding or removing a workspace package under `apps/*` or `packages/*`:
 2. Update `.fallowrc.json` with new architecture boundary zones and import rules if the package introduces new structural layers.
 3. Configure `tsconfig.json` to extend `tsconfig.base.json` and declare inter-workspace dependencies using the `workspace:*` protocol.
 4. Verify root orchestration: ensure `bun run typecheck`, `bun run lint`, and `bun run test` cover the new workspace package.
+
+## Telemetry suppression for tools and packages
+
+When introducing or updating a tool, CLI, or library:
+
+1. Check whether the package collects telemetry, crash reports, or usage analytics.
+2. Disable telemetry through native configuration files when supported (such as `core.disableTelemetry` in Storybook).
+3. Add the package's kill switch environment variable to `.env.example` and `.github/workflows/*.yml`.
+4. Honor `DO_NOT_TRACK=1` alongside tool-specific kill switches.
