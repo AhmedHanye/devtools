@@ -57,3 +57,12 @@ An undeclared package imported inside a workspace that resolves only through par
 
 **Shared Core**:
 The `@devtools/core` package providing domain schemas, types, and error definitions used across multiple packages.
+
+**Release PR**:
+The automated candidate pull request maintained on `main` by Release Please that aggregates Conventional Commits into changelog and version updates until merged by a maintainer.
+
+**Standalone Executable**:
+A self-contained, single-file binary produced by `bun build --compile` embedding the Bun runtime engine, entrypoint bytecode, and dependencies for a specific target operating system and architecture.
+
+**Checksum Manifest**:
+The cryptographic verification file (`SHA256SUMS.txt`) documenting SHA256 hashes of all compiled standalone executables attached to a GitHub release.
