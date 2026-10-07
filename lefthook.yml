@@ -22,6 +22,10 @@ pre-commit:
     verify-secrets:
       run: bun scripts/verify-staged-secrets.ts {staged_files}
 
+    test-scripts:
+      glob: "scripts/*"
+      run: bun test scripts/
+
 commit-msg:
   commands:
     conventional-commits:

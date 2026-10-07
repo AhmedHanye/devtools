@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, spyOn } from "bun:test";
 import {
   scanContentForSecrets,
   maskSecret,
@@ -219,6 +219,7 @@ describe("getStagedFiles", () => {
   });
 
   it("fails closed when git diff exits with non-zero code", () => {
+    const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
     const mockSpawn = () => ({
       exitCode: 1,
       stdout: "",
@@ -226,22 +227,31 @@ describe("getStagedFiles", () => {
     });
     const { mockExit, getExitCode } = createMockExit();
 
-    expect(() => getStagedFiles(mockSpawn as any, mockExit)).toThrow(
-      "Exit called with 1",
-    );
-    expect(getExitCode()).toBe(1);
+    try {
+      expect(() => getStagedFiles(mockSpawn as any, mockExit)).toThrow(
+        "Exit called with 1",
+      );
+      expect(getExitCode()).toBe(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it("fails closed when git diff throws an error", () => {
+    const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
     const mockSpawn = () => {
       throw new Error("spawn failed");
     };
     const { mockExit, getExitCode } = createMockExit();
 
-    expect(() => getStagedFiles(mockSpawn as any, mockExit)).toThrow(
-      "Exit called with 1",
-    );
-    expect(getExitCode()).toBe(1);
+    try {
+      expect(() => getStagedFiles(mockSpawn as any, mockExit)).toThrow(
+        "Exit called with 1",
+      );
+      expect(getExitCode()).toBe(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 });
 
@@ -280,6 +290,7 @@ describe("readStagedContent", () => {
   });
 
   it("fails closed when git show fails for non-deleted staged file", () => {
+    const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
     const mockSpawn = () => ({
       exitCode: 128,
       stdout: "",
@@ -287,9 +298,18 @@ describe("readStagedContent", () => {
     });
     const { mockExit, getExitCode } = createMockExit();
 
-    expect(() =>
-      readStagedContent("missing.ts", "/mock/repo", mockSpawn as any, mockExit),
-    ).toThrow("Exit called with 1");
-    expect(getExitCode()).toBe(1);
+    try {
+      expect(() =>
+        readStagedContent(
+          "missing.ts",
+          "/mock/repo",
+          mockSpawn as any,
+          mockExit,
+        ),
+      ).toThrow("Exit called with 1");
+      expect(getExitCode()).toBe(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 });

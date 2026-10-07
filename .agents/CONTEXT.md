@@ -78,3 +78,9 @@ The repository perimeter protection enforced via GitHub Branch Rulesets and mand
 
 **Branch Ruleset**:
 The repository policy configuration on `main` enforcing required CI status checks, linear squash merges, and Code Owner review gates with maintainer bypass authorization.
+
+**Vendor Skill**:
+An external capability package declared in `skills-lock.json` whose upstream instructions may be superseded by repository-specific execution boundaries.
+
+**Review Thread Resolution**:
+The pull request state invariant enforced by repository rulesets requiring all reviewer and bot comment conversations to be explicitly marked resolved before merge eligibility.
