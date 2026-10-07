@@ -1,7 +1,22 @@
 import { describe, expect, it } from "bun:test";
-import { validateCommitMessage } from "./verify-commit-msg";
+import { ALLOWED_TYPES, validateCommitMessage } from "./verify-commit-msg";
 
 describe("validateCommitMessage", () => {
+  it("exports expected conventional commit allowed types", () => {
+    expect(ALLOWED_TYPES).toEqual([
+      "feat",
+      "fix",
+      "chore",
+      "docs",
+      "style",
+      "refactor",
+      "perf",
+      "test",
+      "build",
+      "ci",
+      "revert",
+    ]);
+  });
   it("accepts valid conventional commit messages with scope", () => {
     expect(
       validateCommitMessage("feat(server): add initial health check endpoint")
