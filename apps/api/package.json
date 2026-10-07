@@ -1,6 +1,10 @@
 {
   "name": "@devtools/api",
   "version": "0.1.0",
+  "description": "Developer tooling HTTP API server",
+  "license": "MIT",
+  "author": "Ahmed Hanye",
+  "repository": "https://github.com/AhmedHanye/devtools.git",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",

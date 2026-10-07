@@ -1,6 +1,10 @@
 {
   "name": "@devtools/cli",
   "version": "0.0.0",
+  "description": "Developer tooling command-line interface",
+  "license": "MIT",
+  "author": "Ahmed Hanye",
+  "repository": "https://github.com/AhmedHanye/devtools.git",
   "private": true,
   "type": "module",
   "bin": {

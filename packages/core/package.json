@@ -1,5 +1,10 @@
 {
   "name": "@devtools/core",
+  "version": "0.1.0",
+  "description": "Shared domain models, configuration schemas, and utilities",
+  "license": "MIT",
+  "author": "Ahmed Hanye",
+  "repository": "https://github.com/AhmedHanye/devtools.git",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",

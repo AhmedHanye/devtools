@@ -66,3 +66,15 @@ A self-contained, single-file binary produced by `bun build --compile` embedding
 
 **Checksum Manifest**:
 The cryptographic verification file (`SHA256SUMS.txt`) documenting SHA256 hashes of all compiled standalone executables attached to a GitHub release.
+
+**Code Owner**:
+The designated maintainer account (`@AhmedHanye`) holding mandatory review responsibility across the repository, declared via `.github/CODEOWNERS` and enforced via repository rulesets.
+
+**Private Vulnerability Reporting (PVR)**:
+The confidential disclosure channel within GitHub Security Advisories enabling researchers to submit vulnerability reports under a 48-hour triage SLA without public disclosure.
+
+**Fork Security Boundary**:
+The automated CI guard (`fork-guard`) preventing external fork pull requests from modifying protected workflows, toolchain manifests, or agent instruction files.
+
+**Branch Ruleset**:
+The repository policy configuration on `main` enforcing required CI status checks, linear squash merges, and Code Owner review gates with maintainer bypass authorization.

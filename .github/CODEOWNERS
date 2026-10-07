@@ -1,7 +1,2 @@
-.agents/                @AhmedHanye
-.github/                @AhmedHanye
-skills-lock.json        @AhmedHanye
-package.json            @AhmedHanye
-bun.lock                @AhmedHanye
-lefthook.yml            @AhmedHanye
-.vscode/                @AhmedHanye
+# Universal catch-all: maintainer reviews all changes across the repository
+*    @AhmedHanye

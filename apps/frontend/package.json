@@ -1,5 +1,10 @@
 {
   "name": "@devtools/frontend",
+  "version": "0.1.0",
+  "description": "Developer tooling web dashboard and UI",
+  "license": "MIT",
+  "author": "Ahmed Hanye",
+  "repository": "https://github.com/AhmedHanye/devtools.git",
   "private": true,
   "type": "module",
   "scripts": {
