@@ -131,7 +131,7 @@ export interface GitRunnerResult {
 }
 
 let cachedRepoRoot: string | null = null;
-export function getRepoRoot(): string {
+function getRepoRoot(): string {
   if (cachedRepoRoot) return cachedRepoRoot;
   try {
     const proc = Bun.spawnSync(["git", "rev-parse", "--show-toplevel"]);
@@ -236,7 +236,7 @@ export function getStagedFiles(
   return parseStagedFilesOutput(output);
 }
 
-export function sanitizeFileText(text: string): string | null {
+function sanitizeFileText(text: string): string | null {
   if (text.includes("\0")) {
     return null;
   }
