@@ -8,25 +8,25 @@ disable-model-invocation: true
 
 Evaluate a pull request to determine whether it is ready to squash merge into `main` or requires further investigation.
 
-Run this skill when invoked with `/evaluate-pr <number-or-url>`.
+Run this skill when invoked with `/evaluate-pr` followed by a pull request number or URL.
 
 ## Operational constraints
 
-1. **Read-only evaluation.** Do not modify files, make commits, run code edits, or execute GraphQL mutations.
-2. **Zero branch checkout.** Do not switch local git branches (`git checkout`, `gh pr checkout`). Inspect remote state exclusively using `gh` CLI commands and read-only git queries against fetched refs.
+1. **Read-only evaluation.** Perform evaluations strictly in read-only mode without modifying files, staging commits, running code edits, or executing GraphQL mutations.
+2. **Remote ref queries.** Inspect remote pull request state directly using `gh` CLI queries and read-only git queries against fetched refs without switching local branches.
 
 ## Evaluation workflow
 
 ### 1. Resolve pull request and extract metadata
 
-Identify the pull request number from the input argument (`<number-or-url>`). Extract the PR title, author, branch, base, description, labels, and state:
+Identify the pull request target from the input argument (for example, `123` or the full pull request URL). Extract metadata:
 
 ```bash
-PR_TARGET="<number-or-url>"
+PR_TARGET="123"
 gh pr view "$PR_TARGET" --json number,title,author,headRefName,baseRefName,body,labels,isDraft,state,url
 ```
 
-Verify that the pull request is open and not in draft status. If closed or draft, record this immediately in the evaluation report.
+Verify that the pull request is open and not in draft status. If closed or draft, record this status directly in the evaluation report.
 
 ### 2. Inspect remote CI checks and failure logs
 
@@ -41,14 +41,14 @@ If any check is failing or cancelled:
 2. Fetch the failure log to extract the specific failing test, compilation error, or lint failure:
 
 ```bash
-gh run view <run-id> --log-failed
+gh run view "$RUN_ID" --log-failed
 ```
 
 Summarize the failure reason concisely under findings.
 
 ### 3. Check review thread resolution
 
-Repository ruleset `#24154563` enforces `required_review_thread_resolution: true`. Query the GitHub GraphQL API to verify that all comment threads from human reviewers and review bots (such as CodeRabbit) are marked resolved:
+Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. Query the GitHub GraphQL API to verify that all comment threads from human reviewers and review bots (such as CodeRabbit) are marked resolved:
 
 ```bash
 gh api graphql -f query='
@@ -69,7 +69,7 @@ query($owner: String!, $repo: String!, $pr: Int!) {
       }
     }
   }
-}' -F owner=':owner' -F repo=':repo' -F pr=<pr_number>
+}' -F owner=':owner' -F repo=':repo' -F pr="$PR_NUMBER"
 ```
 
 Identify any threads where `isResolved` is false. Extract the comment author and the open concern.
@@ -85,49 +85,46 @@ gh pr diff "$PR_TARGET"
 
 Evaluate the diff against repository standards:
 - **Blast radius:** Map modified paths across workspaces (`apps/*`, `packages/*`, `.github/*`, `.agents/*`, scripts).
-- **Workspace dependency boundaries:** Verify that changes to `package.json` follow `.agents/rules/dependencies.md`. Ensure no phantom dependencies resolve through hoisting and no application runtime packages are added to the workspace root.
-- **Frontend architectural boundaries:** If `apps/frontend/` is modified, verify compliance with `.agents/rules/frontend.md` (Feature-Sliced Design layers, index exports, semantic theme tokens, no client-only globals accessed unsafely).
-- **Secret leak prevention:** Ensure zero production secrets, real API keys, or unsuppressed synthetic keys are committed (`.agents/rules/secrets.md`).
-- **Cleanliness:** Confirm zero ephemeral files, scratch logs, or workspace `tmp/` / `.scratch/` paths are checked into git or referenced in the pull request description.
+- **Workspace dependency boundaries:** Verify that changes to `package.json` follow `.agents/rules/dependencies.md`. Ensure no phantom dependencies resolve through hoisting and application runtime packages remain in leaf workspaces.
+- **Frontend architectural boundaries:** If `apps/frontend/` is modified, verify compliance with `.agents/rules/frontend.md` (Feature-Sliced Design layers, index exports, semantic theme tokens, and safe hydration).
+- **Secret leak prevention:** Ensure all committed credentials and test fixtures follow `.agents/rules/secrets.md` with appropriate `# trufflehog:ignore` or `// trufflehog:ignore` comments on synthetic fixtures.
+- **Cleanliness:** Confirm zero ephemeral files, scratch logs, or workspace `tmp/` paths are checked into git or referenced in the pull request description.
 
 ### 5. Validate PR template, evidence, and commits
 
 1. **Pull request description:** Verify that the body follows `.github/PULL_REQUEST_TEMPLATE.md`:
    - Summary includes a structural view (shallow file tree, component tree, or diff sketch).
-   - Closing issue link is present (`Closes #<issue>`).
+   - Closing issue link is present (`Closes #123`).
    - Observable verification evidence is included (terminal output, test passes, or before/after visual proof).
    - Merge Danger section specifies Door type (`one-way` or `two-way`) and Blast Radius.
 2. **Commit conventions:** Verify commit messages match Conventional Commits (`type(scope): description`) without issue references in commit subjects.
 
 ## Output format
 
-Generate an executive evaluation report following this exact structure:
+Generate an executive evaluation report following this structure:
 
 ```markdown
-# Pull request evaluation: #<number> - <title>
+# Pull request evaluation: #{number} - {title}
 
-**Author:** @<author> | **Branch:** `<head-branch>` -> `<base-branch>` | **URL:** <pr-url>
+**Author:** @{author} | **Branch:** `{head_branch}` to `{base_branch}` | **URL:** {pr_url}
 
 ## 1. Metadata and blast radius
-- **Door:** <one-way or two-way>
-- **Blast radius:** <concise scope description>
-- **Modified workspaces:** <list of impacted apps/packages/infra>
+- **Door:** {one-way or two-way}
+- **Blast radius:** {scope description}
+- **Modified workspaces:** {list of impacted apps/packages/infra}
 
 ## 2. What looks good
-- <List passed CI checks, clean boundaries, and satisfied standards>
+- {List passed CI checks, clean boundaries, and satisfied standards}
 
 ## 3. What needs attention
-- <List failing checks with log snippets, unresolved review threads, missing evidence, or standards violations>
-- <If everything passed cleanly, state "No blockers or defects identified.">
+- {List failing checks with log snippets, unresolved review threads, missing evidence, or standards violations. If clean, state "No blockers or defects identified."}
 
 ## 4. Manual verification checklist
-- [ ] <Specific behavioral test, visual inspection, or migration check required>
-- [ ] Visual and structural inspection: Run `/show-me` to inspect component trees, state sketches, or file layout diffs for modified paths.
-<!-- If no manual steps are required, state "No manual verification required. Automated CI evidence is complete." -->
+- {List required manual checks or visual inspections. If none required, state "No manual verification required. Automated CI evidence is complete."}
 
 ## 5. Evaluation verdict
 **Verdict:** MERGE
-<!-- or -->
+(or)
 **Verdict:** INVESTIGATE
 ```
 

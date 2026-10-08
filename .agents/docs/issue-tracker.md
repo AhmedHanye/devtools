@@ -11,7 +11,7 @@ Issues and specs live as GitHub issues. Use the `gh` CLI for all operations. The
 - Edit labels: `gh issue edit <number> --add-label "..."` or `--remove-label "..."`
 - Close an issue: `gh issue close <number> --comment "..."`
 
-## Pull requests as a triage surface
+## Pull request triage
 
 External pull requests are not treated as feature requests. New features begin as issues.
 
@@ -24,7 +24,7 @@ GitHub shares one number space across issues and PRs. Resolve a number with `gh 
 
 ## Hierarchy and dependencies
 
-The project organizes work into Specs (parent issues) and Tickets (child sub-issues).
+The project organizes work into Specs (high-level capability epics) and Tickets (atomic vertical slice issues created as native sub-issues).
 
 - Add sub-issue:
   ```bash

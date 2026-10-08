@@ -23,16 +23,15 @@ Run proportionate, change-scoped checks during iterative development. Run the fu
 
 ## Workflow change invariant
 
-Pull requests modifying only `.github/workflows/**` specify workflow validation rather than monorepo application test suites. Do not run application test suites (`bun --filter '*' test`) when changes are isolated to CI workflow definitions.
+Pull requests modifying only `.github/workflows/**` specify workflow validation (`bunx prettier --check .github/workflows/**`, `bun scripts/verify-staged-secrets.ts .github/workflows/**`) rather than monorepo application test suites. Restrict checks to workflow and secret validation when changes are isolated to CI workflow definitions.
 
 ## Observable verification
 
 1. Write acceptance criteria as checkable automated commands or observable behaviors (test runs, exit codes, HTTP status codes).
 2. Record concrete verification evidence in pull request descriptions.
-3. Eliminate unjustified full `bun run verify` runs during iterative development; run targeted package or script checks instead.
+3. Run targeted package or script checks during iterative development, reserving full `bun run verify` runs for cross-package contracts and pre-PR gates.
 
 ## Reactive background execution
 
-1. Prohibit synchronous status polling loops on background tasks (such as repeatedly checking status in a loop or calling sleep commands).
-2. Yield execution and await system notifications when running asynchronous tasks.
-3. The execution system notifies the agent upon task completion. Proceed with other work or stop calling tools while background tasks run.
+1. Await reactive system completion notifications for background tasks. Yield execution immediately without polling status loops or sleep commands.
+2. The execution system notifies the agent upon task completion. Proceed with other work or stop calling tools while background tasks run.
