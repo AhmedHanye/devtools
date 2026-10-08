@@ -4,7 +4,7 @@
 
 - **Issue tracker**: Follow `.agents/docs/issue-tracker.md` for `gh` commands, ticket hierarchy, claiming, and board status.
 - **Git workflow**: Follow `CONTRIBUTING.md` for linked branches, Conventional Commits, and pull requests.
-- **Domain terms**: Use `.agents/CONTEXT.md` for project vocabulary and system nouns (`Daemon`, `Runtime Stack`, `Spec`, `Ticket`, `Frontier`, `DRI`).
+- **Domain terms**: Use `.agents/GLOSSARY.md` for project vocabulary and system nouns (`Daemon`, `Runtime Stack`, `Spec`, `Ticket`, `Frontier`, `DRI`).
 - **Architecture decisions**: Consult `.agents/docs/adr/` for recorded architectural decisions.
 
 ## Execution boundaries

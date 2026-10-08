@@ -170,7 +170,7 @@ knowledge_base:
     enabled: true
     filePatterns:
       - ".agents/AGENTS.md"
-      - ".agents/CONTEXT.md"
+      - ".agents/GLOSSARY.md"
       - ".agents/rules/*"
       - "CONTRIBUTING.md"
       - ".agents/docs/adr/*"
