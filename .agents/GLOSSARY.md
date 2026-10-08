@@ -32,16 +32,16 @@ An architectural decision or change that has high reversal cost.
 A reversible change that can be walked back with minimal cost or risk.
 
 **Artifact**:
-A working document, report, or visual preview generated during execution and stored in `.scratch/`.
+A working document, report, or visual preview generated during execution and stored in `tmp/`.
 
-**Scratch File**:
-An ephemeral working file (debug script, raw spike, diff) living strictly in the gitignored `.scratch/` directory.
+**Ephemeral File**:
+A temporary working file (debug script, raw spike, diff) living strictly in the gitignored `tmp/` directory.
 
 **Handoff**:
-A structured transition document recording settled decisions, active blockers, and the next frontier in `.scratch/handoffs/`.
+A structured transition document recording settled decisions, active blockers, and the next frontier in `tmp/handoff/`.
 
 **Research Spike**:
-A time-boxed investigation of primary sources in `.scratch/research/` that terminates by recording a decision in an ADR.
+A time-boxed investigation of primary sources in `tmp/research/` that terminates by recording a decision in an ADR.
 
 **Workspace Root**:
 The top-level project container holding repository-wide developer tooling, formatting, and the shared TypeScript compiler.

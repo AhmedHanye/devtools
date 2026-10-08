@@ -73,7 +73,7 @@ reviews:
     - "!out/**"
     - "!storybook-static/**"
     - "!apps/frontend/next-env.d.ts"
-    - "!**/.scratch/**"
+    - "!tmp/**"
     - "!**/.fallow/**"
     - "!**/coverage/**"
     - "!**/.turbo/**"

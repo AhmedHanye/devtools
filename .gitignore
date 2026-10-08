@@ -1,5 +1,5 @@
-# Agent temp and scratch directories
-.scratch/
+# Temporary workspace directories
+tmp/
 
 # Dependencies
 node_modules/
