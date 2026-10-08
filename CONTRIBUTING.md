@@ -89,6 +89,8 @@ This command runs the complete quality suite:
 4. `typecheck`: TypeScript compiler type checks (`tsc --noEmit`) across all workspaces.
 5. `test`: Vitest and Bun test suites across all packages.
 
+Pull requests modifying only `.github/workflows/**` specify workflow validation rather than monorepo application test suites.
+
 ### Code style and autofix
 
 - Format code: `bun run format`
