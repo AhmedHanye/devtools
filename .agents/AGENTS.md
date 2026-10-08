@@ -21,6 +21,6 @@
 - **Working artifact storage**: Save temporary scripts, research spikes, and session handoffs strictly in `.scratch/` (`.scratch/handoffs/`, `.scratch/research/`). Repository storage rules strictly supersede vendor skill paths; never write ephemeral dumps or handoffs to OS `/tmp/`. Place compiled standalone executables strictly in repository root `dist/`, never in `.scratch/`.
 - **Instruction hygiene**: Follow `.agents/skills/unslop` and `.agents/skills/writing-for-agents` whenever creating or editing instructions, rules, or documentation in `.agents/`.
 - **Git checkpoint**: Require explicit user confirmation before executing `git commit`, `git push`, or opening pull requests. Present `git status` and a compact summary (`git diff --stat`) for review.
-- **Immutable locked skills**: Treat all skills declared in `skills-lock.json` (`.agents/skills/*`) as vendor-managed, read-only assets.
+- **Immutable locked skills**: Treat skills declared in `skills-lock.json` (`.agents/skills/*`) as vendor-managed, read-only assets. Update them exclusively through `bunx skills`, never by editing them directly in the workspace.
 - **Escalation**: When requirements are ambiguous or tests fail repeatedly, apply `needs-human-review`, post a blocker summary, and yield execution.
 - **Package manager & runner**: Execute all commands, package installations, and script runs with `bun` and `bunx`.
