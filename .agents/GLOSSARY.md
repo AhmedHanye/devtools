@@ -84,3 +84,6 @@ An external capability package declared in `skills-lock.json` whose upstream ins
 
 **Review Thread Resolution**:
 The pull request state invariant enforced by repository rulesets requiring all reviewer and bot comment conversations to be explicitly marked resolved before merge eligibility.
+
+**Evaluation Verdict**:
+The conclusive status (`MERGE` or `INVESTIGATE`) assigned to a pull request denoting its eligibility for squash merging into `main`.
