@@ -89,7 +89,14 @@ This command runs the complete quality suite:
 4. `typecheck`: TypeScript compiler type checks (`tsc --noEmit`) across all workspaces.
 5. `test`: Vitest and Bun test suites across all packages.
 
-Follow `.agents/rules/verification.md` for proportionate change-scoped checks during iterative development (for example, running workflow validation rather than application test suites when changes are isolated to `.github/workflows/**`).
+**Workflow and action changes exemption:** Pull requests modifying exclusively `.github/workflows/**` or `.github/actions/**` are exempt from full monorepo test suites and require only targeted workflow validation before pushing:
+
+```bash
+bunx prettier --check .github/workflows/** .github/actions/**
+bun scripts/verify-staged-secrets.ts .github/workflows/** .github/actions/**
+```
+
+Follow `.agents/rules/verification.md` for proportionate change-scoped checks during iterative development.
 
 ### Code style and autofix
 

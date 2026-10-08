@@ -24,6 +24,7 @@ Identify the pull request target from the input argument (for example, `123` or 
 ```bash
 PR_TARGET="123"
 gh pr view "$PR_TARGET" --json number,title,author,headRefName,baseRefName,body,labels,isDraft,state,url,commits,statusCheckRollup
+PR_NUMBER=$(gh pr view "$PR_TARGET" --json number -q .number)
 ```
 
 When calling `run_command` in automated tools, set `WaitMsBeforeAsync` to `10000` so remote GitHub API queries return synchronously.
@@ -42,10 +43,10 @@ If any check is failing or cancelled:
 gh api /repos/:owner/:repo/actions/jobs/<JOB_ID>/logs | grep -E -C 3 "(error TS|Error:|FAILED|##\[error\])"
 ```
 
-Alternatively, query check annotations:
+Alternatively, query check annotations using the check-run ID (which matches `<JOB_ID>` for GitHub Actions jobs):
 
 ```bash
-gh api /repos/:owner/:repo/check-runs/<JOB_ID>/annotations
+gh api /repos/:owner/:repo/check-runs/<CHECK_RUN_ID>/annotations
 ```
 
 Summarize the failure reason concisely under findings.
@@ -97,7 +98,7 @@ Evaluate the diff against repository standards using progressive disclosure:
 ### 5. Validate PR template, evidence, and commits
 
 1. **Pull request description:**
-   - **Automated bot authors:** For bot authors (such as `dependabot[bot]` or `renovate[bot]`), waive human template verification from `.github/PULL_REQUEST_TEMPLATE.md`. Evaluate bot pull requests based on dependency placement rules ([`.agents/rules/dependencies.md`](file:///home/agent/workspace/devtools/.agents/rules/dependencies.md)), semver blast radius, and passing CI checks.
+   - **Automated bot authors:** For bot authors (such as `dependabot[bot]` or `renovate[bot]`), waive human template verification from `.github/PULL_REQUEST_TEMPLATE.md`. Evaluate bot pull requests based on dependency placement rules ([`.agents/rules/dependencies.md`](.agents/rules/dependencies.md)), semver blast radius, and passing CI checks.
    - **Human authors:** Verify that the body follows `.github/PULL_REQUEST_TEMPLATE.md`:
      - Summary includes a structural view (shallow file tree, component tree, or diff sketch).
      - Closing issue link is present (`Closes #123`).
@@ -134,18 +135,7 @@ Generate an executive evaluation report following this structure:
 **Verdict:** INVESTIGATE
 ```
 
-## Verdict determination rules
+## Verdict determination
 
-1. **MERGE:** Assign strictly when:
-   - All CI checks pass (`statusCheckRollup` is all green).
-   - All review threads are resolved (`isResolved: true`).
-   - Repository standards and boundaries are fully met.
-   - PR description conforms to template with observable verification evidence (for bot authors, template requirements are waived if dependency placement and CI pass).
-   - No manual verification, visual checks, or human investigations are required.
-
-2. **INVESTIGATE:** Assign whenever:
-   - Any CI check is failing, pending, or cancelled.
-   - Any review thread remains unresolved.
-   - A human-authored PR description lacks required template sections or verification evidence.
-   - Architectural boundaries, dependency rules, or secret invariants are violated.
-   - Manual verification is required (such as unverified UI changes, breaking changes, or schema migrations).
+- **MERGE:** Assign when all conditions pass: CI status check rollup is completely green, all review threads are resolved (`isResolved: true`), architectural boundaries and secret rules are satisfied, and template evidence is complete (or waived for bots).
+- **INVESTIGATE:** Assign if any check fails or is cancelled, review threads remain open, required template evidence is missing, boundary invariants are violated, or manual verification is required.

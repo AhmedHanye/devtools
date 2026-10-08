@@ -14,7 +14,7 @@ Run proportionate, change-scoped checks during iterative development. Run the fu
 
 | Changed files                                | Verification scope    | Commands                                                                                                                                                            |
 | -------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.github/workflows/**`, `.github/actions/**` | Workflow validation   | `bunx prettier --check .github/workflows/**` <br> `bun scripts/verify-staged-secrets.ts .github/workflows/**`                                                       |
+| `.github/workflows/**`, `.github/actions/**` | Workflow validation   | `bunx prettier --check .github/workflows/** .github/actions/**` <br> `bun scripts/verify-staged-secrets.ts .github/workflows/** .github/actions/**`                 |
 | `apps/<pkg>/**`                              | Application workspace | `bun --filter @devtools/<pkg> typecheck` <br> `bun --filter @devtools/<pkg> test` <br> (For frontend: `bun --filter @devtools/frontend lint:design` and `lint:fsd`) |
 | `packages/<pkg>/**`                          | Package workspace     | `bun --filter @devtools/<pkg> typecheck` <br> `bun --filter @devtools/<pkg> test`                                                                                   |
 | `scripts/**`                                 | Internal scripts      | `bun test scripts/` <br> `bun run check`                                                                                                                            |
@@ -23,7 +23,7 @@ Run proportionate, change-scoped checks during iterative development. Run the fu
 
 ## Workflow change invariant
 
-Pull requests modifying only `.github/workflows/**` specify workflow validation (`bunx prettier --check .github/workflows/**`, `bun scripts/verify-staged-secrets.ts .github/workflows/**`) rather than monorepo application test suites. Restrict checks to workflow and secret validation when changes are isolated to CI workflow definitions.
+Pull requests modifying only `.github/workflows/**` or `.github/actions/**` specify workflow validation (`bunx prettier --check .github/workflows/** .github/actions/**`, `bun scripts/verify-staged-secrets.ts .github/workflows/** .github/actions/**`) rather than monorepo application test suites. Restrict checks to workflow and secret validation when changes are isolated to CI workflow definitions.
 
 ## Observable verification
 
