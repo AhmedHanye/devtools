@@ -19,29 +19,33 @@ Run this skill when invoked with `/evaluate-pr` followed by a pull request numbe
 
 ### 1. Resolve pull request and extract metadata
 
-Identify the pull request target from the input argument (for example, `123` or the full pull request URL). Extract metadata:
+Identify the pull request target from the input argument (for example, `123` or the full pull request URL). Extract all pull request metadata, commits, and check runs in a single query:
 
 ```bash
 PR_TARGET="123"
-gh pr view "$PR_TARGET" --json number,title,author,headRefName,baseRefName,body,labels,isDraft,state,url
+gh pr view "$PR_TARGET" --json number,title,author,headRefName,baseRefName,body,labels,isDraft,state,url,commits,statusCheckRollup
 ```
+
+When calling `run_command` in automated tools, set `WaitMsBeforeAsync` to `10000` so remote GitHub API queries return synchronously.
 
 Verify that the pull request is open and not in draft status. If closed or draft, record this status directly in the evaluation report.
 
 ### 2. Inspect remote CI checks and failure logs
 
-Check the status of automated CI checks:
-
-```bash
-gh pr checks "$PR_TARGET"
-```
+Inspect the status of automated CI checks from `statusCheckRollup`. Run `gh pr checks "$PR_TARGET"` for a compact summary.
 
 If any check is failing or cancelled:
-1. Locate the failing check run ID or URL.
-2. Fetch the failure log to extract the specific failing test, compilation error, or lint failure:
+1. Locate the failing check run in `statusCheckRollup`. The `detailsUrl` contains the GitHub Actions run and job ID (for example, `.../job/112992600088`).
+2. Fetch the failure log directly from the GitHub API:
 
 ```bash
-gh run view "$RUN_ID" --log-failed
+gh api /repos/:owner/:repo/actions/jobs/<JOB_ID>/logs | grep -E -C 3 "(error TS|Error:|FAILED|##\[error\])"
+```
+
+Alternatively, query check annotations:
+
+```bash
+gh api /repos/:owner/:repo/check-runs/<JOB_ID>/annotations
 ```
 
 Summarize the failure reason concisely under findings.
@@ -76,27 +80,29 @@ Identify any threads where `isResolved` is false. Extract the comment author and
 
 ### 4. Analyze diff blast radius and architectural boundaries
 
-Inspect the modified files and diffstat:
+Inspect the modified files:
 
 ```bash
-gh pr diff "$PR_TARGET" --stat
+gh pr diff "$PR_TARGET" --name-only
 gh pr diff "$PR_TARGET"
 ```
 
-Evaluate the diff against repository standards:
+Evaluate the diff against repository standards using progressive disclosure:
 - **Blast radius:** Map modified paths across workspaces (`apps/*`, `packages/*`, `.github/*`, `.agents/*`, scripts).
-- **Workspace dependency boundaries:** Verify that changes to `package.json` follow `.agents/rules/dependencies.md`. Ensure no phantom dependencies resolve through hoisting and application runtime packages remain in leaf workspaces.
+- **Workspace dependency boundaries:** If changes modify `package.json` or `bun.lock`, verify compliance with `.agents/rules/dependencies.md`. Ensure no phantom dependencies resolve through hoisting and application runtime packages remain in leaf workspaces.
 - **Frontend architectural boundaries:** If `apps/frontend/` is modified, verify compliance with `.agents/rules/frontend.md` (Feature-Sliced Design layers, index exports, semantic theme tokens, and safe hydration).
-- **Secret leak prevention:** Ensure all committed credentials and test fixtures follow `.agents/rules/secrets.md` with appropriate `# trufflehog:ignore` or `// trufflehog:ignore` comments on synthetic fixtures.
+- **Secret leak prevention:** If changes introduce configuration keys, synthetic credentials, or fixtures, verify compliance with `.agents/rules/secrets.md` with appropriate `# trufflehog:ignore` or `// trufflehog:ignore` comments.
 - **Cleanliness:** Confirm zero ephemeral files, scratch logs, or workspace `tmp/` paths are checked into git or referenced in the pull request description.
 
 ### 5. Validate PR template, evidence, and commits
 
-1. **Pull request description:** Verify that the body follows `.github/PULL_REQUEST_TEMPLATE.md`:
-   - Summary includes a structural view (shallow file tree, component tree, or diff sketch).
-   - Closing issue link is present (`Closes #123`).
-   - Observable verification evidence is included (terminal output, test passes, or before/after visual proof).
-   - Merge Danger section specifies Door type (`one-way` or `two-way`) and Blast Radius.
+1. **Pull request description:**
+   - **Automated bot authors:** For bot authors (such as `dependabot[bot]` or `renovate[bot]`), waive human template verification from `.github/PULL_REQUEST_TEMPLATE.md`. Evaluate bot pull requests based on dependency placement rules ([`.agents/rules/dependencies.md`](file:///home/agent/workspace/devtools/.agents/rules/dependencies.md)), semver blast radius, and passing CI checks.
+   - **Human authors:** Verify that the body follows `.github/PULL_REQUEST_TEMPLATE.md`:
+     - Summary includes a structural view (shallow file tree, component tree, or diff sketch).
+     - Closing issue link is present (`Closes #123`).
+     - Observable verification evidence is included (terminal output, test passes, or visual proof).
+     - Merge Danger section specifies Door type (`one-way` or `two-way`) and Blast Radius.
 2. **Commit conventions:** Verify commit messages match Conventional Commits (`type(scope): description`) without issue references in commit subjects.
 
 ## Output format
@@ -131,15 +137,15 @@ Generate an executive evaluation report following this structure:
 ## Verdict determination rules
 
 1. **MERGE:** Assign strictly when:
-   - All CI checks pass (`gh pr checks` is all green).
+   - All CI checks pass (`statusCheckRollup` is all green).
    - All review threads are resolved (`isResolved: true`).
    - Repository standards and boundaries are fully met.
-   - Observable verification evidence in the PR body is complete.
+   - PR description conforms to template with observable verification evidence (for bot authors, template requirements are waived if dependency placement and CI pass).
    - No manual verification, visual checks, or human investigations are required.
 
 2. **INVESTIGATE:** Assign whenever:
    - Any CI check is failing, pending, or cancelled.
    - Any review thread remains unresolved.
-   - The PR description lacks required template sections or verification evidence.
+   - A human-authored PR description lacks required template sections or verification evidence.
    - Architectural boundaries, dependency rules, or secret invariants are violated.
    - Manual verification is required (such as unverified UI changes, breaking changes, or schema migrations).
