@@ -125,3 +125,13 @@ _Avoid_: Comment signoff, thread closing
 **Evaluation Verdict**:
 The conclusive status (`MERGE` or `INVESTIGATE`) assigned to a pull request denoting its eligibility for squash merging into `main`.
 _Avoid_: PR status, check conclusion, review decision
+
+### Documentation and developer guides
+
+**Documentation Platform**:
+The Fumadocs documentation application workspace (`site/`, `@devtools/site`) providing guides, Diátaxis documentation, and public interface references for DevTools.
+_Avoid_: Docs site, static docs, manual
+
+**Diátaxis Quadrant**:
+One of the four systematic documentation classifications (`Tutorial`, `How-to Guide`, `Reference`, `Explanation`) structuring developer content based on reader intent and pedagogical orientation.
+_Avoid_: Documentation category, doc type, topic section
