@@ -16,7 +16,6 @@
     },
     "apps/api": {
       "name": "@devtools/api",
-      "version": "0.1.0",
       "dependencies": {
         "@devtools/core": "workspace:*",
         "hono": "^4.13.12",
@@ -24,7 +23,6 @@
     },
     "apps/cli": {
       "name": "@devtools/cli",
-      "version": "0.0.0",
       "bin": {
         "devtools": "./bin/devtools.js",
       },
@@ -39,7 +37,6 @@
     },
     "apps/frontend": {
       "name": "@devtools/frontend",
-      "version": "0.1.0",
       "dependencies": {
         "@base-ui/react": "^1.8.0",
         "@devtools/core": "workspace:*",
@@ -72,14 +69,12 @@
     },
     "packages/core": {
       "name": "@devtools/core",
-      "version": "0.1.0",
       "dependencies": {
         "zod": "^3.24.2",
       },
     },
     "packages/db": {
       "name": "@devtools/db",
-      "version": "0.1.0",
       "dependencies": {
         "drizzle-orm": "^0.45.3",
       },
