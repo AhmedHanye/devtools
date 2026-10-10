@@ -6,6 +6,7 @@
 - **Git workflow and pull requests**: Read `CONTRIBUTING.md` for linked branches, Conventional Commits, and pull requests.
 - **Domain vocabulary**: Read `.agents/GLOSSARY.md` for system nouns (`Daemon`, `Runtime Stack`, `Spec`, `Ticket`, `Frontier`, `DRI`).
 - **Architecture decision records**: Consult `.agents/docs/adr/` when evaluating system software choices that alter runtime execution, data persistence, or network boundaries.
+- **Documentation platform architecture**: Read `.agents/docs/site-architecture.md` for Fumadocs routing, search APIs, LLM endpoints, and MDX configurations.
 
 ## Execution boundaries
 
@@ -16,6 +17,7 @@
   Route git workflows to `CONTRIBUTING.md`, tracker procedures to `.agents/docs/issue-tracker.md`, and dev tooling to configs.
 - **Problem-first planning**: Before asking decision questions during planning or grilling, state the concrete technical failure mode and verify patterns against primary documentation or code.
 - **Contract-first tickets**: Define behavioral contracts and automated acceptance criteria in issues. Keep implementation recipes and branch names in code and PRs.
+- **Autonomous test seams**: Proceed test-first without interactive confirmation modals (`ask_question`) when seams directly implement ticket acceptance criteria. Do not pause execution to pre-agree seams unless requirements are ambiguous or specify competing architectural designs.
 - **Ticket partitioning**: Stage only the files belonging to the active ticket before branching for subsequent tickets.
 - **Working artifact storage**: Save ephemeral files strictly in workspace `tmp/` partitioned by purpose: temporary scripts in `tmp/scripts/`, research spikes in `tmp/research/`, session handoffs in `tmp/handoff/`, and issue drafts in `tmp/issues/`. Workspace `tmp/` storage rules strictly supersede vendor skill paths; isolate all ephemeral files within workspace `tmp/`. Save compiled standalone executables strictly in repository root `dist/`. Pull request descriptions cite only permanent codebase paths.
 - **Reactive background execution**: Await reactive system completion notifications for background tasks. Yield execution immediately without polling status loops or sleep commands.
