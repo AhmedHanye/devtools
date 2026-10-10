@@ -5,6 +5,7 @@ icon: GraduationCap
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { Play } from "lucide-react";
 
 Tutorials serve a learning-oriented mindset. If you are new to DevTools, these guided lessons help you build a functioning developer environment from scratch through direct execution.
 
@@ -12,10 +13,11 @@ Unlike reference material or conceptual explanations, tutorials focus on practic
 
 ## Topics
 
-Explore the hands-on learning guides below.
+Explore the hands-on learning guides below:
 
 <Cards>
   <Card
+    icon={<Play className="size-4 text-[var(--tutorials-color)]" />}
     title="Getting started with DevTools"
     href="/docs/tutorials/getting-started"
     description="Install dependencies, build the frontend bundle, launch the loopback daemon, and verify system health."

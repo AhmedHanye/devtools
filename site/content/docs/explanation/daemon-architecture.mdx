@@ -4,6 +4,9 @@ description: Architectural design, single-port routing, loopback boundaries, and
 icon: Server
 ---
 
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Callout } from "fumadocs-ui/components/callout";
+
 The DevTools daemon consolidates background services, REST API endpoints, embedded persistence, and the web user interface into a single production process.
 
 ## Process topology
@@ -71,26 +74,35 @@ Local developer tools interact directly with developer disk storage and command 
 2. **CORS validation**: The Hono API verifies that incoming `Origin` headers originate strictly from `localhost` or `127.0.0.1`. Requests from external domains are rejected.
 3. **Directory traversal prevention**: The static asset handler normalizes requested paths and ensures the target path is contained within the configured root directory. Any attempt to traverse above the base folder with `..` sequences triggers an immediate `403 Forbidden` response.
 
+<Callout type="error" title="Loopback security boundary">
+  Never bind the developer daemon to public network interfaces (`0.0.0.0`)
+  without authenticated network proxies. The loopback restriction is an
+  essential defense against drive-by request forgery from browser tabs.
+</Callout>
+
 ## Lifecycle and signal management
 
 The daemon manages startup initialization and termination through explicit lifecycle hooks:
 
-### Startup sequence
+<Accordions type="single">
+  <Accordion id="startup-sequence" title="Startup initialization sequence">
+    1. **Configuration validation**: The CLI validates options against `RuntimeConfigSchema`.
+    2. **Port availability check**: The runtime confirms that the requested TCP port is unoccupied. If occupied in an interactive session, it prompts the operator with the next available port.
+    3. **Database initialization and migration**: The daemon resolves the SQLite path according to execution context and applies pending Drizzle migrations.
+    4. **Socket binding**: The Bun HTTP server binds to the validated interface and port.
+  </Accordion>
 
-1. **Configuration validation**: The CLI validates options against `RuntimeConfigSchema`.
-2. **Port availability check**: The runtime confirms that the requested TCP port is unoccupied. If occupied in an interactive session, it prompts the operator with the next available port.
-3. **Database initialization and migration**: The daemon resolves the SQLite path according to execution context and applies pending Drizzle migrations.
-4. **Socket binding**: The Bun HTTP server binds to the validated interface and port.
+  <Accordion id="graceful-shutdown" title="Graceful shutdown teardown">
+    When the daemon process receives termination signals (`SIGINT` or `SIGTERM`), it initiates a clean teardown:
 
-### Graceful shutdown
+    1. The signal listener intercepts the operating system event.
+    2. In-flight requests are allowed to complete.
+    3. The server socket stops accepting new incoming connections.
+    4. SQLite WAL journals are synchronized and database handles are closed cleanly.
+    5. The process terminates with exit code 0.
 
-When the daemon process receives termination signals (`SIGINT` or `SIGTERM`), it initiates a clean teardown:
-
-1. The signal listener intercepts the operating system event.
-2. In-flight requests are allowed to complete.
-3. The server socket stops accepting new incoming connections.
-4. SQLite WAL journals are synchronized and database handles are closed cleanly.
-5. The process terminates with exit code 0.
+  </Accordion>
+</Accordions>
 
 ## Architectural trade-offs
 

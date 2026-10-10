@@ -4,6 +4,10 @@ description: Configure runtime parameters, bind custom hosts and ports, resolve 
 icon: Terminal
 ---
 
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Callout } from "fumadocs-ui/components/callout";
+
 This guide shows you how to configure and start the DevTools loopback daemon with custom network bindings, resolve port conflicts, and mount alternative static asset directories.
 
 ## Prerequisites
@@ -15,9 +19,9 @@ Ensure you have completed the following prerequisites:
 
 ## Start daemon on the default port
 
-To run the daemon with default settings, execute the `web` command through Bun.
+To run the daemon with default settings, execute the `web` command through Bun:
 
-```bash
+```bash title="terminal"
 bun run devtools web
 ```
 
@@ -25,76 +29,96 @@ By default, the daemon binds to `127.0.0.1` on port `4000` and serves static fil
 
 ## Bind custom port and host
 
-You can customize the listening port and network interface using command line options or environment variables.
+Customize the listening port and network interface using command line options or environment variables:
 
-### Using CLI options
+<Tabs items={["CLI flags", "Environment variables"]} groupId="config-method" persist>
+  <Tab value="CLI flags">
+    Pass the `-p` or `--port` flag to change the port, and `-H` or `--host` to specify the host address:
 
-Pass the `-p` or `--port` flag to change the port, and `-H` or `--host` to specify the host address.
+    ```bash title="terminal"
+    bun run devtools web --port 5050 --host 127.0.0.1
+    ```
 
-```bash
-bun run devtools web --port 5050 --host 127.0.0.1
-```
+  </Tab>
 
-### Using environment variables
+  <Tab value="Environment variables">
+    The daemon inspects `PORT` and `HOST` when command flags are omitted:
 
-The daemon inspects `PORT` and `HOST` if corresponding command flags are omitted.
+    ```bash title="terminal"
+    PORT=5050 HOST=127.0.0.1 bun run devtools web
+    ```
 
-```bash
-PORT=5050 HOST=127.0.0.1 bun run devtools web
-```
+  </Tab>
+</Tabs>
 
-> [!NOTE]
-> For security reasons, the daemon restricts origins and network bindings to loopback interfaces (`127.0.0.1` or `localhost`). Binding to public network interfaces is prohibited by the loopback security boundary.
+<Callout type="info" title="Loopback security">
+  For security reasons, the daemon restricts origins and network bindings to
+  loopback interfaces (`127.0.0.1` or `localhost`). Binding to public network
+  interfaces is prohibited by the loopback security boundary.
+</Callout>
 
 ## Resolve port conflicts
 
-When the requested port is already occupied by another process, DevTools handles the collision based on terminal interactivity.
+When the requested port is already occupied by another process, DevTools adapts based on terminal interactivity:
 
-### Interactive shell resolution
+<Accordions type="single">
+  <Accordion id="interactive-resolution" title="Interactive terminal resolution (TTY)">
+    In an interactive terminal session, the CLI scans sequential port numbers starting at the target port, identifies the first free socket, and prompts for confirmation:
 
-In an interactive terminal session (TTY), the CLI scans sequential port numbers starting at the target port, identifies the first free socket, and prompts for confirmation:
+    ```text
+    ? Port 4000 is in use. Would you like to use available port 4001 instead? (Y/n)
+    ```
 
-```text
-? Port 4000 is in use. Would you like to use available port 4001 instead? (Y/n)
-```
+    Pressing `Enter` automatically binds the daemon to the suggested alternate port. Declining with `n` halts the process with exit code 1.
 
-Pressing `Enter` automatically binds the daemon to the suggested alternate port. If you decline with `n`, the process halts with exit code 1.
+  </Accordion>
 
-### Automated or CI environments
+  <Accordion id="automated-ci-resolution" title="Automated or CI environments">
+    In automated pipelines or scripts where `stdin` is non-interactive, the daemon prints an error message and terminates immediately:
 
-In automated pipelines or scripts where `stdin` is not an interactive terminal, the daemon prints an error message and terminates immediately:
+    ```text
+    Port 4000 is already in use. Use --port <port> or set PORT=<port> to specify a different port.
+    ```
 
-```text
-Port 4000 is already in use. Use --port <port> or set PORT=<port> to specify a different port.
-```
+    To prevent build failures in non-interactive environments, assign an explicit open port or pass `PORT=0` to let the operating system assign an ephemeral port.
 
-To avoid build failures in non-interactive environments, assign an explicit open port or pass `PORT=0` to let the operating system assign an ephemeral port.
+  </Accordion>
+</Accordions>
 
 ## Serve custom static directory
 
-When developing alternative web dashboards or running embedded documentation previews, point the daemon to a custom static directory using `--static-dir` or `-s`.
+When developing alternative web dashboards or running embedded documentation previews, point the daemon to a custom static directory:
 
-```bash
-bun run devtools web --static-dir ./custom-dashboard
-```
+<Tabs items={["CLI flag", "Environment variable"]} groupId="static-method" persist>
+  <Tab value="CLI flag">
+    Pass the `--static-dir` or `-s` flag with your target path:
 
-Alternatively, define the `DEVTOOLS_STATIC_DIR` environment variable:
+    ```bash title="terminal"
+    bun run devtools web --static-dir ./custom-dashboard
+    ```
 
-```bash
-DEVTOOLS_STATIC_DIR=./custom-dashboard bun run devtools web
-```
+  </Tab>
 
-The daemon verifies that the specified directory exists before starting. If the path does not exist, startup terminates with an informative error:
+  <Tab value="Environment variable">
+    Define the `DEVTOOLS_STATIC_DIR` environment variable:
 
-```text
-Static assets directory not found at "/path/to/custom-dashboard". Run "bun run build" in @devtools/frontend to generate static assets, or pass --static-dir <path>.
-```
+    ```bash title="terminal"
+    DEVTOOLS_STATIC_DIR=./custom-dashboard bun run devtools web
+    ```
+
+  </Tab>
+</Tabs>
+
+<Callout type="warn" title="Static directory validation">
+  The daemon verifies that the specified directory exists before starting. If
+  the path does not exist, startup terminates with an informative error.
+</Callout>
 
 ## Verification
 
-Confirm that your daemon instance is serving requests properly by inspecting the health route with cURL.
+Confirm that your daemon instance is serving requests properly by inspecting the health route with cURL:
 
-```bash
+```bash title="terminal"
 curl -I http://127.0.0.1:4000/api/health
 ```
 
@@ -109,8 +133,8 @@ Content-Length: 95
 
 Verify that static HTML assets are also returned correctly from the root path:
 
-```bash
+```bash title="terminal"
 curl -I http://127.0.0.1:4000/
 ```
 
-The response should return HTTP 200 with `Content-Type: text/html`.
+The response returns HTTP 200 with `Content-Type: text/html`.

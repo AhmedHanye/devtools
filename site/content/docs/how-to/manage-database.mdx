@@ -4,18 +4,22 @@ description: Locate SQLite storage files, execute schema migrations, inspect sys
 icon: Database
 ---
 
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { Callout } from "fumadocs-ui/components/callout";
+
 This guide explains how to manage the embedded SQLite database in DevTools, execute schema migrations with Drizzle ORM, view system metadata, and reset local persistence safely.
 
 ## Prerequisites
 
-Ensure you have the following prerequisites ready:
+Ensure you have completed the following prerequisites:
 
 - Bun runtime version 1.2 or later installed.
 - DevTools workspace repository cloned with dependencies installed (`bun install`).
 
 ## Locate database storage
 
-DevTools manages database paths automatically based on the execution context. The path resolution logic follows these rules:
+DevTools manages database paths automatically based on the execution context:
 
 | Environment                                | Resolved path                       | Description                                             |
 | ------------------------------------------ | ----------------------------------- | ------------------------------------------------------- |
@@ -26,39 +30,48 @@ DevTools manages database paths automatically based on the execution context. Th
 
 To inspect your current development database location, verify the presence of the `.devtools` folder in the repository root:
 
-```bash
+```bash title="terminal"
 ls -la .devtools/
 ```
 
-When active, SQLite generates three related files:
+<Accordions type="single">
+  <Accordion id="sqlite-wal-files" title="Understanding SQLite WAL files (.db, .db-wal, .db-shm)">
+    When active, SQLite maintains three coordinated persistence files in WAL mode:
 
-- `devtools.db`: The main database file.
-- `devtools.db-wal`: The Write-Ahead Log handling concurrent reads and writes.
-- `devtools.db-shm`: Shared-memory index supporting WAL mode.
+    - `devtools.db`: The primary database file containing committed tables and indices.
+    - `devtools.db-wal`: The Write-Ahead Log capturing concurrent writes without locking active readers.
+    - `devtools.db-shm`: The shared-memory index coordinating reader access across operating system processes.
+
+  </Accordion>
+</Accordions>
 
 ## Run schema migrations
 
-DevTools applies pending schema migrations automatically whenever the daemon starts up. However, when working on schema changes in `packages/db`, you can generate and apply migration files directly.
+DevTools applies pending schema migrations automatically when the daemon starts up. When developing schema changes in `packages/db`, you can generate and apply migration files directly:
 
-### Generate a new migration
+<Tabs items={["Generate migration", "Apply migrations"]} groupId="migration-flow" persist>
+  <Tab value="Generate migration">
+    When modifying schema files under `packages/db/src/schema/`, compile a new SQL migration snapshot with Drizzle Kit:
 
-When modifying schema files under `packages/db/src/schema/`, generate a new SQL migration snapshot with Drizzle Kit:
+    ```bash title="terminal"
+    bun --filter @devtools/db run db:generate
+    ```
 
-```bash
-bun --filter @devtools/db run db:generate
-```
+    This creates a new immutable SQL file in `packages/db/drizzle/` along with updated migration journal metadata.
 
-This compiles a new immutable SQL file into `packages/db/drizzle/` along with updated migration journal metadata.
+  </Tab>
 
-### Apply programmatic migrations
+  <Tab value="Apply migrations">
+    To execute migrations programmatically without launching the full web daemon, execute the migration runner:
 
-To execute migrations programmatically without launching the full web daemon, you can execute the migration runner using Bun:
+    ```bash title="terminal"
+    bun -e "import { db, runMigrations } from '@devtools/db'; runMigrations(db);"
+    ```
 
-```bash
-bun -e "import { db, runMigrations } from '@devtools/db'; runMigrations(db);"
-```
+    If all migrations are up to date, the runner exits cleanly without output.
 
-If all migrations are up to date, the runner exits cleanly without error.
+  </Tab>
+</Tabs>
 
 ## Inspect and seed system metadata
 
@@ -66,9 +79,9 @@ The core database foundation establishes the `system_metadata` table for persist
 
 ### Inspect metadata table
 
-Query the local SQLite database using Bun's built-in SQLite utility or the command line:
+Query the local SQLite database using Bun:
 
-```bash
+```bash title="terminal"
 bun -e "import { db, systemMetadata } from '@devtools/db'; console.log(db.select().from(systemMetadata).all());"
 ```
 
@@ -88,41 +101,46 @@ Expected output:
 
 To insert or update a metadata record, use Drizzle insert statements:
 
-```bash
+```bash title="terminal"
 bun -e "import { db, systemMetadata } from '@devtools/db'; db.insert(systemMetadata).values({ key: 'cluster_node', value: 'primary' }).onConflictDoUpdate({ target: systemMetadata.key, set: { value: 'primary' } }).run();"
 ```
 
 ## Reset local database
 
-When you need a clean state during local testing, you can safely reset the local development database.
+When you need a clean state during local testing, you can reset the development database:
+
+<Callout type="warn" title="Permanent deletion warning">
+  Deleting `.devtools` permanently removes all local SQLite database records and
+  WAL journals.
+</Callout>
 
 1. Stop any running DevTools daemon processes with `Ctrl+C`.
 2. Delete the `.devtools` directory containing the database and WAL journals:
 
-```bash
+```bash title="terminal"
 rm -rf .devtools
 ```
 
 3. Restart the daemon to trigger a fresh database initialization:
 
-```bash
+```bash title="terminal"
 bun run devtools web
 ```
 
-The daemon recreates the `.devtools/` directory, initializes `devtools.db`, and runs all migrations automatically.
+The daemon recreates the `.devtools/` directory, initializes `devtools.db`, and executes all migrations automatically.
 
 ## Verification
 
-To verify that the database initialized successfully and is accepting queries, check that the daemon logs the persistence notice upon startup:
+Verify that the database initialized successfully by inspecting the daemon startup output:
 
 ```text
 Persistence initialized: SQLite (/path/to/devtools/.devtools/devtools.db)
 ```
 
-You can also run the database package test suite to verify connection safeguards, WAL concurrency, and migration integrity:
+Run the database package test suite to verify connection safeguards, WAL concurrency, and migration integrity:
 
-```bash
+```bash title="terminal"
 bun --filter @devtools/db test
 ```
 
-All persistence tests should pass without error.
+All persistence tests pass without error.

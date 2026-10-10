@@ -6,6 +6,13 @@ import {
   DocsTitle,
 } from "fumadocs-ui/page";
 import defaultMdxComponents from "fumadocs-ui/mdx";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Card, Cards } from "fumadocs-ui/components/card";
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { TypeTable } from "fumadocs-ui/components/type-table";
+import { Callout } from "fumadocs-ui/components/callout";
 import { source } from "@/lib/source";
 import { resolvePageDetails } from "@/lib/docs-index";
 import { Mermaid } from "@/components/mermaid";
@@ -29,13 +36,47 @@ export default async function Page({ params }: PageProps) {
   const description = page.data.description || details.description;
   const MDX = page.data.body;
 
+  const section = slug?.[0];
+
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      breadcrumb={{ enabled: true }}
+      tableOfContent={{ enabled: true }}
+      tableOfContentPopover={{ enabled: true }}
+      className={section ? `${section} group-${section}` : ""}
+      style={
+        section
+          ? ({
+              "--color-fd-primary": `var(--${section}-color)`,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <DocsTitle>{title}</DocsTitle>
       {description ? <DocsDescription>{description}</DocsDescription> : null}
       <DocsBody>
         {typeof MDX === "function" ? (
-          <MDX components={{ ...defaultMdxComponents, Mermaid }} />
+          <MDX
+            components={{
+              ...defaultMdxComponents,
+              Step,
+              Steps,
+              Tab,
+              Tabs,
+              Card,
+              Cards,
+              File,
+              Folder,
+              Files,
+              Accordion,
+              Accordions,
+              TypeTable,
+              Callout,
+              Mermaid,
+            }}
+          />
         ) : (
           <div>
             <p>{description || details.content}</p>

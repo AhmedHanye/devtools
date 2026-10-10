@@ -4,19 +4,22 @@ description: Complete syntax, options, environment variables, exit codes, and ex
 icon: TerminalSquare
 ---
 
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import { Callout } from "fumadocs-ui/components/callout";
+
 The `devtools` command-line utility controls the local loopback daemon, starts HTTP services, and manages runtime options.
 
 ## Command synopsis
 
-The primary command starts the unified loopback daemon serving the API and static web dashboard.
+The primary command starts the unified loopback daemon serving the API and static web dashboard:
 
-```bash
+```bash title="terminal"
 devtools web [options]
 ```
 
 To view general CLI help and global version information:
 
-```bash
+```bash title="terminal"
 devtools --help
 devtools --version
 ```
@@ -43,7 +46,10 @@ When command-line flags are omitted, the CLI reads configuration from these envi
 | `HOST`                | Loopback network interface address.         | `--host`          | `127.0.0.1`          |
 | `DEVTOOLS_STATIC_DIR` | Filesystem path to static assets directory. | `--static-dir`    | `apps/frontend/dist` |
 
-Command line flags take precedence over environment variables.
+<Callout type="info" title="Configuration precedence">
+  Command line flags take precedence over environment variables when both are
+  provided.
+</Callout>
 
 ## Exit codes
 
@@ -56,34 +62,42 @@ The CLI reports process results using standard exit codes:
 
 ## Usage examples
 
-### Default execution
+Explore common command patterns:
 
-Start the daemon with standard port and host configurations:
+<Tabs items={["Default", "Custom port", "Static assets", "Environment overrides"]} groupId="cli-examples" persist>
+  <Tab value="Default">
+    Start the daemon with standard port and host configurations:
 
-```bash
-devtools web
-```
+    ```bash title="terminal"
+    devtools web
+    ```
 
-### Specify custom port and host
+  </Tab>
 
-Bind the daemon to an alternative local port and loopback IP:
+  <Tab value="Custom port">
+    Bind the daemon to an alternative local port and loopback IP:
 
-```bash
-devtools web --port 8080 --host 127.0.0.1
-```
+    ```bash title="terminal"
+    devtools web --port 8080 --host 127.0.0.1
+    ```
 
-### Mount alternative static assets
+  </Tab>
 
-Serve an alternative static website or dashboard directory:
+  <Tab value="Static assets">
+    Serve an alternative static website or dashboard directory:
 
-```bash
-devtools web --static-dir ./custom-dist --port 3030
-```
+    ```bash title="terminal"
+    devtools web --static-dir ./custom-dist --port 3030
+    ```
 
-### Provide environment overrides
+  </Tab>
 
-Run the daemon in containerized or headless environments using environment variables:
+  <Tab value="Environment overrides">
+    Run the daemon in containerized or headless environments using environment variables:
 
-```bash
-PORT=5000 HOST=127.0.0.1 devtools web
-```
+    ```bash title="terminal"
+    PORT=5000 HOST=127.0.0.1 devtools web
+    ```
+
+  </Tab>
+</Tabs>

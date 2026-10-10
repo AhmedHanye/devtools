@@ -1,22 +1,22 @@
-# Fumadocs Features and Styling Reference
+# Fumadocs features and styling reference
 
-Authoritative technical reference for MDX features, built-in UI components, code highlighting, page tree configuration, and styling across the documentation platform (`site/`, `@devtools/site`).
+Authoritative technical reference for MDX features, built-in UI components, code highlighting, page tree configuration, layouts, plugins, and visual styling across the documentation platform (`site/`, `@devtools/site`).
 
 Official documentation:
-- [Fumadocs Overview](https://fumadocs.dev/)
-- [Fumadocs UI Components](https://fumadocs.dev/docs/ui/components)
-- [Fumadocs MDX Plugins and Markdown](https://fumadocs.dev/docs/ui/markdown)
-- [Fumadocs Page Tree and Meta](https://fumadocs.dev/docs/headless/source-api/page-tree)
+- [Fumadocs overview](https://fumadocs.dev/)
+- [Fumadocs UI components](https://fumadocs.dev/docs/ui/components)
+- [Fumadocs MDX plugins and markdown](https://fumadocs.dev/docs/ui/markdown)
+- [Fumadocs page tree and meta](https://fumadocs.dev/docs/headless/source-api/page-tree)
 
 ---
 
 ## 1. Page tree and navigation structure (`meta.json`)
 
-Fumadocs uses `meta.json` files within directory hierarchies under `content/docs/` to configure navigation order, display names, icons, and tabbed section roots.
+Fumadocs uses `meta.json` files within directory hierarchies under `content/docs/` to configure navigation order, display names, icons, root section tabs, and folder behavior.
 
 ### 1.1 Root configuration (`meta.json`)
 
-To configure top-level documentation sections as separate tabs/modes, place `meta.json` in the root and in each section directory.
+To configure top-level documentation sections as separate tabs or modes, place `meta.json` in the content root and in each section directory.
 
 ```json title="content/docs/meta.json"
 {
@@ -31,9 +31,24 @@ To configure top-level documentation sections as separate tabs/modes, place `met
   "description": "Learning-oriented guides",
   "root": true,
   "icon": "GraduationCap",
+  "defaultOpen": true,
+  "collapsible": true,
   "pages": ["index", "getting-started"]
 }
 ```
+
+#### Supported `meta.json` properties
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `title` | `string` | Display label of the section folder in the sidebar. |
+| `description` | `string` | Summary used for metadata, OpenGraph, search previews, and card summaries. |
+| `icon` | `string` | Name of a Lucide icon (such as `GraduationCap`, `Wrench`, `BookOpen`, `Server`). |
+| `root` | `boolean \| string` | When `true`, elevates the folder to a top-level tab or section root. Also accepts a version string (such as `"v2"`). |
+| `defaultOpen` | `boolean` | When `true`, expands the folder by default on page load. |
+| `collapsible` | `boolean` | When `false`, locks the folder open. |
+| `pages` | `string[]` | Ordered array defining sequence, separators, wildcards, and external links. |
+| `pagesIndex` | `string` | Custom slug specifying which page serves as the folder index. |
 
 ### 1.2 Page array syntax and operators
 
@@ -41,15 +56,17 @@ The `pages` property in `meta.json` controls sidebar sequence and appearance usi
 
 | Operator | Syntax | Purpose | Example |
 | --- | --- | --- | --- |
-| **Exact page/folder** | `"slug"` | Places file or sub-folder at this position | `"getting-started"` |
+| **Exact page or folder** | `"slug"` | Places file or sub-folder at this position | `"getting-started"` |
 | **Section separator** | `"---Label---"` | Inserts a non-clickable section header line in the sidebar | `"---Development---"` |
 | **Separator with icon** | `"---[Icon]Label---"` | Inserts a section header line with a Lucide icon | `"---[Wrench]Tools---"` |
+| **Empty divider** | `"---"` | Inserts a subtle horizontal line without text | `"---"` |
 | **Rest wildcard** | `"..."` | Appends all unlisted files in alphabetical order | `"..."` |
 | **Reverse rest** | `"z...a"` | Appends all unlisted files in reverse alphabetical order | `"z...a"` |
 | **Extract folder** | `"...folder"` | Flattens sub-folder items directly into the current sidebar level | `"...(setup)"` |
 | **Exclude item** | `"!slug"` | Omits a page or folder from the sidebar tree | `"!draft-page"` |
 | **External link** | `"[Label](url)"` | Inserts an external hyperlink into the sidebar navigation | `"[GitHub](https://github.com/AhmedHanye/devtools)"` |
 | **External link with icon** | `"[Icon][Label](url)"` | Inserts an external hyperlink with a Lucide icon | `"[Github][Source](https://github.com/...)"` |
+| **Forced external link** | `"external:[Label](url)"` | Forces external link behavior (`target="_blank"`) | `"external:[Status](https://status.dev)"` |
 
 ---
 
@@ -59,9 +76,10 @@ Every MDX document begins with YAML frontmatter bounded by `---`:
 
 ```yaml
 ---
-title: Page Title
+title: Page title
 description: A concise summary of the page purpose.
 icon: LucideIconName
+status: beta
 full: false
 ---
 ```
@@ -70,8 +88,9 @@ full: false
 | --- | --- | --- |
 | `title` | `string` | Page heading rendered as H1. Displayed in sidebar and search results. |
 | `description` | `string` | Summary used for metadata, OpenGraph, search previews, and card summaries. |
-| `icon` | `string` | Name of a Lucide icon (for example `Server`, `Terminal`, `Database`, `Layers`). |
-| `full` | `boolean` | When `true`, disables sidebar margins to display full-width content. |
+| `icon` | `string` | Name of a Lucide icon (such as `Server`, `Terminal`, `Database`, `Layers`). |
+| `status` | `string` | Status badge in the sidebar when `statusBadgesPlugin` is active (`new`, `beta`, `deprecated`). |
+| `full` | `boolean` | When `true`, removes max-width limits and Table of Contents for wide tables or dashboards. |
 
 ---
 
@@ -79,11 +98,33 @@ full: false
 
 Fumadocs provides specialized documentation components imported from `fumadocs-ui/components/<name>`.
 
-### 3.1 Callouts
+### 3.1 Callouts (`<Callout>`)
 
-Highlight notes, tips, warnings, and alerts. Supports GitHub blockquote syntax or the custom `<Callout>` component.
+Highlights warnings, tips, errors, recommendations, and important notices.
 
-#### GitHub alert syntax:
+```mdx
+import { Callout } from "fumadocs-ui/components/callout";
+
+<Callout type="warn" title="Port collision">
+  If port 3000 is occupied, configure an alternative port via `--port`.
+</Callout>
+```
+
+Supported `type` values:
+- `"info"` (default): General notes and informational context.
+- `"idea"`: Tips, shortcuts, and optimization ideas.
+- `"warn"` or `"warning"`: Breaking changes, caveats, or deprecations.
+- `"error"`: Dangerous operations, data loss risks, or runtime failures.
+- `"success"`: Verification passes and completed states.
+
+Subcomponents available from `fumadocs-ui/components/callout`:
+- `CalloutContainer`
+- `CalloutTitle`
+- `CalloutDescription`
+
+#### GitHub alert syntax alternative
+
+Fumadocs also transforms GitHub-style blockquote alerts directly:
 
 ```markdown
 > [!NOTE]
@@ -102,20 +143,6 @@ Highlight notes, tips, warnings, and alerts. Supports GitHub blockquote syntax o
 > High-risk operations that may cause data loss.
 ```
 
-#### Custom `<Callout>` component:
-
-```mdx
-import { Callout } from "fumadocs-ui/components/callout";
-
-<Callout type="warn" title="Port collision">
-  If port 3000 is occupied, configure an alternative port via `--port`.
-</Callout>;
-```
-
-Supported `type` values: `"info"` (default), `"warn"`, `"error"`.
-
----
-
 ### 3.2 Tabs (`<Tabs>` & `<Tab>`)
 
 Display switchable alternatives such as package managers or operating system instructions.
@@ -123,23 +150,36 @@ Display switchable alternatives such as package managers or operating system ins
 ```mdx
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
-<Tabs items={["Bun", "Binary"]}>
-  <Tab value="Bun">```bash bun run devtools web ```</Tab>
-  <Tab value="Binary">```bash ./dist/devtools web ```</Tab>
-</Tabs>;
+<Tabs items={["Bun", "Binary"]} groupId="runtime-choice" persist>
+  <Tab value="Bun">
+    ```bash
+    bun run devtools web
+    ```
+  </Tab>
+  <Tab value="Binary">
+    ```bash
+    ./dist/devtools web
+    ```
+  </Tab>
+</Tabs>
 ```
 
 Key props:
+- `items`: `string[]` - Tab label array.
+- `groupId`: `string` - Synchronizes tab selection across multiple tab blocks on the page.
+- `persist`: `boolean` - Saves selection in `localStorage`.
+- `updateAnchor`: `boolean` - Updates URL hash to match active tab.
+- `label`: `ReactNode` - Label text placed before tab buttons.
+- `defaultIndex`: `number` - Index of the default active tab.
 
-- `items`: `string[]` - tab label array matching `value` on child `<Tab>` components.
-- `groupId`: `string` - synchronizes tab selection across multiple code blocks on the same page.
-- `persist`: `boolean` - saves user selection in localStorage.
-
----
+Subcomponents:
+- `TabsList`
+- `TabsTrigger`
+- `TabsContent`
 
 ### 3.3 Steps (`<Steps>` & `<Step>`)
 
-Render structured step-by-step procedures with numbered step circles.
+Render structured step-by-step procedures with numbered step circles and vertical timeline lines.
 
 ```mdx
 import { Step, Steps } from "fumadocs-ui/components/steps";
@@ -147,107 +187,147 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
   <Step>
     ### Install dependencies
-    Clone repository and install workspace packages using Bun.
+    Clone repository and install workspace packages using Bun:
+    ```bash
+    bun install
+    ```
   </Step>
   <Step>
     ### Start daemon
-    Run the background service to bind loopback sockets.
+    Run the background service to bind loopback sockets:
+    ```bash
+    bun run devtools web
+    ```
   </Step>
-</Steps>;
+</Steps>
 ```
 
----
+Authoring rules:
+1. Always nest an `### Imperative action heading` as the first element inside each `<Step>`.
+2. Follow each heading with a short 1 to 2 sentence instruction and an executable command block.
 
 ### 3.4 Cards and card grids (`<Cards>` & `<Card>`)
 
-Render navigational cards linking to pages or external resources.
+Render navigational cards linking to pages or external resources. Uses responsive CSS container queries (`@container`) to adjust columns.
 
 ```mdx
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { Terminal, Database } from "lucide-react";
 
 <Cards>
   <Card
-    title="CLI Reference"
+    icon={<Terminal className="size-4" />}
+    title="CLI reference"
     href="/docs/reference/cli"
     description="Commands, flags, and exit codes for devtools."
   />
   <Card
-    title="Daemon Architecture"
-    href="/docs/explanation/daemon-architecture"
-    description="Process topology and IPC specifications."
+    icon={<Database className="size-4" />}
+    title="Manage database"
+    href="/docs/how-to/manage-database"
+    description="SQLite storage files and schema migrations."
   />
-</Cards>;
+</Cards>
 ```
 
----
+Key props on `<Card>`:
+- `icon`: `ReactNode` - Lucide icon rendered in an accent container.
+- `title`: `ReactNode` - Concise card title (2 to 5 words).
+- `description`: `ReactNode` - Short summary (1 to 2 lines).
+- `href`: `string` - Target URL path.
+- `external`: `boolean` - Marks the card as an external link.
 
 ### 3.5 Accordions (`<Accordions>` & `<Accordion>`)
 
-Collapsible disclosure elements for FAQs or deep implementation details.
+Collapsible disclosure elements for secondary details, FAQs, or deep troubleshooting steps.
 
 ```mdx
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 
-<Accordions>
-  <Accordion title="Where are database files stored?">
-    SQLite files are stored in `~/.devtools/data.db` with WAL mode enabled.
+<Accordions type="single">
+  <Accordion id="database-storage" title="Where are database files stored?">
+    SQLite files are stored in `~/.devtools/devtools.db` with WAL mode enabled.
   </Accordion>
-  <Accordion title="How do I change the default port?">
-    Specify the `DEVTOOLS_PORT` environment variable or `--port <number>` flag.
+  <Accordion id="port-collision" title="How do I change the default port?">
+    Specify the `PORT` environment variable or `--port <number>` flag.
   </Accordion>
-</Accordions>;
+</Accordions>
 ```
 
----
+Key features:
+- **URL hash deep linking**: Passing `id="database-storage"` allows navigating to `#database-storage` to expand the accordion on mount.
+- **Anchor copy button**: Renders a clickable anchor link when `id` is specified.
+- `type`: `"single" | "multiple"` - Controls whether only one item or multiple items can stay open.
 
 ### 3.6 File tree (`<Files>`, `<Folder>`, `<File>`)
 
-Display directory hierarchies and file trees with folder icons.
+Display directory hierarchies and file trees with clean icons, tree connectors, and collapsible folders.
 
 ```mdx
 import { File, Folder, Files } from "fumadocs-ui/components/files";
 
 <Files>
-  <Folder name="apps">
-    <Folder name="cli">
+  <Folder name="apps" defaultOpen>
+    <Folder name="cli" defaultOpen>
+      <File name="package.json" />
+      <File name="src/index.ts" />
+    </Folder>
+    <Folder name="frontend">
       <File name="package.json" />
     </Folder>
   </Folder>
-  <Folder name="packages">
-    <Folder name="core">
+  <Folder name="packages" defaultOpen>
+    <Folder name="core" defaultOpen>
       <File name="src/index.ts" />
     </Folder>
   </Folder>
   <File name="package.json" />
-</Files>;
+  <File name="bun.lock" />
+</Files>
 ```
 
----
+Key props:
+- `<Folder name="..." defaultOpen>`: Expands folder by default when set to `true`.
+- `<File name="..." icon={<Icon />}>`: Represents an individual file node.
 
 ### 3.7 Type tables (`<TypeTable>`)
 
-Render clean documentation tables for TypeScript props, options, and schemas.
+Render structured documentation tables for TypeScript props, options, parameters, and configuration schemas.
 
 ```mdx
 import { TypeTable } from "fumadocs-ui/components/type-table";
 
 <TypeTable
+  id="runtime-config"
   type={{
     port: {
       description: "Network port bound by the loopback daemon",
       type: "number",
-      default: "3000",
+      default: "4000",
+      required: true,
     },
     host: {
       description: "Loopback interface binding host",
       type: "string",
       default: '"127.0.0.1"',
     },
+    staticDir: {
+      description: "Custom path to pre-compiled static assets",
+      type: "string",
+      default: '"apps/frontend/dist"',
+    },
   }}
-/>;
+/>
 ```
 
----
+Supported `TypeNode` fields:
+- `type`: Concise type signature.
+- `description`: Text or JSX explanation.
+- `default`: Default value string.
+- `required`: Appends `?` when false.
+- `deprecated`: Applies strikethrough styling when true.
+- `typeDescription`: Expanded type popover content.
+- `typeDescriptionLink`: URL link to referenced interface.
 
 ### 3.8 Image zoom (`<ImageZoom>`)
 
@@ -261,70 +341,197 @@ import { ImageZoom } from "fumadocs-ui/components/image-zoom";
   alt="Architecture diagram"
   width={800}
   height={400}
-/>;
+/>
+```
+
+### 3.9 Announcement banner (`<Banner>`)
+
+Sticky header announcement bar with dismissal persistence.
+
+```mdx
+import { Banner } from "fumadocs-ui/components/banner";
+
+<Banner id="v1-release" variant="normal">
+  DevTools is now available for local development. View the <a href="/docs/tutorials/getting-started" className="underline font-medium">getting started tutorial</a>.
+</Banner>
+```
+
+Key props:
+- `id`: Unique string key. Saves dismissal to `localStorage` and renders close button.
+- `variant`: `"normal"` or `"rainbow"`.
+- `changeLayout`: Injects `--fd-banner-height` CSS variable.
+
+### 3.10 Inline table of contents (`<InlineTOC>`)
+
+Collapsible in-page table of contents widget for embedding at the start of long guides.
+
+```mdx
+import { InlineTOC } from "fumadocs-ui/components/inline-toc";
+
+<InlineTOC items={page.data.toc} />
+```
+
+### 3.11 Runtime code blocks (`<DynamicCodeBlock>`)
+
+Renders syntax highlighting at runtime for dynamic strings or user inputs.
+
+```mdx
+import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
+
+<DynamicCodeBlock lang="ts" code={dynamicSnippet} />
+```
+
+### 3.12 GitHub repository info (`<GithubInfo>`)
+
+Fetches and renders real-time GitHub repository star and fork counts.
+
+```mdx
+import { GithubInfo } from "fumadocs-ui/components/github-info";
+
+<GithubInfo owner="AhmedHanye" repo="devtools" />
 ```
 
 ---
 
 ## 4. Code block highlighting and Shiki features
 
-Fumadocs uses Shiki for server-side syntax highlighting.
+Fumadocs uses Shiki and `@shikijs/transformers` for server-side syntax highlighting.
 
 ### 4.1 Fenced code block metadata
 
-- **Language identifier**: Always specify the language (`bash`, `ts`, `tsx`, `json`, `yaml`, `text`).
-- **File title**: Use `title="path/to/file"` to render the filename tab above the code block:
-  ````mdx
-  ```ts title="apps/cli/src/daemon.ts"
-  export async function start() {}
-  ```
-  ````
-- **Line numbers**: Add `showLineNumbers` to display line counters.
-- **Line highlighting**: Use curly braces `{1, 3-5}` to highlight line numbers:
-  ````mdx
-  ```ts {2-3} title="config.ts"
-  const host = "127.0.0.1";
-  const port = 3000;
-  ```
-  ````
+| Feature | Syntax | Description |
+| --- | --- | --- |
+| **Language identifier** | ```` ```ts ```` | Syntax grammar identifier (`bash`, `ts`, `tsx`, `json`, `yaml`). |
+| **File title tab** | ```` ```ts title="path/to/file.ts" ```` | Filename tab rendered above code block. |
+| **Line numbers** | ```` ```ts showLineNumbers ```` | Line counter numbers in the gutter. |
+| **Start line counter** | ```` ```ts data-line-numbers-start=10 ```` | Starts line numbering from specific integer. |
+| **Line highlighting** | ```` ```ts {2, 4-6} ```` | Highlights specified lines and ranges. |
+| **Word highlighting** | ```` ```ts /port/ ```` | Highlights specific tokens in the code. |
+| **Tab grouping** | ```` ```ts tab="TypeScript" ```` | Combines adjacent blocks into `CodeBlockTabs`. |
+| **Disable copy** | ```` ```ts noCopy ```` | Suppresses the copy-to-clipboard button. |
 
 ### 4.2 Shiki inline transformer comments
 
-Use inline annotations for granular line and word highlights:
+Use inline annotations for line and word highlights:
 
-- `// [!code highlight]` - Highlights the current line.
-- `// [!code word:keyword]` - Highlights specific words in the block.
+- `// [!code highlight]` - Highlights the line.
+- `// [!code highlight:3]` - Highlights the current line plus next 2 lines.
+- `// [!code word:keyword]` - Highlights specific words in the line.
+- `// [!code word:keyword:3]` - Highlights occurrences of word across next 3 lines.
 - `// [!code ++]` - Green diff insertion line.
+- `// [!code ++:2]` - Multiple line diff insertions.
 - `// [!code --]` - Red diff deletion line.
-- `// [!code focus]` - Focuses on the current line while dimming surrounding code.
+- `// [!code focus]` - Focuses line while dimming surrounding code.
+- `// [!code focus:3]` - Focuses 3 consecutive lines.
+
+### 4.3 Package manager commands (`remarkNpm`)
+
+When `remarkNpm` is enabled, single code blocks expand to `npm`, `pnpm`, `yarn`, and `bun` tabs automatically:
+
+````markdown
+```package-install
+@devtools/cli
+```
+````
+
+For execution commands:
+
+````markdown
+```npm
+npm run dev
+```
+````
 
 ---
 
-## 5. Diagrams and Math (KaTeX & Mermaid)
+## 5. Layout and UX APIs
 
-### 5.1 Mermaid diagrams
+### 5.1 `DocsLayout` (`fumadocs-ui/layouts/docs`)
 
-Diagrams are authored using fenced code blocks with language `mermaid`:
+```tsx title="site/src/app/docs/layout.tsx"
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { source } from "@/lib/source";
+
+export default function RootDocsLayout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout
+      tree={source.pageTree}
+      tabMode="auto"
+      nav={{
+        title: "DevTools",
+        url: "/docs",
+      }}
+      githubUrl="https://github.com/AhmedHanye/devtools"
+      sidebar={{
+        collapsible: true,
+        defaultOpenLevel: 1,
+      }}
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+Key props:
+- `tree`: Root page tree.
+- `tabMode`: `"top" | "auto"`.
+- `sidebar.collapsible`: Enables collapsing the sidebar.
+- `sidebar.defaultOpenLevel`: Depth of folders opened on mount.
+- `aiChat`: Built-in slot for AI assistant sidecars.
+
+### 5.2 `DocsPage` (`fumadocs-ui/page`)
+
+```tsx title="site/src/app/docs/[[...slug]]/page.tsx"
+<DocsPage
+  toc={page.data.toc}
+  full={page.data.full}
+  breadcrumb={{ enabled: true }}
+  tableOfContent={{ enabled: true }}
+  tableOfContentPopover={{ enabled: true }}
+  lastUpdate={page.data.lastModified}
+>
+  <DocsTitle>{page.data.title}</DocsTitle>
+  {page.data.description && (
+    <DocsDescription>{page.data.description}</DocsDescription>
+  )}
+  <DocsBody>
+    <MDX />
+  </DocsBody>
+</DocsPage>
+```
+
+Key props:
+- `full`: Disables margins and Table of Contents for wide views.
+- `breadcrumb`: Shows path breadcrumbs.
+- `lastUpdate`: Displays last updated date.
+
+---
+
+## 6. Diagrams and math
+
+### 6.1 Mermaid diagrams (`remarkMdxMermaid`)
+
+Authored with fenced blocks using language `mermaid`:
 
 ````mdx
 ```mermaid
 flowchart TD
-  CLI["CLI Process"] -->|"IPC Request"| Daemon["Background Daemon"]
-  Daemon -->|"Query"| SQLite[("SQLite Database")]
+  CLI["CLI process"] -->|"IPC request"| Daemon["Background daemon"]
+  Daemon -->|"Persistence"| SQLite[("SQLite database")]
 ```
 ````
 
 Rules:
-
 - Quote node labels containing spaces or parentheses (for example `Node["Label (Details)"]`).
-- Avoid raw HTML tags inside node labels.
+- Avoid raw HTML tags inside labels.
 
-### 5.2 Math and LaTeX formulas
+### 6.2 Math and LaTeX formulas (KaTeX)
 
-Inline math uses `$...$` or `\(...\)`. Display math uses `$$...$$` or `\[...\]`:
+Inline math uses `$...$` or `\(...\)`. Block display math uses `$$...$$` or `\[...\]`:
 
 ```markdown
-Euler's formula states that $e^{i\pi} + 1 = 0$.
+Formula: $e^{i\pi} + 1 = 0$
 
 $$
 \int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
@@ -333,11 +540,11 @@ $$
 
 ---
 
-## 6. Styling, themes, and CSS variables
+## 7. Styling, themes, and CSS variables
 
 Fumadocs provides semantic CSS custom properties in `fumadocs-ui/css/neutral.css` and `fumadocs-ui/css/preset.css`.
 
-### 6.1 Core theme tokens
+### 7.1 Core theme tokens
 
 - `--color-fd-background` / `--color-fd-foreground`
 - `--color-fd-primary` / `--color-fd-primary-foreground`
@@ -345,9 +552,11 @@ Fumadocs provides semantic CSS custom properties in `fumadocs-ui/css/neutral.css
 - `--color-fd-card` / `--color-fd-card-foreground`
 - `--color-fd-border` / `--color-fd-accent`
 
-### 6.2 Quadrant color tokens
+Never hardcode raw hex values or non-semantic Tailwind color classes in documentation components. Use semantic `--color-fd-*` tokens or Tailwind aliases (`bg-fd-card`, `text-fd-muted-foreground`, `border-fd-border`) for consistent contrast across light and dark modes.
 
-Section colors are injected via `:root` and `.dark` CSS tokens to colorize tabs and sidebar active indicators:
+### 7.2 Quadrant color tokens
+
+Section colors are injected via `:root` and `.dark` CSS tokens:
 
 ```css
 :root {
@@ -364,3 +573,28 @@ Section colors are injected via `:root` and `.dark` CSS tokens to colorize tabs 
   --explanation-color: #d8b4fe;
 }
 ```
+
+---
+
+## 8. Visual aesthetics and readability rules
+
+Maintain clean visual rhythm across every document:
+
+1. **Avoid continuous text walls**: Break up text exceeding 3 consecutive paragraphs using visual components:
+   - Use `<Steps>` for procedures.
+   - Use `<TypeTable>` for parameters and options.
+   - Use `<Files>` for directory structures.
+   - Use `<Tabs>` for tool or OS choices.
+   - Use Mermaid diagrams for system flows.
+   - Use `<Accordions>` for optional deep-dive material.
+2. **Callout severity hygiene**:
+   - Reserve `error` / `[!CAUTION]` strictly for operations risking data loss or irrecoverable states.
+   - Reserve `warn` / `[!WARNING]` for breaking changes or subtle runtime caveats.
+   - Reserve `important` / `[!IMPORTANT]` for mandatory prerequisites.
+   - Reserve `idea` / `[!TIP]` for performance optimizations.
+   - Reserve `info` / `[!NOTE]` for contextual background.
+   - Never stack consecutive callouts. Merge related points into one block or list.
+3. **Card wayfinding**:
+   - Keep card titles to 2 to 5 words.
+   - Keep descriptions to 1 to 2 lines.
+   - Always pair cards with a descriptive Lucide icon.

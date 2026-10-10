@@ -4,6 +4,8 @@ description: Technical specification for the DevTools REST API, loopback CORS bo
 icon: Globe
 ---
 
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
 The DevTools HTTP API exposes local runtime controls, process metrics, and service status endpoints. The API is hosted in-process on the daemon server under the `/api` route prefix.
 
 ## Base URL and loopback CORS policy
@@ -33,36 +35,68 @@ Returns the operational health status, system uptime, and version identifier of 
 
 - **HTTP Method**: `GET`
 - **Path**: `/api/health`
-- **Headers**: None required.
-- **Query parameters**: None.
+- **Headers**: None required
+- **Query parameters**: None
 
-### Response
+### Response schema
 
-- **Status Code**: `200 OK`
-- **Content-Type**: `application/json`
+The response body conforms to `HealthResponseSchema` (`200 OK`, `application/json`):
 
-The response body conforms to `HealthResponseSchema`:
-
-| Field       | Type     | Description                                              |
-| ----------- | -------- | -------------------------------------------------------- |
-| `status`    | `string` | System status enum (`"ok"`, `"degraded"`, or `"error"`). |
-| `timestamp` | `string` | ISO 8601 UTC timestamp of the health check.              |
-| `uptime`    | `number` | Process uptime in seconds (non-negative float).          |
-| `version`   | `string` | Current semver release of the DevTools platform.         |
+<TypeTable
+  id="health-response"
+  type={{
+    status: {
+      description: 'System status enum ("ok", "degraded", or "error")',
+      type: '"ok" | "degraded" | "error"',
+      required: true,
+    },
+    timestamp: {
+      description: "ISO 8601 UTC timestamp of the health check",
+      type: "string",
+      required: true,
+    },
+    uptime: {
+      description: "Process uptime in seconds (non-negative float)",
+      type: "number",
+      required: true,
+    },
+    version: {
+      description: "Current semver release of the DevTools platform",
+      type: "string",
+      required: true,
+    },
+  }}
+/>
 
 ## Error handling
 
 The API standardizes error responses using `ApiErrorResponseSchema`. All error responses follow a structured JSON schema:
 
-| Field           | Type      | Description                                                         |
-| --------------- | --------- | ------------------------------------------------------------------- |
-| `error.code`    | `string`  | Machine-readable error code string.                                 |
-| `error.message` | `string`  | Human-readable explanation of the failure.                          |
-| `error.details` | `unknown` | Optional contextual payload with additional diagnostic information. |
+<TypeTable
+  id="api-error-response"
+  type={{
+    "error.code": {
+      description: "Machine-readable error code string",
+      type: '"BAD_REQUEST" | "NOT_FOUND" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE"',
+      required: true,
+    },
+    "error.message": {
+      description: "Human-readable explanation of the failure",
+      type: "string",
+      required: true,
+    },
+    "error.details": {
+      description:
+        "Optional contextual payload with additional diagnostic information",
+      type: "unknown",
+      required: false,
+    },
+  }}
+/>
 
 ### API error codes
 
-The table below maps the supported error codes to HTTP status codes:
+The table below maps supported error codes to HTTP status codes:
 
 | Error code            | HTTP status | Description                                            |
 | --------------------- | ----------- | ------------------------------------------------------ |
@@ -77,7 +111,7 @@ The table below maps the supported error codes to HTTP status codes:
 
 Request:
 
-```bash
+```bash title="terminal"
 curl -X GET http://127.0.0.1:4000/api/health
 ```
 
@@ -96,7 +130,7 @@ Response (`200 OK`):
 
 Request:
 
-```bash
+```bash title="terminal"
 curl -X GET http://127.0.0.1:4000/api/unregistered-path
 ```
 

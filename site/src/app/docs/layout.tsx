@@ -1,11 +1,26 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { source } from "@/lib/source";
 
 export default function RootDocsLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const segments = pathname.split("/").filter(Boolean);
+  const section = segments[1] || "";
+
   return (
     <DocsLayout
       tree={source.pageTree}
+      containerProps={{
+        className: section ? `${section} group-${section}` : "",
+        style: section
+          ? ({
+              "--color-fd-primary": `var(--${section}-color)`,
+            } as CSSProperties)
+          : undefined,
+      }}
       nav={{
         title: (
           <div className="flex items-center gap-2.5">
@@ -17,24 +32,25 @@ export default function RootDocsLayout({ children }: { children: ReactNode }) {
         ),
         url: "/docs",
       }}
-      githubUrl="https://github.com/AhmedHanye/devtools"
       tabs={{
         transform(option, node) {
           const meta = source.getNodeMeta(node);
-          if (!meta || !node.icon) return option;
-          const section = meta.path.split("/")[0];
-          const color = `var(--${section}-color, var(--color-fd-foreground))`;
+          const optionSection =
+            option.url.replace(/^\/docs\/?/, "").split("/")[0] ||
+            meta?.path?.split("/")[0] ||
+            "";
+          const color = optionSection
+            ? `var(--${optionSection}-color, var(--color-fd-foreground))`
+            : "var(--color-fd-foreground)";
 
           return {
             ...option,
             icon: (
               <div
-                className="[&_svg]:size-full rounded-lg size-full text-(--tab-color) max-md:bg-(--tab-color)/10 max-md:border max-md:p-1.5"
-                style={
-                  {
-                    "--tab-color": color,
-                  } as CSSProperties
-                }
+                className="[&_svg]:size-full rounded-lg size-full p-0.5 [&_svg]:text-[inherit] max-md:bg-fd-muted max-md:border max-md:p-1.5"
+                style={{
+                  color,
+                }}
               >
                 {node.icon}
               </div>
@@ -44,6 +60,7 @@ export default function RootDocsLayout({ children }: { children: ReactNode }) {
       }}
       sidebar={{
         collapsible: true,
+        defaultOpenLevel: 1,
       }}
     >
       {children}

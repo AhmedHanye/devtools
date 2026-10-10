@@ -4,6 +4,8 @@ description: Technical specifications for RuntimeConfigSchema, database path res
 icon: FileCode
 ---
 
+import { TypeTable } from "fumadocs-ui/components/type-table";
+
 This page documents the TypeScript and Zod schemas governing runtime configuration, database path resolution algorithms, and embedded SQLite table definitions.
 
 ## Runtime configuration schema
@@ -12,11 +14,31 @@ The `@devtools/core` package defines `RuntimeConfigSchema` using Zod to validate
 
 ### Schema fields
 
-| Property    | Type     | Default       | Constraints         | Description                                                   |
-| ----------- | -------- | ------------- | ------------------- | ------------------------------------------------------------- |
-| `host`      | `string` | `"127.0.0.1"` | Minimum length 1    | IP address or loopback hostname to bind.                      |
-| `port`      | `number` | `4000`        | Integer, 0 to 65535 | TCP port number to listen on. Port 0 binds an ephemeral port. |
-| `staticDir` | `string` | `undefined`   | Optional path       | Directory containing pre-built frontend static assets.        |
+<TypeTable
+  id="runtime-config-schema"
+  type={{
+    host: {
+      description: "IP address or loopback hostname to bind. Minimum length 1",
+      type: "string",
+      default: '"127.0.0.1"',
+      required: false,
+    },
+    port: {
+      description:
+        "TCP port number to listen on (0 to 65535). Port 0 binds an ephemeral port",
+      type: "number",
+      default: "4000",
+      required: false,
+    },
+    staticDir: {
+      description:
+        "Filesystem directory containing pre-built frontend static assets",
+      type: "string",
+      default: "undefined",
+      required: false,
+    },
+  }}
+/>
 
 The schema enforces strict validation; unrecognized properties cause parsing to fail with a `ZodError`.
 
@@ -60,11 +82,27 @@ The `system_metadata` table persists key-value metadata, schema versions, and ru
 
 ### Table structure
 
-| Column name  | SQL type  | Nullable | Default           | Description                                            |
-| ------------ | --------- | -------- | ----------------- | ------------------------------------------------------ |
-| `key`        | `TEXT`    | No       | None              | Primary key identifying the metadata entry.            |
-| `value`      | `TEXT`    | No       | None              | Serialized string or JSON representation of the value. |
-| `updated_at` | `INTEGER` | No       | Current timestamp | Timestamp in milliseconds (`timestamp_ms` mode).       |
+<TypeTable
+  id="system-metadata-schema"
+  type={{
+    key: {
+      description: "Primary key identifying the metadata entry",
+      type: "string",
+      required: true,
+    },
+    value: {
+      description: "Serialized string or JSON representation of the value",
+      type: "string",
+      required: true,
+    },
+    updatedAt: {
+      description:
+        "Timestamp in milliseconds when the record was last modified",
+      type: "Date",
+      required: true,
+    },
+  }}
+/>
 
 ### Drizzle definition
 

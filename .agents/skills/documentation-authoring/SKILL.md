@@ -60,23 +60,30 @@ description: Configure and start the DevTools background daemon process.
 
 1. Specify language tags on every fenced code block (`bash`, `ts`, `tsx`, `json`, `yaml`).
 2. Add `title="path/to/file"` on code blocks representing specific files.
-3. Use GitHub alert syntax (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`) for callouts, or import Fumadocs UI components.
-4. Import Fumadocs components directly when using tabs, steps, or cards:
+3. Use Shiki inline comment annotations (`// [!code highlight]`, `// [!code ++]`, `// [!code --]`, `// [!code focus]`) or range notations (`// [!code highlight:3]`) to direct reader attention.
+4. Use Fumadocs Callout component (`import { Callout } from 'fumadocs-ui/components/callout';`) with types `info`, `warn`, `error`, or `idea`. Avoid raw blockquote alert markers (`> [!NOTE]`), as they render without callout styling.
+5. Import Fumadocs components directly when using callouts, tabs, steps, cards, file trees, accordions, or type tables:
    ```mdx
+   import { Callout } from 'fumadocs-ui/components/callout';
    import { Step, Steps } from 'fumadocs-ui/components/steps';
    import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
    import { Card, Cards } from 'fumadocs-ui/components/card';
+   import { File, Folder, Files } from 'fumadocs-ui/components/files';
+   import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+   import { TypeTable } from 'fumadocs-ui/components/type-table';
    ```
-5. Completion criterion: Every fenced code block has a language identifier, all JSX tags close cleanly, and all component imports resolve correctly.
+6. Completion criterion: Every fenced code block has a language identifier, all JSX tags close cleanly, and all component imports resolve correctly.
 
-### 5. Validate accessibility and style invariants
+### 5. Validate accessibility, visual rhythm, and style invariants
 
 1. Provide descriptive alt text on every image explaining its content and function.
 2. Use descriptive link labels that identify the destination. Never write "click here", "here", or bare URLs.
 3. Check that diagrams render with clear text labels and support light and dark backgrounds.
-4. Reference repository paths relative to the repository root. Never write absolute machine paths.
-5. Apply instruction hygiene. Eliminate AI buzzwords, fancy synonyms for "is", and mid-sentence colons. Avoid em dashes entirely; use commas or periods instead.
-6. Completion criterion: The file contains zero missing alt attributes, zero generic link labels, zero em dashes, and zero absolute file paths.
+4. Maintain visual rhythm. Prevent continuous prose walls exceeding three paragraphs by using `<Steps>`, `<Files>`, `<TypeTable>`, `<Tabs>`, or Mermaid diagrams.
+5. Pair `<Cards>` with descriptive Lucide icons.
+6. Reference repository paths relative to the repository root. Never write absolute machine paths.
+7. Apply instruction hygiene. Eliminate AI buzzwords, fancy synonyms for "is", and mid-sentence colons. Avoid em dashes entirely; use commas or periods instead.
+8. Completion criterion: The file contains zero missing alt attributes, zero generic link labels, zero em dashes, zero unadorned text walls, and zero absolute file paths.
 
 ### 6. Verify compilation and route integrity
 

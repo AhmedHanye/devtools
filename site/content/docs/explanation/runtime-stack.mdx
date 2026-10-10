@@ -4,6 +4,8 @@ description: Monorepo topology, package dependency boundaries, Feature-Sliced De
 icon: Layers
 ---
 
+import { File, Folder, Files } from "fumadocs-ui/components/files";
+
 DevTools is structured as a monorepo workspace designed with strict architectural boundaries, explicit dependency contracts, and decoupled leaf packages.
 
 ## Workspace topology
@@ -50,16 +52,34 @@ The web dashboard (`@devtools/frontend`) adheres to Feature-Sliced Design (FSD) 
 
 The frontend source code under `apps/frontend/src/` is structured across three primary layers:
 
-```text
-apps/frontend/src/
-├── app/               # Application-level providers, globals, and routing wrappers
-├── pages/             # Composed view slices representing route pages
-│   └── dashboard/     # Main developer dashboard view slice
-└── shared/            # Reusable domain-agnostic modules and primitives
-    ├── api/           # Typed HTTP client and query functions
-    ├── lib/           # Utility helpers and custom React hooks
-    └── ui/            # Design system building blocks and UI primitives
-```
+<Files>
+  <Folder name="apps/frontend/src" defaultOpen>
+    <Folder name="app" defaultOpen>
+      <File name="providers.tsx" />
+      <File name="globals.css" />
+    </Folder>
+    <Folder name="pages" defaultOpen>
+      <Folder name="dashboard" defaultOpen>
+        <File name="index.ts" />
+        <File name="dashboard-page.tsx" />
+      </Folder>
+    </Folder>
+    <Folder name="shared" defaultOpen>
+      <Folder name="api">
+        <File name="index.ts" />
+        <File name="client.ts" />
+      </Folder>
+      <Folder name="lib">
+        <File name="index.ts" />
+        <File name="utils.ts" />
+      </Folder>
+      <Folder name="ui">
+        <File name="index.ts" />
+        <File name="card.tsx" />
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
 
 ### Architectural rules
 
