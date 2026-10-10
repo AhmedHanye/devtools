@@ -8,7 +8,11 @@ import { source } from "@/lib/source";
 export default function RootDocsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const section = segments[1] || "";
+  const QUADRANT_SECTIONS = new Set(["how-to", "reference", "explanation"]);
+  const section =
+    segments[1] && QUADRANT_SECTIONS.has(segments[1])
+      ? segments[1]
+      : "tutorials";
 
   return (
     <DocsLayout
@@ -38,7 +42,7 @@ export default function RootDocsLayout({ children }: { children: ReactNode }) {
           const optionSection =
             option.url.replace(/^\/docs\/?/, "").split("/")[0] ||
             meta?.path?.split("/")[0] ||
-            "";
+            "tutorials";
           const color = optionSection
             ? `var(--${optionSection}-color, var(--color-fd-foreground))`
             : "var(--color-fd-foreground)";

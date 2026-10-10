@@ -3,5 +3,5 @@
   "description": "Learning-oriented guides",
   "root": true,
   "icon": "GraduationCap",
-  "pages": ["index", "getting-started"]
+  "pages": ["getting-started"]
 }

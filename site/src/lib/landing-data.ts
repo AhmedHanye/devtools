@@ -30,7 +30,7 @@ export const DIATAXIS_QUADRANTS: DiataxisQuadrant[] = [
     title: "Tutorials",
     description:
       "Step-by-step guides from initial setup to running the local daemon.",
-    href: "/docs/tutorials",
+    href: "/docs",
     orientation: "Learning-oriented",
     icon: "GraduationCap",
   },

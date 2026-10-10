@@ -25,7 +25,11 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
-  const page = source.getPage(slug);
+
+  const page =
+    !slug || slug.length === 0
+      ? source.getPage([]) || source.getPageByUrl("/docs")
+      : source.getPage(slug);
 
   if (!page) {
     notFound();
@@ -36,7 +40,10 @@ export default async function Page({ params }: PageProps) {
   const description = page.data.description || details.description;
   const MDX = page.data.body;
 
-  const section = slug?.[0];
+  const section =
+    page.path === "index.mdx" || page.path.startsWith("tutorials/")
+      ? "tutorials"
+      : slug?.[0];
 
   return (
     <DocsPage
@@ -93,7 +100,11 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const page = source.getPage(slug);
+
+  const page =
+    !slug || slug.length === 0
+      ? source.getPage([]) || source.getPageByUrl("/docs")
+      : source.getPage(slug);
 
   if (!page) {
     return {

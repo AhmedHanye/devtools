@@ -19,27 +19,32 @@ import DocsCatchAllPage, {
 } from "../src/app/docs/[[...slug]]/page";
 
 describe("documentation shell and catch-all route seam", () => {
-  it("generates static route parameters for documentation pages", async () => {
+  it("generates static route parameters conforming to next.js catch-all schema", async () => {
     const params = await generateStaticParams();
     expect(Array.isArray(params)).toBe(true);
     expect(params.length).toBeGreaterThan(0);
-    expect(params.some((p) => Array.isArray(p.slug))).toBe(true);
+    for (const param of params) {
+      expect(Array.isArray(param.slug)).toBe(true);
+    }
   });
 
-  it("generates metadata for valid documentation page slugs", async () => {
-    const metadata = await generateMetadata({
+  it("generates metadata for valid page slugs and returns fallback on non-existent slugs", async () => {
+    const validMeta = await generateMetadata({
       params: Promise.resolve({ slug: [] }),
     });
+    expect(typeof validMeta.title).toBe("string");
 
-    expect(metadata).toBeDefined();
-    expect(metadata.title).toBeDefined();
+    const fallbackMeta = await generateMetadata({
+      params: Promise.resolve({ slug: ["non-existent-page-xyz"] }),
+    });
+    expect(fallbackMeta.title).toBe("Not Found");
   });
 
-  it("throws notFound error when resolving non-existent page slug", async () => {
+  it("throws notFound error boundary when resolving non-existent page slug", async () => {
     let errorThrown = false;
     try {
       await DocsCatchAllPage({
-        params: Promise.resolve({ slug: ["unknown-quadrant-page-xyz"] }),
+        params: Promise.resolve({ slug: ["non-existent-page-xyz"] }),
       });
     } catch {
       errorThrown = true;

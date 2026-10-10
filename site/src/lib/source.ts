@@ -4,9 +4,16 @@ import { statusBadgesPlugin } from "fumadocs-core/source/plugins/status-badges";
 import { createElement } from "react";
 import * as icons from "lucide-react";
 
-export const source = loader({
+const baseSource = loader({
   baseUrl: "/docs",
   source: docs.toFumadocsSource(),
+  slugs(_file, defaultSlugs) {
+    const s = defaultSlugs();
+    if (s[0] === "tutorials") {
+      return s.slice(1);
+    }
+    return s;
+  },
   plugins: [
     statusBadgesPlugin({
       renderBadge(status) {
@@ -36,3 +43,68 @@ export const source = loader({
     }
   },
 });
+
+function patchTree(tree: typeof baseSource.pageTree) {
+  if (!tree || !Array.isArray(tree.children)) return tree;
+
+  for (const child of tree.children) {
+    if (
+      child.type === "folder" &&
+      (child.name === "Tutorials" || child.$id === "tutorials")
+    ) {
+      const remainingChildren = (child.children || []).filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (c: any) => c.url !== "/docs/tutorials" && c.url !== "/docs",
+      );
+      child.children = [
+        {
+          $id: "tutorials:intro",
+          type: "page",
+          name: "Introduction",
+          url: "/docs",
+          $ref: "index.mdx",
+        },
+        ...remainingChildren,
+      ];
+    }
+
+    if (
+      child.type === "folder" &&
+      (child.name === "How-To Guides" || child.$id === "how-to")
+    ) {
+      for (const item of child.children || []) {
+        if (item.type === "page" && item.url === "/docs/how-to") {
+          item.name = "Overview";
+        }
+      }
+    }
+
+    if (
+      child.type === "folder" &&
+      (child.name === "Reference" || child.$id === "reference")
+    ) {
+      for (const item of child.children || []) {
+        if (item.type === "page" && item.url === "/docs/reference") {
+          item.name = "Overview";
+        }
+      }
+    }
+
+    if (
+      child.type === "folder" &&
+      (child.name === "Explanation" || child.$id === "explanation")
+    ) {
+      for (const item of child.children || []) {
+        if (item.type === "page" && item.url === "/docs/explanation") {
+          item.name = "Overview";
+        }
+      }
+    }
+  }
+
+  return tree;
+}
+
+baseSource.pageTree = patchTree(baseSource.pageTree);
+
+export const source = baseSource;
