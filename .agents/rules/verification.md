@@ -32,6 +32,16 @@ Pull requests modifying only `.github/workflows/**` or `.github/actions/**` spec
 2. Record concrete verification evidence in pull request descriptions.
 3. Run targeted package or script checks during iterative development, reserving full `bun run verify` runs for cross-package contracts and pre-PR gates.
 
+## Anti-pattern: Prohibition of content and variable equality testing
+
+Never author tests that verify static content, prose copy, styling classes, or trivial variable assignments.
+
+1. **No content or copy assertions**: Never assert that rendered HTML or files contain specific marketing copy, headings, prose paragraphs, or documentation text (for example `expect(html).toContain("Fast, Unified...")` or `expect(text).toContain("embedded loopback daemon")`).
+2. **No page inventory assertions**: Never assert arbitrary file counts or hardcoded page lists (for example `expect(pages.length).toBe(13)` or `expect(routes).toEqual([...])`). Content inventory expands and contracts naturally; asserting file counts produces brittle false failures.
+3. **No styling or class assertions**: Never assert CSS utility class names or layout styling strings (for example `expect(html).toContain("grid-cols-1")`).
+4. **No trivial variable equality testing**: Never write tests asserting that a constant or configuration variable equals its own literal definition (for example `expect(GITHUB_REPO_URL).toBe("...")` or `expect(HERO_CONFIG.headline).toBe("...")`).
+5. **Contract and behavior testing only**: Automated test seams must strictly verify observable runtime behavior, API response codes and schemas, routing resolution algorithms, error handling, contract invariants, and state transformations. Static documentation validity, syntax correctness, and types are verified by compilers (`next build`, `tsc`, `fumadocs-mdx`), not unit tests.
+
 ## Reactive background execution
 
 1. Await reactive system completion notifications for background tasks. Yield execution immediately without polling status loops or sleep commands.
