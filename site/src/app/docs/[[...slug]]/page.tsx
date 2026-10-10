@@ -13,7 +13,7 @@ import { File, Folder, Files } from "fumadocs-ui/components/files";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 import { Callout } from "fumadocs-ui/components/callout";
-import { source } from "@/lib/source";
+import { resolveDocPage, source } from "@/lib/source";
 import { resolvePageDetails } from "@/lib/docs-index";
 import { Mermaid } from "@/components/mermaid";
 
@@ -26,10 +26,7 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
 
-  const page =
-    !slug || slug.length === 0
-      ? source.getPage([]) || source.getPageByUrl("/docs")
-      : source.getPage(slug);
+  const page = resolveDocPage(slug);
 
   if (!page) {
     notFound();
@@ -101,10 +98,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
 
-  const page =
-    !slug || slug.length === 0
-      ? source.getPage([]) || source.getPageByUrl("/docs")
-      : source.getPage(slug);
+  const page = resolveDocPage(slug);
 
   if (!page) {
     return {

@@ -68,35 +68,23 @@ function patchTree(tree: typeof baseSource.pageTree) {
       ];
     }
 
-    if (
-      child.type === "folder" &&
-      (child.name === "How-To Guides" || child.$id === "how-to")
-    ) {
-      for (const item of child.children || []) {
-        if (item.type === "page" && item.url === "/docs/how-to") {
-          item.name = "Overview";
-        }
-      }
-    }
+    const quadrantOverviews = [
+      { names: ["How-To Guides", "how-to"], url: "/docs/how-to" },
+      { names: ["Reference", "reference"], url: "/docs/reference" },
+      { names: ["Explanation", "explanation"], url: "/docs/explanation" },
+    ];
 
-    if (
-      child.type === "folder" &&
-      (child.name === "Reference" || child.$id === "reference")
-    ) {
-      for (const item of child.children || []) {
-        if (item.type === "page" && item.url === "/docs/reference") {
-          item.name = "Overview";
-        }
-      }
-    }
+    for (const quadrant of quadrantOverviews) {
+      const matchesName =
+        typeof child.name === "string" && quadrant.names.includes(child.name);
+      const matchesId =
+        typeof child.$id === "string" && quadrant.names.includes(child.$id);
 
-    if (
-      child.type === "folder" &&
-      (child.name === "Explanation" || child.$id === "explanation")
-    ) {
-      for (const item of child.children || []) {
-        if (item.type === "page" && item.url === "/docs/explanation") {
-          item.name = "Overview";
+      if (child.type === "folder" && (matchesName || matchesId)) {
+        for (const item of child.children || []) {
+          if (item.type === "page" && item.url === quadrant.url) {
+            item.name = "Overview";
+          }
         }
       }
     }
@@ -108,3 +96,9 @@ function patchTree(tree: typeof baseSource.pageTree) {
 baseSource.pageTree = patchTree(baseSource.pageTree);
 
 export const source = baseSource;
+
+export function resolveDocPage(slug?: string[]) {
+  return !slug || slug.length === 0
+    ? source.getPage([]) || source.getPageByUrl("/docs")
+    : source.getPage(slug);
+}
