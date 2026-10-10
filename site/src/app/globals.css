@@ -17,3 +17,33 @@
   --color-accent: var(--color-fd-accent);
   --color-accent-foreground: var(--color-fd-accent-foreground);
 }
+
+:root {
+  --tutorials-color: hsl(217, 100%, 58%);
+  --how-to-color: hsl(158, 75%, 40%);
+  --reference-color: hsl(38, 92%, 50%);
+  --explanation-color: hsl(270, 75%, 55%);
+}
+
+.dark {
+  --tutorials-color: #93c5fd;
+  --how-to-color: #6ee7b7;
+  --reference-color: #fde047;
+  --explanation-color: #d8b4fe;
+}
+
+.tutorials {
+  --color-fd-primary: var(--tutorials-color);
+}
+
+.how-to {
+  --color-fd-primary: var(--how-to-color);
+}
+
+.reference {
+  --color-fd-primary: var(--reference-color);
+}
+
+.explanation {
+  --color-fd-primary: var(--explanation-color);
+}
