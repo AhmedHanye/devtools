@@ -17,9 +17,10 @@ Run proportionate, change-scoped checks during iterative development. Run the fu
 | `.github/workflows/**`, `.github/actions/**` | Workflow validation   | `bunx prettier --check .github/workflows/** .github/actions/**` <br> `bun scripts/verify-staged-secrets.ts .github/workflows/** .github/actions/**`                 |
 | `apps/<pkg>/**`                              | Application workspace | `bun --filter @devtools/<pkg> typecheck` <br> `bun --filter @devtools/<pkg> test` <br> (For frontend: `bun --filter @devtools/frontend lint:design` and `lint:fsd`) |
 | `packages/<pkg>/**`                          | Package workspace     | `bun --filter @devtools/<pkg> typecheck` <br> `bun --filter @devtools/<pkg> test`                                                                                   |
-| `site/**`                                    | Site workspace        | `bun --filter @devtools/site typecheck` <br> `bun --filter @devtools/site test` <br> `bun --filter @devtools/site build`                                            |
+| `site/content/**`                            | Documentation content | `bun --filter @devtools/site typecheck` <br> `bun --filter @devtools/site build` <br> `bun run check`                                                               |
+| `site/**` (site application code)            | Site workspace        | `bun --filter @devtools/site typecheck` <br> `bun --filter @devtools/site test` <br> `bun --filter @devtools/site build`                                            |
 | `scripts/**`                                 | Internal scripts      | `bun test scripts/` <br> `bun run check`                                                                                                                            |
-| `.agents/**`, documentation (`*.md`)         | Docs and guidelines   | `bun run check`                                                                                                                                                     |
+| `.agents/**`, repository docs (`*.md`)       | Docs and guidelines   | `bun run check`                                                                                                                                                     |
 | Cross-cutting / Pre-PR gate                  | Full quality gate     | `bun run verify`                                                                                                                                                    |
 
 ## Workflow change invariant

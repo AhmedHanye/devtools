@@ -1,103 +1,74 @@
 ---
 name: documentation-authoring
-description: Author technical documentation for the documentation platform. Use when writing Fumadocs MDX across Diátaxis quadrants or verifying documentation compilation.
+description: Author technical documentation for the documentation platform (site/). Use when writing Fumadocs MDX across Diátaxis quadrants.
 ---
 
 # Documentation authoring
 
-This skill directs the creation, maintenance, and verification of technical documentation for the documentation platform (`site/`, `@devtools/site`). All documentation adheres to the Diátaxis framework and Fumadocs MDX standards.
+Author technical documentation for the documentation platform (`site/`, `@devtools/site`) using Diátaxis quadrants and Fumadocs MDX.
 
 ## Context pointers
 
-- **Fumadocs reference**: Read [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md) for Fumadocs MDX components, Shiki code highlighting, page tree syntax, and styling tokens.
-- **Diátaxis blueprints**: Read [.agents/skills/documentation-authoring/references/diataxis-quadrants.md](.agents/skills/documentation-authoring/references/diataxis-quadrants.md) for quadrant specifications, accessibility rules, and diagnostic procedures.
-- **Domain vocabulary**: Read `.agents/GLOSSARY.md` for platform definitions and terminology standards.
-
-## Quadrant decision rules
-
-Select the quadrant that matches reader intent before writing:
-
-| Reader intent | Target quadrant | Path prefix | Pedagogical orientation |
-| ------------- | --------------- | ----------- | ----------------------- |
-| Learning to use a tool from scratch | Tutorial | `site/content/docs/tutorials/` | Learning-oriented |
-| Solving a specific practical problem | How-to guide | `site/content/docs/how-to/` | Problem-oriented |
-| Looking up exact technical specifications | Reference | `site/content/docs/reference/` | Information-oriented |
-| Understanding architecture or decisions | Explanation | `site/content/docs/explanation/` | Understanding-oriented |
-
-Do not blend quadrants within a single document. Keep tutorials linear, how-to guides task-focused, reference pages factual, and explanations conceptual.
+- **Diátaxis blueprints**: Read [.agents/skills/documentation-authoring/references/diataxis-quadrants.md](.agents/skills/documentation-authoring/references/diataxis-quadrants.md) for quadrant specifications, structural templates, and content boundaries.
+- **Fumadocs reference**: Read [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md) for MDX components, Shiki code highlighting, styling tokens, accessibility standards, and compilation diagnostics.
+- **Verification rules**: Consult [.agents/rules/verification.md](.agents/rules/verification.md) for compiler verification commands and test invariants.
+- **Domain vocabulary**: Read [.agents/GLOSSARY.md](.agents/GLOSSARY.md) for platform terminology standards.
 
 ## Authoring workflow
 
 Follow these steps in order when creating or editing documentation.
 
-### 1. Select quadrant and file location
+### 1. Determine quadrant and destination path
 
-1. Determine reader intent using the quadrant decision rules.
-2. Select the destination file path under `site/content/docs/<quadrant>/<topic>.mdx`.
-3. Completion criterion: The target file path sits inside the designated quadrant directory.
+1. Map reader intent to a single Diátaxis quadrant:
+   - Tutorials (`site/content/docs/tutorials/<topic>.mdx`): learning through practical action for beginners.
+   - How-to guides (`site/content/docs/how-to/<topic>.mdx`): solving a targeted practical problem.
+   - Reference (`site/content/docs/reference/<topic>.mdx`): factual lookup of technical specifications.
+   - Explanation (`site/content/docs/explanation/<topic>.mdx`): architectural context and rationale.
+2. Select the destination file path under the designated quadrant folder.
+3. Completion criterion: The target file path sits inside the designated quadrant folder and adheres to a single pedagogical orientation without blending quadrants.
 
 ### 2. Configure frontmatter
 
-1. Add YAML frontmatter at the start of the file.
-2. Include sentence case `title` and a concise `description` summarizing the document.
-3. Completion criterion: Frontmatter contains non-empty `title` and `description` strings without preceding whitespace.
+1. Add YAML frontmatter bounded by `---` at the beginning of the file.
+2. Provide sentence case `title` and a concise `description` summarizing document purpose.
+3. Add optional Lucide `icon` if the page acts as a section navigation root.
+4. Completion criterion: Frontmatter contains non-empty `title` and `description` strings without leading whitespace.
 
 ```yaml
 ---
 title: Start the local daemon
-description: Configure and start the DevTools background daemon process.
+description: Configure runtime parameters and start the local background daemon.
 ---
 ```
 
-### 3. Structure headings
+### 3. Structure document headings and sections
 
-1. Start body headings with level 2 (`##`). Fumadocs generates the level 1 heading from the frontmatter `title`.
-2. Apply sentence case to all headings.
-3. Maintain strict hierarchy. Nest `###` under `##`, and `####` under `###`. Never skip heading levels.
-4. Completion criterion: The document body contains zero level 1 (`#`) headings and zero skipped heading levels.
+1. Apply the required section structure for the target quadrant defined in [.agents/skills/documentation-authoring/references/diataxis-quadrants.md](.agents/skills/documentation-authoring/references/diataxis-quadrants.md).
+2. Start body headings with level 2 (`##`). Fumadocs generates the level 1 heading from frontmatter `title`.
+3. Apply sentence case to all headings.
+4. Maintain strict hierarchy without skipping levels (`##` followed by `###`, never `####` directly under `##`).
+5. Completion criterion: The document body contains zero level 1 (`#`) headings, zero skipped heading levels, and implements all mandatory sections required by the target quadrant blueprint.
 
-### 4. Apply Fumadocs MDX syntax
+### 4. Author MDX content with Fumadocs components
 
-1. Specify language tags on every fenced code block (`bash`, `ts`, `tsx`, `json`, `yaml`).
-2. Add `title="path/to/file"` on code blocks representing specific files.
-3. Use Shiki inline comment annotations (`// [!code highlight]`, `// [!code ++]`, `// [!code --]`, `// [!code focus]`) or range notations (`// [!code highlight:3]`) to direct reader attention.
-4. Use Fumadocs Callout component (`import { Callout } from 'fumadocs-ui/components/callout';`) with types `info`, `warn`, `error`, or `idea`. Avoid raw blockquote alert markers (`> [!NOTE]`), as they render without callout styling.
-5. Import Fumadocs components directly when using callouts, tabs, steps, cards, file trees, accordions, or type tables:
-   ```mdx
-   import { Callout } from 'fumadocs-ui/components/callout';
-   import { Step, Steps } from 'fumadocs-ui/components/steps';
-   import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-   import { Card, Cards } from 'fumadocs-ui/components/card';
-   import { File, Folder, Files } from 'fumadocs-ui/components/files';
-   import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-   import { TypeTable } from 'fumadocs-ui/components/type-table';
-   ```
-6. Completion criterion: Every fenced code block has a language identifier, all JSX tags close cleanly, and all component imports resolve correctly.
+1. Consult [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md) for component usage, syntax highlighting, and layout patterns.
+2. Specify language tags on every fenced code block (`bash`, `ts`, `tsx`, `json`, `yaml`, `text`).
+3. Add `title="path/to/file"` on code blocks representing repository files or terminal commands.
+4. Maintain visual rhythm. Prevent continuous prose walls exceeding three paragraphs by using `<Steps>`, `<Tabs>`, `<Cards>`, `<Files>`, `<TypeTable>`, or Mermaid diagrams.
+5. Import Fumadocs components directly from `fumadocs-ui/components/<name>`.
+6. Completion criterion: Every fenced code block specifies a language identifier, all JSX tags close cleanly, and continuous prose blocks do not exceed three paragraphs.
 
-### 5. Validate accessibility, visual rhythm, and style invariants
+### 5. Validate presentation and accessibility invariants
 
-1. Provide descriptive alt text on every image explaining its content and function.
-2. Use descriptive link labels that identify the destination. Never write "click here", "here", or bare URLs.
-3. Check that diagrams render with clear text labels and support light and dark backgrounds.
-4. Maintain visual rhythm. Prevent continuous prose walls exceeding three paragraphs by using `<Steps>`, `<Files>`, `<TypeTable>`, `<Tabs>`, or Mermaid diagrams.
-5. Pair `<Cards>` with descriptive Lucide icons.
-6. Reference repository paths relative to the repository root. Never write absolute machine paths.
-7. Apply instruction hygiene. Eliminate AI buzzwords, fancy synonyms for "is", and mid-sentence colons. Avoid em dashes entirely; use commas or periods instead.
-8. Completion criterion: The file contains zero missing alt attributes, zero generic link labels, zero em dashes, zero unadorned text walls, and zero absolute file paths.
+1. Provide descriptive alt text for every image explaining its content and function.
+2. Write descriptive link text identifying the destination resource. Never use generic labels ("click here", "here", "link") or bare URLs.
+3. Reference repository files and paths relative to the repository root. Never write absolute machine paths.
+4. Follow instruction hygiene. Eliminate AI tells, fancy synonyms for "is", and mid-sentence colons. Use commas or periods instead of em dashes.
+5. Completion criterion: The document contains zero missing alt attributes, zero generic link labels, zero em dashes, and zero absolute machine paths.
 
-### 6. Verify compilation and route integrity
+### 6. Verify documentation changes
 
-Run build verification using Bun workspace commands:
-
-```bash
-# Verify MDX compilation and page generation
-bun --filter @devtools/site build
-
-# Verify TypeScript type correctness across site components and content
-bun --filter @devtools/site typecheck
-
-# Verify formatting and static analysis
-bun run check
-```
-
-Completion criterion: `bun --filter @devtools/site build` and `bun --filter @devtools/site typecheck` exit with code 0 without compilation errors.
+1. Run the change-scoped verification commands defined in [.agents/rules/verification.md](.agents/rules/verification.md) for documentation content.
+2. Resolve any MDX compilation, broken link, or syntax diagnostics using the troubleshooting guide in [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md).
+3. Completion criterion: Verification commands specified in [.agents/rules/verification.md](.agents/rules/verification.md) exit with code 0 without errors or broken links.

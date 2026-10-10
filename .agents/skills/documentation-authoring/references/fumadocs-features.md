@@ -122,25 +122,14 @@ Subcomponents available from `fumadocs-ui/components/callout`:
 - `CalloutTitle`
 - `CalloutDescription`
 
-#### GitHub alert syntax alternative
+#### Preferred component syntax
 
-Fumadocs also transforms GitHub-style blockquote alerts directly:
+Prefer the `<Callout>` component for all alerts across the documentation platform for consistent layout, titles, and icons:
 
-```markdown
-> [!NOTE]
-> Informational guidance and general notes.
-
-> [!TIP]
-> Helpful recommendations or optimization advice.
-
-> [!IMPORTANT]
-> Critical prerequisites or must-know instructions.
-
-> [!WARNING]
-> Warnings regarding potential breaking changes or conflicts.
-
-> [!CAUTION]
-> High-risk operations that may cause data loss.
+```mdx
+<Callout type="info" title="Configuration note">
+  The daemon binds to loopback addresses only.
+</Callout>
 ```
 
 ### 3.2 Tabs (`<Tabs>` & `<Tab>`)
@@ -576,25 +565,51 @@ Section colors are injected via `:root` and `.dark` CSS tokens:
 
 ---
 
-## 8. Visual aesthetics and readability rules
+## 8. Presentation and accessibility standards
 
-Maintain clean visual rhythm across every document:
+Maintain visual rhythm and accessibility invariants across every document:
 
-1. **Avoid continuous text walls**: Break up text exceeding 3 consecutive paragraphs using visual components:
-   - Use `<Steps>` for procedures.
-   - Use `<TypeTable>` for parameters and options.
-   - Use `<Files>` for directory structures.
-   - Use `<Tabs>` for tool or OS choices.
-   - Use Mermaid diagrams for system flows.
-   - Use `<Accordions>` for optional deep-dive material.
+1. **Visual rhythm and layout balance**:
+   - Prevent continuous prose walls exceeding three paragraphs.
+   - Break up prose using visual components: `<Steps>` for workflows, `<TypeTable>` for parameters, `<Files>` for directory trees, `<Tabs>` for runtime alternatives, or Mermaid diagrams for topologies.
 2. **Callout severity hygiene**:
-   - Reserve `error` / `[!CAUTION]` strictly for operations risking data loss or irrecoverable states.
-   - Reserve `warn` / `[!WARNING]` for breaking changes or subtle runtime caveats.
-   - Reserve `important` / `[!IMPORTANT]` for mandatory prerequisites.
-   - Reserve `idea` / `[!TIP]` for performance optimizations.
-   - Reserve `info` / `[!NOTE]` for contextual background.
-   - Never stack consecutive callouts. Merge related points into one block or list.
+   - Use `<Callout type="info">` for general context and background notes.
+   - Use `<Callout type="idea">` for performance tips and shortcuts.
+   - Use `<Callout type="warn">` for breaking changes and runtime caveats.
+   - Use `<Callout type="error">` strictly for operations that risk data loss or process termination.
+   - Avoid stacking consecutive callouts. Merge related points into one callout block.
 3. **Card wayfinding**:
-   - Keep card titles to 2 to 5 words.
-   - Keep descriptions to 1 to 2 lines.
-   - Always pair cards with a descriptive Lucide icon.
+   - Keep card titles between 2 and 5 words.
+   - Keep card descriptions to 1 or 2 lines.
+   - Always pair `<Card>` elements with a descriptive Lucide icon.
+4. **Image alternative text**:
+   - Every image element (`![alt](path)`) must contain descriptive alt text explaining its content and function.
+   - Never leave alt text empty (`alt=""`), and never use file names (such as `diagram.png`) or generic placeholders (such as "screenshot" or "image").
+5. **Heading hierarchy continuity**:
+   - Start body headings at level 2 (`##`). Fumadocs renders level 1 from frontmatter `title`.
+   - Apply sentence case to all headings.
+   - Maintain strict sequence. Nest `###` under `##`, and `####` under `###`. Never skip heading levels.
+6. **Descriptive link labels**:
+   - Link text must name the destination resource (for example, `Read the [daemon configuration guide](/docs/reference/configuration)`).
+   - Never write "click here", "here", "link", or bare URLs in prose.
+7. **Code block language tags**:
+   - Specify a language identifier on every code fence (`bash`, `ts`, `tsx`, `json`, `yaml`, `text`).
+   - For terminal commands, use `bash` or `sh`. For command output, use `text`.
+8. **Table semantic structure**:
+   - Markdown tables must include a header row separated by a divider line (`| --- | --- |`).
+   - Keep cells focused on plain text and concise code tags.
+
+---
+
+## 9. Diagnostic resolution for Fumadocs compilation
+
+When build verification reports errors, resolve them using these diagnostic procedures:
+
+| Error message or symptom | Underlying cause | Resolution |
+| --- | --- | --- |
+| `Page not found` or broken link warning | Relative link target does not match a valid content route | Verify the target slug against the directory tree under `site/content/docs/`. Update the link to use the route path (for example, `/docs/tutorials/getting-started`). |
+| `Expected corresponding JSX closing tag` | An unclosed HTML or JSX tag exists in MDX | Check custom components and HTML tags (`<img>`, `<br>`, `<Tabs>`). Close every tag explicitly or self-terminate it (`<Component />`). |
+| `Missing title in frontmatter` | Frontmatter block is missing or lacks the `title` field | Add `title: <Page Title>` to the YAML frontmatter block at the top of the file. |
+| `YAML Parse Error` | Malformed YAML syntax or unquoted special characters | Check indentation in frontmatter. Enclose strings containing colons or quotes in quotation marks. |
+| `Cannot find module 'fumadocs-ui/...'` | Missing or incorrect component import path | Verify the import path matches standard Fumadocs UI exports (`fumadocs-ui/components/<component>`). |
+| Unexpected token or unescaped character | Literal `<` or `{` parsed as JSX syntax | Escape characters as `&lt;` or wrap them in backticks (`<`, `{`). |
