@@ -1,0 +1,134 @@
+---
+title: Getting started with DevTools
+description: Learn how to set up the workspace, compile frontend assets, launch the local daemon, and verify services.
+icon: Play
+---
+
+## What you will build
+
+In this tutorial, you will configure a local DevTools development environment from a fresh repository clone. You will install workspace dependencies, compile the static dashboard application, launch the local loopback daemon, and verify both API and web endpoints.
+
+By the end of this guide, you will have a running daemon serving the DevTools dashboard and HTTP API on `http://127.0.0.1:4000`.
+
+## Prerequisites
+
+Before starting, ensure your system has the following tools installed:
+
+- **Git**: Version 2.38 or later.
+- **Bun**: Version 1.2 or later. Run `bun --version` to verify your runtime version.
+- **cURL**: Command line utility for verifying HTTP responses.
+
+## Step 1. Install workspace dependencies
+
+Clone the DevTools repository and install all monorepo dependencies using Bun.
+
+```bash
+git clone https://github.com/AhmedHanye/devtools.git
+cd devtools
+bun install
+```
+
+Expected output:
+
+```text
+bun install v1.4.2
++ @devtools/core
++ @devtools/db
++ @devtools/api
++ @devtools/frontend
++ @devtools/cli
++ @devtools/site
+Checked 1250 packages, done in 1.4s
+```
+
+All workspace packages are linked and dependencies are installed.
+
+## Step 2. Build frontend static assets
+
+The DevTools daemon serves pre-compiled dashboard assets from `apps/frontend/dist`. Build the Next.js static export using the Bun filter command.
+
+```bash
+bun --filter @devtools/frontend build
+```
+
+Expected output:
+
+```text
+$ next build
+   ▲ Next.js 15.3.0
+   - Environments: .env
+   - Experiments (use with caution):
+     · turbopack
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+ ✓ Generating static pages (5/5)
+ ✓ Finalizing page optimization ...
+ ✓ Exporting (5/5)
+```
+
+The compiled static HTML, CSS, and JavaScript bundles are written to `apps/frontend/dist`.
+
+## Step 3. Start the DevTools daemon
+
+Start the background daemon process with the CLI `web` command.
+
+```bash
+bun run devtools web
+```
+
+Expected output:
+
+```text
+DevTools daemon listening on http://127.0.0.1:4000
+Serving static assets from /path/to/devtools/apps/frontend/dist
+API health available at http://127.0.0.1:4000/api/health
+```
+
+The daemon process binds to `127.0.0.1:4000`, initializes the embedded SQLite database, and begins listening for incoming requests.
+
+## Step 4. Verify API health
+
+Open a second terminal window and query the daemon health endpoint to ensure the in-process API router responds.
+
+```bash
+curl -s http://127.0.0.1:4000/api/health
+```
+
+Expected output:
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-10-10T04:40:00.000Z",
+  "uptime": 12.45,
+  "version": "0.1.0"
+}
+```
+
+A status of `"ok"` confirms that the Bun server and internal Hono API route are operational.
+
+## Step 5. Open the web dashboard
+
+Open your web browser and navigate to the dashboard URL:
+
+```text
+http://127.0.0.1:4000/
+```
+
+You will see the DevTools dashboard displaying system health metrics and active workspace tools. The daemon serves the single-page application and fulfills API requests through the same port.
+
+To stop the daemon, press `Ctrl+C` in the terminal where it is running. The process captures the shutdown signal and terminates cleanly:
+
+```text
+Received SIGINT. Shutting down DevTools daemon...
+```
+
+## Next steps
+
+Now that you have verified the basic workflow, explore further tasks:
+
+- Follow the [guide to configure and start the local daemon](/docs/how-to/start-daemon) for port overrides and custom directories.
+- Learn how to [manage database migrations and storage](/docs/how-to/manage-database) for SQLite data handling.
+- Review the [CLI command reference](/docs/reference/cli) for all command flags and options.
+- Read about the [loopback daemon architecture](/docs/explanation/daemon-architecture) to understand in-process routing.

@@ -1,0 +1,103 @@
+---
+title: Loopback daemon architecture
+description: Architectural design, single-port routing, loopback boundaries, and lifecycle management in the DevTools daemon.
+icon: Server
+---
+
+The DevTools daemon consolidates background services, REST API endpoints, embedded persistence, and the web user interface into a single production process.
+
+## Process topology
+
+Traditional web applications separate the backend API service, frontend asset delivery, and database across distinct processes or containers. While suitable for large distributed cloud deployments, this topology introduces unnecessary friction for local developer tooling:
+
+- Multiple TCP ports must be assigned, increasing the likelihood of port collisions with other local tools.
+- Complex cross-origin headers and proxy configurations are required to link the browser frontend with the API backend.
+- Independent process life cycles create orphaned services and zombie processes when a developer closes a terminal window.
+
+DevTools resolves these challenges by using Bun to host all runtime concerns in a single operating system process:
+
+```mermaid
+flowchart TD
+  subgraph BunProcess["Single Bun daemon process"]
+    Server["Bun.serve HTTP server"]
+    Router{"Path router"}
+    Hono["Hono REST API (/api/*)"]
+    Static["Static file handler (/*)"]
+    DB[("Embedded SQLite (WAL mode)")]
+
+    Server --> Router
+    Router -->|"/api/*"| Hono
+    Router -->|"/*"| Static
+    Hono --> DB
+  end
+
+  Client["Developer browser or CLI"] -->|HTTP / 127.0.0.1:4000| Server
+```
+
+## In-process routing and dispatch
+
+All inbound HTTP requests enter through a single `Bun.serve` socket listener. The listener executes a lightweight path-based dispatch function in memory before delegating the request to the appropriate handler:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as Browser / CLI
+  participant Socket as Bun.serve socket
+  participant Router as In-process dispatcher
+  participant API as Hono API router
+  participant Static as Static asset engine
+  participant DB as bun:sqlite database
+
+  User->>Socket: HTTP Request
+  Socket->>Router: fetch(req)
+  alt url.pathname starts with /api
+    Router->>API: api.fetch(req)
+    API->>DB: Query / Mutate
+    DB-->>API: Result rows
+    API-->>User: JSON Response
+  else url.pathname is static route
+    Router->>Static: serveStaticAsset(path)
+    Static-->>User: HTML / CSS / JS / Assets
+  end
+```
+
+Because routing occurs in-process without an external reverse proxy (such as Nginx or Caddy), dispatch introduces sub-millisecond overhead.
+
+## Loopback security boundary
+
+Local developer tools interact directly with developer disk storage and command execution environments. To prevent malicious web pages on the public internet from exploiting local services, DevTools maintains a strict loopback security boundary:
+
+1. **Local interface binding**: The daemon binds strictly to loopback addresses (`127.0.0.1` or `localhost`). It never binds to `0.0.0.0` or public network adapters.
+2. **CORS validation**: The Hono API verifies that incoming `Origin` headers originate strictly from `localhost` or `127.0.0.1`. Requests from external domains are rejected.
+3. **Directory traversal prevention**: The static asset handler normalizes requested paths and ensures the target path is contained within the configured root directory. Any attempt to traverse above the base folder with `..` sequences triggers an immediate `403 Forbidden` response.
+
+## Lifecycle and signal management
+
+The daemon manages startup initialization and termination through explicit lifecycle hooks:
+
+### Startup sequence
+
+1. **Configuration validation**: The CLI validates options against `RuntimeConfigSchema`.
+2. **Port availability check**: The runtime confirms that the requested TCP port is unoccupied. If occupied in an interactive session, it prompts the operator with the next available port.
+3. **Database initialization and migration**: The daemon resolves the SQLite path according to execution context and applies pending Drizzle migrations.
+4. **Socket binding**: The Bun HTTP server binds to the validated interface and port.
+
+### Graceful shutdown
+
+When the daemon process receives termination signals (`SIGINT` or `SIGTERM`), it initiates a clean teardown:
+
+1. The signal listener intercepts the operating system event.
+2. In-flight requests are allowed to complete.
+3. The server socket stops accepting new incoming connections.
+4. SQLite WAL journals are synchronized and database handles are closed cleanly.
+5. The process terminates with exit code 0.
+
+## Architectural trade-offs
+
+The single-process loopback daemon architectural model involves deliberate trade-offs:
+
+| Chosen approach                                 | Alternative design                                | Rationale and trade-off                                                                                                                                                         |
+| ----------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Single Bun process hosting API and static files | Separate API server and static Next.js dev server | Eliminates port collisions and complex CORS configuration. Trade-off: frontend assets must be compiled prior to production daemon startup.                                      |
+| In-process SQLite via `bun:sqlite` with WAL     | Standalone PostgreSQL or MySQL container          | Zero external installation prerequisites and microsecond query times. Trade-off: SQLite is scoped to local machine execution and does not support multi-machine clustering.     |
+| Strict loopback binding (`127.0.0.1`)           | Public interface binding (`0.0.0.0`)              | Protects local system from browser-based drive-by attacks from public internet origins. Trade-off: requires SSH tunnels or port forwarding to share across local area networks. |

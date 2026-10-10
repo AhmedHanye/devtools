@@ -1,0 +1,112 @@
+---
+title: API specification
+description: Technical specification for the DevTools REST API, loopback CORS boundaries, endpoints, and error schemas.
+icon: Globe
+---
+
+The DevTools HTTP API exposes local runtime controls, process metrics, and service status endpoints. The API is hosted in-process on the daemon server under the `/api` route prefix.
+
+## Base URL and loopback CORS policy
+
+All endpoints are anchored under the `/api` base path:
+
+```text
+http://127.0.0.1:4000/api
+```
+
+### Loopback CORS boundary
+
+Cross-Origin Resource Sharing (CORS) is enforced by an origin filter on `/api/*`. Only origins hosted on local loopback hostnames are permitted:
+
+- Permitted hostnames: `localhost`, `127.0.0.1`
+- Permitted protocols: `http:`, `https:`
+- Permitted HTTP methods: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`, `HEAD`
+- Permitted request headers: `Content-Type`, `Authorization`
+
+Requests from non-loopback origins do not receive `Access-Control-Allow-Origin` headers and are rejected by browser security policies.
+
+## Health endpoint GET /api/health
+
+Returns the operational health status, system uptime, and version identifier of the running daemon process.
+
+### Request
+
+- **HTTP Method**: `GET`
+- **Path**: `/api/health`
+- **Headers**: None required.
+- **Query parameters**: None.
+
+### Response
+
+- **Status Code**: `200 OK`
+- **Content-Type**: `application/json`
+
+The response body conforms to `HealthResponseSchema`:
+
+| Field       | Type     | Description                                              |
+| ----------- | -------- | -------------------------------------------------------- |
+| `status`    | `string` | System status enum (`"ok"`, `"degraded"`, or `"error"`). |
+| `timestamp` | `string` | ISO 8601 UTC timestamp of the health check.              |
+| `uptime`    | `number` | Process uptime in seconds (non-negative float).          |
+| `version`   | `string` | Current semver release of the DevTools platform.         |
+
+## Error handling
+
+The API standardizes error responses using `ApiErrorResponseSchema`. All error responses follow a structured JSON schema:
+
+| Field           | Type      | Description                                                         |
+| --------------- | --------- | ------------------------------------------------------------------- |
+| `error.code`    | `string`  | Machine-readable error code string.                                 |
+| `error.message` | `string`  | Human-readable explanation of the failure.                          |
+| `error.details` | `unknown` | Optional contextual payload with additional diagnostic information. |
+
+### API error codes
+
+The table below maps the supported error codes to HTTP status codes:
+
+| Error code            | HTTP status | Description                                            |
+| --------------------- | ----------- | ------------------------------------------------------ |
+| `BAD_REQUEST`         | 400         | Request validation failed or invalid payload syntax.   |
+| `NOT_FOUND`           | 404         | Requested route or resource does not exist.            |
+| `INTERNAL_ERROR`      | 500         | Unhandled exception encountered during route handling. |
+| `SERVICE_UNAVAILABLE` | 503         | Background service or database connection unavailable. |
+
+## Request and response examples
+
+### Health check
+
+Request:
+
+```bash
+curl -X GET http://127.0.0.1:4000/api/health
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-10-10T04:40:00.000Z",
+  "uptime": 45.18,
+  "version": "0.1.0"
+}
+```
+
+### Route not found
+
+Request:
+
+```bash
+curl -X GET http://127.0.0.1:4000/api/unregistered-path
+```
+
+Response (`404 Not Found`):
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Route not found: GET /api/unregistered-path"
+  }
+}
+```
