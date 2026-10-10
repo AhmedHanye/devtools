@@ -7,6 +7,7 @@
 - **Domain vocabulary**: Read `.agents/GLOSSARY.md` for system nouns (`Daemon`, `Runtime Stack`, `Spec`, `Ticket`, `Frontier`, `DRI`).
 - **Architecture decision records**: Consult `.agents/docs/adr/` when evaluating system software choices that alter runtime execution, data persistence, or network boundaries.
 - **Documentation platform architecture**: Read `.agents/docs/site-architecture.md` for Fumadocs routing, search APIs, LLM endpoints, and MDX configurations.
+- **Testing standards and contracts**: Read `.agents/docs/testing.md` for contract seams, testing anti-patterns, and workspace testing blueprints.
 
 ## Execution boundaries
 
@@ -15,6 +16,7 @@
   The decision must satisfy three criteria: high reversal cost, non-obvious rationale, and a trade-off between viable technical designs.
   If the running software does not execute differently because of the choice, it is not an ADR.
   Route git workflows to `CONTRIBUTING.md`, tracker procedures to `.agents/docs/issue-tracker.md`, and dev tooling to configs.
+- **Grilling action-bias gate**: Whenever `/grill-me` or `/grill-with-docs` is invoked, agents are strictly prohibited from mutating repository code, tests, or configurations, or executing mutative commands, until all interview rounds conclude and the user confirms alignment. Only working notes and handoff artifacts in `tmp/` may be authored during the interview.
 - **Problem-first planning**: Before asking decision questions during planning or grilling, state the concrete technical failure mode and verify patterns against primary documentation or code.
 - **Contract-first tickets**: Define behavioral contracts and automated acceptance criteria in issues. Keep implementation recipes and branch names in code and PRs.
 - **Autonomous test seams**: Proceed test-first without interactive confirmation modals (`ask_question`) when seams directly implement ticket acceptance criteria. Do not pause execution to pre-agree seams unless requirements are ambiguous or specify competing architectural designs.

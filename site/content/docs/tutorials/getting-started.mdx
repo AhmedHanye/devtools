@@ -11,7 +11,7 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 In this tutorial, you will configure a local DevTools development environment from a fresh repository clone. You will install workspace dependencies, compile the static dashboard application, launch the local loopback daemon, and verify both API and web endpoints.
 
-By the end of this guide, you will have a running daemon serving the DevTools dashboard and HTTP API on `http://localhost:3000` (or `http://127.0.0.1:3000`).
+By the end of this guide, you will have a running daemon serving the DevTools dashboard and HTTP API on `http://localhost:4000` (or `http://127.0.0.1:4000`).
 
 ## Prerequisites
 
@@ -99,13 +99,13 @@ Before starting, ensure your system has the following tools installed:
 
     ```text
     Persistence initialized: SQLite (.devtools/devtools.db)
-    DevTools daemon listening on http://0.0.0.0:3000
+    DevTools daemon listening on http://0.0.0.0:4000
     Serving static assets from apps/frontend/dist
-    API health available at http://0.0.0.0:3000/api/health
+    API health available at http://0.0.0.0:4000/api/health
     ```
 
     <Callout type="info" title="Port and interface binding">
-      The daemon listens on port 3000 (accessible via `http://localhost:3000` or `http://127.0.0.1:3000`). If port 3000 is occupied, the CLI interactively offers the next open port, or you can specify `--port <number>` to select an explicit port.
+      The daemon listens on port 4000 (accessible via `http://localhost:4000` or `http://127.0.0.1:4000`). If port 4000 is occupied, the CLI interactively offers the next open port, or you can specify `--port <number>` to select an explicit port.
     </Callout>
 
   </Step>
@@ -116,7 +116,7 @@ Before starting, ensure your system has the following tools installed:
     Open a second terminal window and query the daemon health endpoint to ensure the in-process API router responds:
 
     ```bash title="terminal"
-    curl -s http://127.0.0.1:3000/api/health
+    curl -s http://127.0.0.1:4000/api/health
     ```
 
     Expected output:
@@ -137,10 +137,10 @@ Before starting, ensure your system has the following tools installed:
   <Step>
     ### Open the web dashboard
 
-    Open your web browser and navigate to the [DevTools web dashboard](http://localhost:3000) (or `http://127.0.0.1:3000`):
+    Open your web browser and navigate to the [DevTools web dashboard](http://localhost:4000) (or `http://127.0.0.1:4000`):
 
     ```bash title="terminal"
-    # Open http://localhost:3000 in your browser
+    # Open http://localhost:4000 in your browser
     ```
 
     Expected result:
@@ -170,7 +170,7 @@ Before starting, ensure your system has the following tools installed:
 
 ## Conclusion
 
-You have successfully configured a local development environment, built static frontend bundles, started the DevTools loopback daemon on port 3000, and verified both API health and the dashboard user interface.
+You have successfully configured a local development environment, built static frontend bundles, started the DevTools loopback daemon on port 4000, and verified both API health and the dashboard user interface.
 
 ### Next steps
 
