@@ -1,6 +1,6 @@
-# Technical documentation reference guide
+# Diátaxis Quadrants and Accessibility Reference
 
-Reference specifications, formatting patterns, and validation rules for authoring documentation on the documentation platform (`site/`, `@devtools/site`). Consult this guide when writing Diátaxis documents or configuring Fumadocs MDX components. See [.agents/skills/documentation-authoring/SKILL.md](.agents/skills/documentation-authoring/SKILL.md) for the operational workflow.
+Reference specifications, formatting patterns, and validation rules for authoring documentation on the documentation platform (`site/`, `@devtools/site`). Consult this guide when writing Diátaxis documents. See [SKILL.md](../SKILL.md) for the operational workflow and [fumadocs-features.md](fumadocs-features.md) for MDX components and Shiki syntax.
 
 ## Diátaxis quadrant specifications
 
@@ -80,167 +80,7 @@ Explanations illuminate architecture and technical decisions.
   - Link to how-to guides for operational procedures.
 - **File location**: `site/content/docs/explanation/<topic>.mdx`
 
-## Fumadocs MDX syntax rules
-
-Fumadocs processes MDX files using Next.js and custom components. Follow these formatting rules for clean rendering.
-
-### Frontmatter
-
-Every MDX document begins with YAML frontmatter bounded by `---`:
-
-```yaml
 ---
-title: Daemon architecture
-description: Process topology, IPC communication, and lifecycle management of the DevTools background daemon.
-icon: Server
-full: false
----
-```
-
-- `title`: String in sentence case. Fumadocs renders this as the page H1 heading.
-- `description`: String providing a clear, one-sentence summary for search indexes and page metadata.
-- `icon`: Optional Lucide icon name matching sidebar navigation themes.
-- `full`: Optional boolean. Set to `true` only for wide data tables or custom layout pages.
-
-### Headings
-
-- Start the body with level 2 headings (`##`). Do not include level 1 headings (`#`) in the body text.
-- Follow strict monotonic nesting: `##` followed by `###`, followed by `####`. Never skip levels.
-- Apply sentence case to all headings.
-- Avoid trailing colons or punctuation in headings.
-
-### Code blocks
-
-Always specify an explicit language identifier on code fences:
-
-````mdx
-```bash
-bun --filter @devtools/cli dev
-```
-````
-
-For file references, add a `title` attribute specifying the relative path:
-
-````mdx
-```ts title="apps/cli/src/daemon.ts"
-export async function startDaemon(port: number): Promise<void> {
-  // Implementation
-}
-```
-````
-
-Line highlighting uses curly braces:
-
-````mdx
-```ts {2-3} title="packages/core/src/config.ts"
-export interface Config {
-  port: number;
-  host: string;
-}
-```
-````
-
-### Admonitions and callouts
-
-Use standard GitHub alert syntax for simple callouts:
-
-```markdown
-> [!NOTE]
-> The daemon runs on localhost port 3000 by default.
-
-> [!TIP]
-> Pass the `--verbose` flag to inspect HTTP payload headers.
-
-> [!IMPORTANT]
-> Bun version 1.2 or higher is required to run the workspace.
-
-> [!WARNING]
-> Changing the database path invalidates active worker sessions.
-
-> [!CAUTION]
-> Deleting this directory permanently clears local audit history.
-```
-
-For custom callout titles, use the Fumadocs `Callout` component:
-
-```mdx
-import { Callout } from 'fumadocs-ui/components/callout';
-
-<Callout type="warn" title="Port conflict">
-  If port 3000 is occupied, the daemon selects the next available port automatically.
-</Callout>
-```
-
-### Interactive components
-
-Import Fumadocs components at the top of the MDX file or directly before use:
-
-#### Tabs
-
-```mdx
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
-<Tabs items={['Bun', 'CLI binary']}>
-  <Tab value="Bun">
-    ```bash
-    bun run devtools web
-    ```
-  </Tab>
-  <Tab value="CLI binary">
-    ```bash
-    ./dist/devtools web
-    ```
-  </Tab>
-</Tabs>
-```
-
-#### Steps
-
-```mdx
-import { Step, Steps } from 'fumadocs-ui/components/steps';
-
-<Steps>
-  <Step>
-    ### Install prerequisites
-    Install Bun and clone the repository.
-  </Step>
-  <Step>
-    ### Start the daemon
-    Run `bun run devtools daemon start` to initialize background services.
-  </Step>
-</Steps>
-```
-
-#### Cards and card grids
-
-```mdx
-import { Card, Cards } from 'fumadocs-ui/components/card';
-
-<Cards>
-  <Card
-    title="Getting started"
-    href="/docs/tutorials/getting-started"
-    description="Learn the fundamentals of DevTools in five minutes."
-  />
-  <Card
-    title="CLI reference"
-    href="/docs/reference/cli"
-    description="Complete listing of flags, options, and commands."
-  />
-</Cards>
-```
-
-### Diagrams
-
-Use Mermaid code fences for architecture and sequence diagrams. Always quote node labels containing spaces or special characters:
-
-````mdx
-```mermaid
-flowchart TD
-  CLI["CLI process"] -->|"IPC request"| Daemon["Background daemon"]
-  Daemon -->|"Query"| SQLite[("SQLite database")]
-```
-````
 
 ## Accessibility validation procedures
 
@@ -277,12 +117,14 @@ Verify all documentation content against accessibility invariants before publish
 - Markdown tables must contain a header row separated from body rows by a divider line (`| --- | --- |`).
 - Keep tables focused. Do not nest complex Markdown inside table cells.
 
+---
+
 ## Diagnostic resolution for compilation
 
-When build verification commands in [SKILL.md](.agents/skills/documentation-authoring/SKILL.md) report errors, resolve them using these diagnostic procedures:
+When build verification commands in [SKILL.md](../SKILL.md) report errors, resolve them using these diagnostic procedures:
 
 | Error message or symptom | Underlying cause | Resolution |
-| ------------------------ | ---------------- | ---------- |
+| --- | --- | --- |
 | `Page not found` or broken link warning | Relative link target does not match any valid content route | Verify the target slug against the directory tree under `site/content/docs/`. Update the link to use the route path (for example, `/docs/tutorials/getting-started`). |
 | `Expected corresponding JSX closing tag` | An unclosed HTML or JSX tag exists in the MDX file | Check all custom components and HTML tags (`<img>`, `<br>`, `<Tabs>`). Close every tag explicitly or self-terminate it (`<Component />`). |
 | `Missing title in frontmatter` | Frontmatter block is missing or lacks the `title` field | Add `title: <Page Title>` to the YAML frontmatter block at the top of the file. |

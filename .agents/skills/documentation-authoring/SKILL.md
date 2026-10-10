@@ -9,7 +9,8 @@ This skill directs the creation, maintenance, and verification of technical docu
 
 ## Context pointers
 
-- **Reference guide**: Read [.agents/skills/documentation-authoring/REFERENCE.md](.agents/skills/documentation-authoring/REFERENCE.md) for Diátaxis quadrant blueprints, Fumadocs MDX components, and accessibility rules.
+- **Fumadocs reference**: Read [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md) for Fumadocs MDX components, Shiki code highlighting, page tree syntax, and styling tokens.
+- **Diátaxis blueprints**: Read [.agents/skills/documentation-authoring/references/diataxis-quadrants.md](.agents/skills/documentation-authoring/references/diataxis-quadrants.md) for quadrant specifications, accessibility rules, and diagnostic procedures.
 - **Domain vocabulary**: Read `.agents/GLOSSARY.md` for platform definitions and terminology standards.
 
 ## Quadrant decision rules
