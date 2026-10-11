@@ -14,6 +14,7 @@ import {
   Terminal,
   TerminalSquare,
   Layers,
+  Server,
 } from "lucide-react";
 
 ## Platform overview
@@ -84,11 +85,15 @@ Jump directly into key developer guides across the platform:
 
 ## System architecture
 
-The following diagram illustrates the interaction between the CLI process, the background daemon, SQLite persistence, and the web interface:
+DevTools unifies the local development runtime into a single operating system process powered by Bun. The developer CLI (`devtools web`) boots the daemon in-process, co-locating the Hono REST API, embedded SQLite persistence (with WAL concurrency), and static web asset delivery on a single local port.
 
-```mermaid
-flowchart TD
-  CLI["CLI Process"] -->|"IPC request"| Daemon["Background daemon"]
-  Daemon -->|"Persistence"| SQLite[("SQLite database")]
-  Daemon -->|"HTTP / SSE"| Web["Web interface"]
-```
+The CLI serves as the process launcher and lifecycle manager; it does not issue HTTP requests to the API. Inbound API requests originate from the web browser dashboard or external developer HTTP tools over local loopback interfaces.
+
+<Cards>
+  <Card
+    icon={<Server className="size-4 text-[var(--explanation-color)]" />}
+    title="Loopback daemon architecture"
+    href="/docs/explanation/daemon-architecture"
+    description="Explore the complete system topology, Bun.serve in-process dispatch sequence, and loopback security boundaries."
+  />
+</Cards>

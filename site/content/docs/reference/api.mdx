@@ -6,7 +6,7 @@ icon: Globe
 
 import { TypeTable } from "fumadocs-ui/components/type-table";
 
-The DevTools HTTP API exposes local runtime controls, process metrics, and service status endpoints. The API is hosted in-process on the daemon server under the `/api` route prefix.
+The DevTools HTTP API exposes local runtime controls, process metrics, and service status endpoints. Hosted in-process on the daemon server under the `/api` route prefix, the API is consumed by the web dashboard frontend and external developer tools. The CLI does not call the API; it serves as the process launcher that starts the daemon.
 
 ## Base URL and loopback CORS policy
 
@@ -61,7 +61,8 @@ The response body conforms to `HealthResponseSchema` (`200 OK`, `application/jso
       required: true,
     },
     version: {
-      description: "Current semver release of the DevTools platform",
+      description:
+        "Current semver release of the API service ('0.1.0'). Tracks service releases independently of the workspace CLI package release ('0.0.0')",
       type: "string",
       required: true,
     },
@@ -120,8 +121,8 @@ Response (`200 OK`):
 ```json
 {
   "status": "ok",
-  "timestamp": "2026-10-10T04:40:00.000Z",
-  "uptime": 45.18,
+  "timestamp": "2026-10-11T05:03:14.485Z",
+  "uptime": 45627.017856541,
   "version": "0.1.0"
 }
 ```

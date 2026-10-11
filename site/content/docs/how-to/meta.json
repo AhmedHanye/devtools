@@ -7,6 +7,8 @@
     "index",
     "---Daemon & Database---",
     "start-daemon",
-    "manage-database"
+    "manage-database",
+    "---Frontend & Dashboard---",
+    "develop-frontend"
   ]
 }

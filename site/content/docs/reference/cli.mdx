@@ -21,30 +21,83 @@ To view general CLI help and global version information:
 
 ```bash title="terminal"
 devtools --help
+```
+
+Expected output:
+
+```text
+Usage: devtools [options] [command]
+
+DevTools Developer CLI
+
+Options:
+  -V, --version   output the version number
+  -h, --help      display help for command
+
+Commands:
+  web [options]   Start the unified local loopback daemon
+  help [command]  display help for command
+```
+
+To view options for the `web` subcommand:
+
+```bash title="terminal"
+devtools web --help
+```
+
+Expected output:
+
+```text
+Usage: devtools web [options]
+
+Start the unified local loopback daemon
+
+Options:
+  -p, --port <number>      Port to bind (default: 4000)
+  -H, --host <string>      Host to bind (default: 127.0.0.1)
+  -s, --static-dir <path>  Static asset directory
+  -h, --help               display help for command
+```
+
+To inspect the installed version:
+
+```bash title="terminal"
 devtools --version
 ```
+
+Expected output:
+
+```text
+0.0.0
+```
+
+<Callout type="info" title="Version identifiers">
+  `devtools --version` reports the root toolchain package release version
+  (`0.0.0`). The in-process REST API service independently reports its internal
+  service release (`0.1.0`) via GET `/api/health`.
+</Callout>
 
 ## Options
 
 The following flags and parameters configure the `web` subcommand:
 
-| Option                | Short flag | Description                                                    | Default value        |
-| --------------------- | ---------- | -------------------------------------------------------------- | -------------------- |
-| `--port <number>`     | `-p`       | TCP port number for HTTP server binding.                       | `4000`               |
-| `--host <string>`     | `-H`       | Host interface address for server binding.                     | `127.0.0.1`          |
-| `--static-dir <path>` | `-s`       | Path to directory containing pre-built frontend static assets. | `apps/frontend/dist` |
-| `--help`              | `-h`       | Display usage information and exit.                            | None                 |
-| `--version`           | `-V`       | Output version number and exit.                                | None                 |
+| Option                | Short flag | Description                                                                      | Default value        |
+| --------------------- | ---------- | -------------------------------------------------------------------------------- | -------------------- |
+| `--port <number>`     | `-p`       | TCP port number for HTTP server binding. Pass `0` to allocate an ephemeral port. | `4000`               |
+| `--host <string>`     | `-H`       | Host interface address for server binding.                                       | `127.0.0.1`          |
+| `--static-dir <path>` | `-s`       | Path to directory containing pre-built frontend static assets.                   | `apps/frontend/dist` |
+| `--help`              | `-h`       | Display usage information and exit.                                              | None                 |
+| `--version`           | `-V`       | Output version number and exit.                                                  | None                 |
 
 ## Environment variables
 
 When command-line flags are omitted, the CLI reads configuration from these environment variables:
 
-| Variable              | Description                                 | Associated option | Default value        |
-| --------------------- | ------------------------------------------- | ----------------- | -------------------- |
-| `PORT`                | Listening TCP port for loopback daemon.     | `--port`          | `4000`               |
-| `HOST`                | Loopback network interface address.         | `--host`          | `127.0.0.1`          |
-| `DEVTOOLS_STATIC_DIR` | Filesystem path to static assets directory. | `--static-dir`    | `apps/frontend/dist` |
+| Variable              | Description                                                               | Associated option | Default value        |
+| --------------------- | ------------------------------------------------------------------------- | ----------------- | -------------------- |
+| `PORT`                | Listening TCP port for loopback daemon. Set to `0` for an ephemeral port. | `--port`          | `4000`               |
+| `HOST`                | Loopback network interface address.                                       | `--host`          | `127.0.0.1`          |
+| `DEVTOOLS_STATIC_DIR` | Filesystem path to static assets directory.                               | `--static-dir`    | `apps/frontend/dist` |
 
 <Callout type="info" title="Configuration precedence">
   Command line flags take precedence over environment variables when both are
@@ -64,7 +117,7 @@ The CLI reports process results using standard exit codes:
 
 Explore common command patterns:
 
-<Tabs items={["Default", "Custom port", "Static assets", "Environment overrides"]} groupId="cli-examples" persist>
+<Tabs items={["Default", "Custom port", "Ephemeral port", "Static assets", "Environment overrides"]} groupId="cli-examples" persist>
   <Tab value="Default">
     Start the daemon with standard port and host configurations:
 
@@ -79,6 +132,15 @@ Explore common command patterns:
 
     ```bash title="terminal"
     devtools web --port 8080 --host 127.0.0.1
+    ```
+
+  </Tab>
+
+  <Tab value="Ephemeral port">
+    Bind the daemon to an operating-system assigned dynamic ephemeral port:
+
+    ```bash title="terminal"
+    devtools web --port 0
     ```
 
   </Tab>

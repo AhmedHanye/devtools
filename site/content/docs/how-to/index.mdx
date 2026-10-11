@@ -5,7 +5,7 @@ icon: Wrench
 ---
 
 import { Card, Cards } from "fumadocs-ui/components/card";
-import { Terminal, Database } from "lucide-react";
+import { Terminal, Database, LayoutDashboard } from "lucide-react";
 
 How-to guides address a problem-oriented mindset. They provide targeted procedures for developers who have a specific goal and need reliable operational instructions.
 
@@ -27,6 +27,12 @@ Browse operational solutions for the DevTools workspace and runtime stack:
     title="Manage database migrations and storage"
     href="/docs/how-to/manage-database"
     description="Locate SQLite files across environments, run Drizzle migrations, inspect system metadata, and reset local data."
+  />
+  <Card
+    icon={<LayoutDashboard className="size-4 text-[var(--how-to-color)]" />}
+    title="Develop and test frontend dashboard"
+    href="/docs/how-to/develop-frontend"
+    description="Run the local Next.js development server, preview components in Storybook, and validate Feature-Sliced Design architecture."
   />
 </Cards>
 

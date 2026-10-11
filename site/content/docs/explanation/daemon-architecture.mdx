@@ -21,50 +21,44 @@ DevTools resolves these challenges by using Bun to host all runtime concerns in 
 
 ```mermaid
 flowchart TD
-  subgraph BunProcess["Single Bun daemon process"]
-    Server["Bun.serve HTTP server"]
-    Router{"Path router"}
-    Hono["Hono REST API (/api/*)"]
-    Static["Static file handler (/*)"]
-    DB[("Embedded SQLite (WAL mode)")]
+  Browser["Browser (Frontend dashboard)"] -->|"HTTP: loads UI & calls /api/*"| Server["Bun.serve HTTP Server"]
 
-    Server --> Router
-    Router -->|"/api/*"| Hono
-    Router -->|"/*"| Static
-    Hono --> DB
+  subgraph DaemonProcess["Single Bun daemon process ('devtools web')"]
+    Server -->|"Dispatch"| Dispatch{"Path prefix"}
+    Dispatch -->|"/*"| Static["Static asset handler"]
+    Dispatch -->|"/api/*"| Hono["Hono REST API (/api/health)"]
   end
 
-  Client["Developer browser or CLI"] -->|HTTP / 127.0.0.1:4000| Server
+  CLI["Developer CLI ('devtools <cmd>')"]
+
+  Hono -->|"Reads & writes"| DB[("Embedded SQLite (WAL mode)")]
+  CLI -->|"Direct queries & migrations"| DB
 ```
 
-## In-process routing and dispatch
+The CLI launches the daemon process and manages OS termination signals. The CLI itself does not make HTTP requests or interact with the REST API. Only the web frontend dashboard running in the browser (or developer HTTP clients like cURL) communicates with the daemon over loopback HTTP. Both the in-process Hono REST API and standalone CLI commands access the embedded SQLite database directly, with concurrent transactions coordinated safely via SQLite WAL mode.
 
-All inbound HTTP requests enter through a single `Bun.serve` socket listener. The listener executes a lightweight path-based dispatch function in memory before delegating the request to the appropriate handler:
+## In-process dispatch
+
+All inbound HTTP requests enter through a single `Bun.serve` socket listener. The server inspects the incoming URL pathname to route between the Hono REST API and static frontend assets:
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor User as Browser / CLI
+  actor Browser as Web Browser (Frontend)
   participant Socket as Bun.serve socket
-  participant Router as In-process dispatcher
-  participant API as Hono API router
-  participant Static as Static asset engine
-  participant DB as bun:sqlite database
+  participant API as Hono API (/api/*)
+  participant Static as Static asset handler (/*)
 
-  User->>Socket: HTTP Request
-  Socket->>Router: fetch(req)
-  alt url.pathname starts with /api
-    Router->>API: api.fetch(req)
-    API->>DB: Query / Mutate
-    DB-->>API: Result rows
-    API-->>User: JSON Response
-  else url.pathname is static route
-    Router->>Static: serveStaticAsset(path)
-    Static-->>User: HTML / CSS / JS / Assets
-  end
+  Browser->>Socket: GET / (Dashboard UI)
+  Socket->>Static: serveStaticAsset('/')
+  Static-->>Browser: HTML / CSS / JS bundles
+
+  Browser->>Socket: GET /api/health
+  Socket->>API: api.fetch(req)
+  API-->>Browser: JSON HealthResponse
 ```
 
-Because routing occurs in-process without an external reverse proxy (such as Nginx or Caddy), dispatch introduces sub-millisecond overhead.
+Requests prefixed with `/api` delegate directly to `api.fetch(req)` in memory. All other routes resolve static pre-compiled dashboard assets from disk. For endpoint schemas, see the [API specification](/docs/reference/api).
 
 ## Loopback security boundary
 

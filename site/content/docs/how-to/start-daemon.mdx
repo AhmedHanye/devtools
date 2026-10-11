@@ -126,9 +126,10 @@ Expected HTTP response headers:
 
 ```text
 HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Access-Control-Allow-Origin: 127.0.0.1
-Content-Length: 95
+Content-Type: application/json
+Vary: Origin
+Date: Sun, 11 Oct 2026 05:03:11 GMT
+Content-Length: 97
 ```
 
 Verify that static HTML assets are also returned correctly from the root path:
@@ -137,4 +138,12 @@ Verify that static HTML assets are also returned correctly from the root path:
 curl -I http://127.0.0.1:4000/
 ```
 
-The response returns HTTP 200 with `Content-Type: text/html`.
+Expected HTTP response headers:
+
+```text
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=utf-8
+Content-Length: 15797
+```
+
+For the exhaustive list of CLI flags, defaults, and exit codes, see the [CLI command reference](/docs/reference/cli).
