@@ -9,7 +9,7 @@ export interface ResolvedPageDetails {
   content: string;
 }
 
-export function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
+function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
   if (!match) {
     return {

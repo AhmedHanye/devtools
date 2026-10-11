@@ -1,6 +1,6 @@
 import { BookOpen, ExternalLink, Terminal } from "lucide-react";
 import Link from "next/link";
-import { GITHUB_REPO_URL } from "../../lib/landing-data";
+import { NAV_LINKS } from "../../lib/landing-data";
 import { GithubIcon } from "../icons";
 
 export function LandingHeader() {
@@ -21,25 +21,31 @@ export function LandingHeader() {
         </Link>
 
         <nav className="flex items-center gap-3" aria-label="Main navigation">
-          <Link
-            href="/docs"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            <BookOpen className="size-4 text-primary" />
-            <span>Docs</span>
-          </Link>
-
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            aria-label="DevTools GitHub repository"
-          >
-            <GithubIcon className="size-4" />
-            <span className="hidden sm:inline">GitHub</span>
-            <ExternalLink className="size-3 text-muted-foreground" />
-          </a>
+          {NAV_LINKS.map((link) =>
+            link.isExternal ? (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                aria-label={`DevTools ${link.label} repository`}
+              >
+                <GithubIcon className="size-4" />
+                <span className="hidden sm:inline">{link.label}</span>
+                <ExternalLink className="size-3 text-muted-foreground" />
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <BookOpen className="size-4 text-primary" />
+                <span>{link.label}</span>
+              </Link>
+            ),
+          )}
         </nav>
       </div>
     </header>

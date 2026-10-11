@@ -19,7 +19,7 @@ function getNodePageDetails(node: unknown) {
   return null;
 }
 
-export const docsLlms = llms(source, {
+const docsLlms = llms(source, {
   renderName: (node) => {
     const details = getNodePageDetails(node);
     if (details) {
