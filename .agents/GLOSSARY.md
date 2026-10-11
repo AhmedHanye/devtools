@@ -73,7 +73,7 @@ A working document, report, or visual preview generated during execution and sto
 _Avoid_: Build binary, output file, generated asset
 
 **Ephemeral File**:
-A temporary working file (debug script, raw spike, diff) living strictly in the gitignored workspace `tmp/` directory, partitioned by purpose under `tmp/scripts/`, `tmp/research/`, `tmp/handoff/`, or `tmp/issues/`.
+A temporary working file (debug script, raw spike, diff) living strictly in the gitignored workspace `tmp/` directory, partitioned by purpose under `tmp/scripts/`, `tmp/research/`, `tmp/handoff/`, `tmp/issues/`, or `tmp/qa/`.
 _Avoid_: Scratch file, temp file, scratchpad
 
 **Handoff**:

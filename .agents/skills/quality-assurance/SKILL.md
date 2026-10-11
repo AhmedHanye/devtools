@@ -36,12 +36,13 @@ Validate the reference before starting work:
 
 ### 2. Run delegated code review
 
-Spawn a subagent to run the two-axis code review across `<fixed-point>...HEAD`:
+Delegate code review across `<fixed-point>...HEAD` following `.agents/skills/code-review/SKILL.md`.
 
-- **Standards axis**: check code against repository standards and the Fowler smell baseline (Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest).
-- **Spec axis**: check implementation fidelity against the originating issue, specification, or ticket.
+Execute the two review axes in parallel subagents to preserve context isolation:
+- **Standards axis**: evaluate code against repository standards and the Fowler smell baseline.
+- **Spec axis**: evaluate implementation fidelity against the originating issue, specification, or ticket.
 
-Wait for the subagent to finish and collect its structured report.
+Collect and aggregate the structured reports from both axes.
 
 ### 3. Generate code review summary artifact
 
@@ -71,7 +72,7 @@ If the diff modifies application code, schemas, configuration, API routes, UI co
 
 Generate Artifact 2 strictly after Artifact 1 is written.
 
-Write the artifact using `write_to_file` with `ArtifactMetadata` (`UserFacing: true`, `RequestFeedback: false`, and a concise summary). Mirror the content to repository path `tmp/qa/qa-guide-<ref>.md`.
+Write the artifact using `write_to_file` to the conversation artifact directory with `ArtifactMetadata` (`UserFacing: true`, `RequestFeedback: false`, and a concise summary) to render in the UI panel. Mirror the content to repository path `tmp/qa/qa-guide-<ref>.md`.
 
 Structure Artifact 2 using the five-part blueprint:
 
@@ -82,7 +83,7 @@ Structure Artifact 2 using the five-part blueprint:
    - Concrete assertions made.
    - Dependencies or modules mocked.
    - Blind spots and what the test fails to verify (such as unverified side effects, mocked external APIs, or concurrency edge cases).
-4. **Sensory and ergonomic surface**: impact on UI rendering, responsiveness, layout, animations, CLI argument ergonomics, or terminal formatting.
+4. **Sensory and ergonomic presentation**: impact on UI rendering, responsiveness, layout, animations, CLI argument ergonomics, or terminal formatting.
 5. **Step-by-step manual verification checklist**: concrete numbered tasks for the engineer with exact terminal commands, UI interaction steps, failure-injection experiments (such as killing a daemon process or simulating bad network responses), and observable criteria that automated tests and compilers cannot verify.
 
 ### 6. Deliver executive chat summary
@@ -90,7 +91,7 @@ Structure Artifact 2 using the five-part blueprint:
 Provide a concise chat response strictly under 150 words.
 
 Format the summary with:
-- **Review priority**: `🔴 CRITICAL` | `🟠 HIGH` | `🟡 MODERATE` | `🟢 LOW`
+- **Review priority**: `CRITICAL` | `HIGH` | `MODERATE` | `LOW`
   - `CRITICAL`: severe standard violations, broken critical paths, or spec divergence.
   - `HIGH`: notable spec gaps, unhandled error cases, or test blind spots needing manual testing.
   - `MODERATE`: minor polish issues or smell baseline notes.
