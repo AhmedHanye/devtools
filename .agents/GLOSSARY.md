@@ -122,9 +122,9 @@ _Avoid_: Locked skill, third-party skill, external skill
 The pull request state invariant enforced by repository rulesets requiring all reviewer and bot comment conversations to be explicitly marked resolved before merge eligibility.
 _Avoid_: Comment signoff, thread closing
 
-**Evaluation Verdict**:
-The conclusive status (`MERGE` or `INVESTIGATE`) assigned to a pull request denoting its eligibility for squash merging into `main`.
-_Avoid_: PR status, check conclusion, review decision
+**Quality Assurance (QA)**:
+The end-to-end verification discipline synthesizing automated code-review findings with human-in-the-loop manual verification beyond CI capabilities.
+_Avoid_: Manual testing, PR gatekeeping, ad-hoc verification
 
 ### Documentation and developer guides
 
