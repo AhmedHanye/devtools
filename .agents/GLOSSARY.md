@@ -73,7 +73,7 @@ A user-facing document, questionnaire, or report produced for human review and f
 _Avoid_: Ephemeral file, workspace scratchpad, build binary
 
 **Ephemeral File**:
-A temporary working file (script, spike, handoff, ticket, QA report) living strictly in the gitignored workspace `.scratch/` directory, partitioned across `.scratch/scripts/`, `.scratch/research/`, `.scratch/handoff/`, `.scratch/issues/`, or `.scratch/qa/<job>/`.
+A temporary working file (script, spike, handoff, ticket, QA report) living strictly in the gitignored workspace `.scratch/` directory, partitioned across `.scratch/scripts/`, `.scratch/research/`, `.scratch/handoff/`, `.scratch/issues/`, or `.scratch/qa/<ref>/`.
 _Avoid_: Scratch file, temp file, /tmp file, artifact
 
 **Handoff**:
@@ -81,7 +81,7 @@ A structured transition document recording settled decisions, active blockers, a
 _Avoid_: Session dump, state summary, context log
 
 **Research Spike**:
-A time-boxed investigation of primary sources in `.scratch/research/` that terminates by recording a decision in an ADR.
+A time-boxed investigation of primary sources in `.scratch/research/` that terminates by recording a decision.
 _Avoid_: Exploratory spike, research spike branch, scratch investigation
 
 ### Governance, pull requests, and security
