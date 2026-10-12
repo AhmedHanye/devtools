@@ -1,17 +1,17 @@
 ---
 trigger:
   - "**"
-description: Ephemeral storage architecture, .scratch directory partitions, QA ref folders, UI session mirroring, and vendor skill supersedence rules.
+description: Ephemeral storage architecture, .scratch directory partitions, QA ref folders, UI session artifacts, and vendor skill supersedence rules.
 ---
 
 # Storage and artifact rules
 
 ## Artifacts and scratchpad
 
-1. **User-facing artifacts and session mirroring**: Ephemeral working files remain strictly in workspace `.scratch/`. Mirror to session storage strictly when user-facing visual rendering in UI panels is required (such as interactive questionnaires, comprehensive reviews, and plans). When producing a user-facing artifact in the UI panel, write only a brief summary and pointer in the chat response; never repeat the full contents of the artifact in chat.
+1. **User-facing artifacts and session storage**: Ephemeral working files remain in workspace `.scratch/`, while user-facing visual structures (interactive questionnaires, interview rounds, comprehensive reviews, plans) render in session storage as UI panel artifacts.
 2. **Workspace scratchpad (`.scratch/`)**: Save all ephemeral working files, research spikes, transition handoffs, tickets, QA reports, and temporary scripts in `.scratch/`, partitioned strictly under:
    - `.scratch/scripts/`: One-off test, diagnostic, and benchmark scripts. Run from repository root (`bun run .scratch/scripts/<name>.ts`). Cleaned up when complete.
-   - `.scratch/research/`: Spikes, investigations, and background notes.
+   - `.scratch/research/`: Spikes, investigations, background notes, and in-flight grilling working notes.
    - `.scratch/handoff/`: Session transitions, specs, and implementation plans.
    - `.scratch/issues/`: Drafted GitHub issues, local ticket breakdowns, and PR descriptions.
    - `.scratch/qa/<ref>/`: QA folders grouping paired review files (e.g. `code-review.md` and `QA.md`) for the sanitized git reference `<ref>`.
