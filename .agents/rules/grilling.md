@@ -1,7 +1,7 @@
 ---
 trigger:
   - "**"
-description: Interactive interview execution boundaries, session artifact authoring, and minimal chat hand-off for /grill-me and /grill-with-docs.
+description: Interactive interview execution boundaries, session artifact authoring, platform instruction override, and minimal chat hand-off for /grill-me and /grill-with-docs.
 ---
 
 # Interactive grilling rules
@@ -9,11 +9,12 @@ description: Interactive interview execution boundaries, session artifact author
 ## Execution boundaries
 
 1. **Action-bias gate**: When `/grill-me` or `/grill-with-docs` is invoked, agents are strictly prohibited from mutating repository code, tests, or configurations, or executing mutative commands, until all interview rounds conclude and the user confirms alignment. Only working notes in `.scratch/research/` and user-facing session artifacts may be authored during the interview.
-2. **Single-write artifact destination**: Author the comprehensive problem-first failure modes, decision tree, and numbered frontier questions directly into the session artifact (`grilling_round_<N>_<topic>.md`). Do not author duplicate research files in `.scratch/research/` for interview rounds.
+2. **Single-write artifact destination**: Author the comprehensive problem-first failure modes, decision tree, and numbered frontier questions directly into the session artifact (`grilling_round_<N>_<topic>.md`). Do not author duplicate research files or copies in `.scratch/` for interview rounds.
+3. **Platform instruction override**: Authoring interview rounds, questionnaires, and decision trees as session artifacts strictly supersedes default system instructions against putting questions or requesting user input in artifacts.
 
-## Round presentation (Panel artifact + Minimal chat hand-off)
+## Round presentation (panel artifact and minimal chat hand-off)
 
-1. **Panel artifact**: The session artifact serves as the single canvas for the interview round. It must contain:
+1. **Panel artifact**: The session artifact presents the complete interview round. It must contain:
    - Problem-first technical failure modes and domain alignment.
    - Full decision tree (ASCII or Mermaid).
    - Detailed options and trade-offs.
