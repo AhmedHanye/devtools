@@ -18,13 +18,30 @@ import {
   SidebarTrigger,
 } from "@/shared/ui/shadcn/sidebar";
 
-export interface AppLayoutProps {
-  children: React.ReactNode;
+export interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+const DEFAULT_NAV_ITEMS: readonly NavItem[] = [
+  {
+    title: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+];
+
+export interface AppLayoutProps {
+  children: React.ReactNode;
+  navItems?: readonly NavItem[];
+}
+
+export function AppLayout({
+  children,
+  navItems = DEFAULT_NAV_ITEMS,
+}: AppLayoutProps) {
   const pathname = usePathname();
-  const isDashboardActive = pathname === "/";
 
   return (
     <SidebarProvider>
@@ -47,16 +64,22 @@ export function AppLayout({ children }: AppLayoutProps) {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    render={<Link href="/" />}
-                    isActive={isDashboardActive}
-                    tooltip="Dashboard"
-                  >
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        render={<Link href={item.href} />}
+                        isActive={isActive}
+                        tooltip={item.title}
+                      >
+                        <Icon />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

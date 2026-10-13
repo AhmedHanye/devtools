@@ -7,6 +7,9 @@ const meta: Meta<typeof AppLayout> = {
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
+    nextjs: {
+      appDirectory: true,
+    },
   },
 };
 
