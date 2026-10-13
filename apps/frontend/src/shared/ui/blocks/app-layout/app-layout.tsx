@@ -32,18 +32,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                size="lg"
-                render={<Link href="/" />}
-                tooltip="DevTools"
-              >
+              <div className="flex h-12 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm group-data-[collapsible=icon]:p-0!">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <SquareTerminal className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">DevTools</span>
                 </div>
-              </SidebarMenuButton>
+              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
