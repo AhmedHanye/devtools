@@ -319,7 +319,7 @@ function run(): void {
       "\nTo resolve:\n" +
         "1. Remove real credentials immediately and rotate compromised keys.\n" +
         "2. For synthetic unit test fixtures or mock keys, append `// trufflehog:ignore`\n" +
-        "   or `# trufflehog:ignore` to the line per .agents/rules/secrets.md.\n",
+        "   or `# trufflehog:ignore` to the line per .agents/AGENTS.md.\n",
     );
     process.exit(1);
   }
