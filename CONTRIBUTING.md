@@ -112,12 +112,6 @@ Examples:
 - `fix(web): resolve layout shift on mobile viewports`
 - `chore(ci): update workflow dependencies`
 
-### Git checkpoints and mutations
-
-Require explicit user confirmation before executing `git commit`, `git push`, branch merges, or opening pull requests. Present `git status` and a compact summary (`git diff --stat`) for review.
-
-When managing stacked pull requests via `gh-stack`, operations that push (`gh stack push`), create pull requests (`gh stack submit`), or merge (`gh stack merge`) are subject to the same user confirmation checkpoint and pull request rules.
-
 ### Pull request triage
 
 External pull requests are not treated as feature requests. New features begin as issues.
