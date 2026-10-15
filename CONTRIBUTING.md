@@ -103,9 +103,9 @@ gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field
 
 ### Issue hygiene
 
-- Check off completed acceptance criteria (`- [x]`).
+- Check off completed acceptance criteria (`- [x]`) as implementation progresses and when opening pull requests.
 - Post technical discoveries and blocker alerts as issue comments.
-- Preserve existing issue descriptions, problem statements, and acceptance criteria.
+- Keep issue descriptions updated: mark completed checklist items and revise outdated instructions or command references when scope evolves, while preserving the original problem statement and core acceptance criteria definitions.
 
 ## Branching
 
@@ -189,20 +189,21 @@ When inspecting pull requests:
    ```
 3. **Follow the pull request structure:** PR descriptions must describe user-facing changes to `main` following `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Pull request descriptions cite permanent codebase paths and omit ephemeral workspace `.scratch/` paths, raw session logs, and agent execution notes.
 4. **Provide verification evidence:** Include terminal test output, commands, or observable behavior confirming all acceptance criteria.
-5. **Open the pull request and update status.** Create the pull request, then transition the tracking issue to `In Review` in GitHub Project #8:
+5. **Audit tracking issue checklist and instructions:** Before opening the pull request, inspect the linked issue/ticket description (`gh issue view <ticket_number>`). Check off all completed acceptance criteria (`- [x]`) and update any outdated instructions, commands, or scope definitions that evolved during implementation.
+6. **Open the pull request and update status.** Create the pull request, then transition the tracking issue to `In Review` in GitHub Project #8:
    ```bash
    gh pr create --assignee "@me"
    ITEM_ID=$(gh project item-add 8 --owner AhmedHanye --url "https://github.com/AhmedHanye/devtools/issues/<ticket_number>" --format json --jq .id)
    gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field-id "PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4" --single-select-option-id "27903ead"
    ```
-6. **Review thread resolution:** Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility:
+7. **Review thread resolution:** Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility:
    - _Valid defect:_ Implement the code fix, confirm test passes, post a comment referencing the fix commit, and resolve the thread via GitHub GraphQL:
      ```bash
      gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<thread_node_id>"}) { clientMutationId } }'
      ```
    - _False positive / Hallucination:_ Post a technical comment detailing why the remark is invalid or contradicts repo design, and resolve the thread via GraphQL.
    - _Ambiguous or high-risk finding:_ Leave the thread unresolved, apply the `needs-human-review` label, and escalate.
-7. **Squash merge into `main` after review passes:** `gh pr merge <pr_number> --squash --delete-branch`. Linear history with squash merging is enforced by repository rulesets.
+8. **Squash merge into `main` after review passes:** `gh pr merge <pr_number> --squash --delete-branch`. Linear history with squash merging is enforced by repository rulesets.
 
 ## Code style and pre-commit hooks
 
