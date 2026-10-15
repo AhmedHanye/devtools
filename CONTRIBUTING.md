@@ -32,31 +32,31 @@ The project organizes work into Specs and Tickets. Specs track milestone capabil
 
 - **Inspect sub-issues.** Query existing sub-issues for a parent issue:
   ```bash
-  gh api repos/:owner/:repo/issues/<number>/sub_issues --jq '.[] | {number: .number, title: .title, state: .state}'
+  gh api repos/{owner}/{repo}/issues/<number>/sub_issues --jq '.[] | {number: .number, title: .title, state: .state}'
   ```
 - **Attach ticket to parent Spec.** Link a child ticket:
   ```bash
-  gh api --method POST repos/:owner/:repo/issues/<spec_number>/sub_issues \
+  gh api --method POST repos/{owner}/{repo}/issues/<spec_number>/sub_issues \
     -F sub_issue_id=<ticket_db_id>
   ```
   Use capital `-F` to pass the database ID as a typed integer. Lowercase `-f` passes a string value and fails with `422 Unprocessable Entity`.
 - **Add dependency.** Declare a blocking relationship:
   ```bash
-  gh api --method POST repos/:owner/:repo/issues/<ticket_number>/dependencies/blocked_by \
+  gh api --method POST repos/{owner}/{repo}/issues/<ticket_number>/dependencies/blocked_by \
     -F issue_id=<blocker_db_id>
   ```
 - **Resolve database ID.** Look up numeric database ID:
   ```bash
-  gh api repos/:owner/:repo/issues/<number> --jq .id
+  gh api repos/{owner}/{repo}/issues/<number> --jq .id
   ```
 - **Resolve parent Spec.** Look up the parent Spec number for a ticket:
   ```bash
-  gh api repos/:owner/:repo/issues/<ticket_number>/parent --jq .number 2>/dev/null
+  gh api repos/{owner}/{repo}/issues/<ticket_number>/parent --jq .number 2>/dev/null
   ```
 - **Single source of truth.** Omit manual parent links, child checklists, and `Blocked by: #...` lines from markdown bodies when native issue hierarchy and dependencies are enabled.
 - **Milestones.** Assigned strictly to Specs to track milestone deliverables without metric dilution. Tickets do not receive milestones. Query active milestone titles:
   ```bash
-  gh api repos/:owner/:repo/milestones --jq '.[].title'
+  gh api repos/{owner}/{repo}/milestones --jq '.[].title'
   ```
 - **Query frontier.** List open tickets with zero unresolved blockers and no DRI.
 
@@ -70,6 +70,8 @@ Project #8 identifiers:
 - Project ID: `PVT_kwHOBtOqTs4BlBUk`
 - Status Field ID: `PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4`
 - Status Option IDs: `Todo` (`2ed95dcd`), `In Progress` (`47fc9ee4`), `In Review` (`27903ead`), `Done` (`98236657`)
+
+Ensure the token has the `project` scope before running project commands. Run `gh auth refresh -s project` if the scope is missing.
 
 To update status on Project #8:
 
@@ -88,7 +90,7 @@ gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field
 - **Parent Spec rollup.**
   - When any child ticket moves to `In Progress`, update the parent Spec to `In Progress` on the project board:
     ```bash
-    if PARENT_NUM=$(gh api repos/:owner/:repo/issues/<ticket_number>/parent --jq .number 2>/dev/null); then
+    if PARENT_NUM=$(gh api repos/{owner}/{repo}/issues/<ticket_number>/parent --jq .number 2>/dev/null); then
       PARENT_ITEM_ID=$(gh project item-add 8 --owner AhmedHanye --url "https://github.com/AhmedHanye/devtools/issues/${PARENT_NUM}" --format json --jq .id)
       gh project item-edit --id "$PARENT_ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field-id "PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4" --single-select-option-id "47fc9ee4"
     fi
@@ -183,10 +185,7 @@ When inspecting pull requests:
 ### Pull request rules
 
 1. **Link the tracking issue:** `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
-2. **Self-assign the pull request:** Always self-assign as the Directly Responsible Individual (DRI) when opening a pull request (maintainer review is automatically requested via CODEOWNERS):
-   ```bash
-   gh pr create --assignee "@me"
-   ```
+2. **Self-assign the pull request:** Always self-assign as the Directly Responsible Individual (DRI) when opening a pull request by passing `--assignee "@me"` (maintainer review is automatically requested via CODEOWNERS).
 3. **Follow the pull request structure:** PR descriptions must describe user-facing changes to `main` following `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Pull request descriptions cite permanent codebase paths and omit ephemeral workspace `.scratch/` paths, raw session logs, and agent execution notes.
 4. **Provide verification evidence:** Include terminal test output, commands, or observable behavior confirming all acceptance criteria.
 5. **Audit tracking issue checklist and instructions:** Before opening the pull request, inspect the linked issue/ticket description (`gh issue view <ticket_number>`). Check off all completed acceptance criteria (`- [x]`) and update any outdated instructions, commands, or scope definitions that evolved during implementation.

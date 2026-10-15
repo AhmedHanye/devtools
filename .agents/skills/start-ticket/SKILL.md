@@ -8,12 +8,11 @@ disable-model-invocation: true
 
 Prepare the workspace and branch for an issue. Follow `CONTRIBUTING.md`.
 
-## Checklist
+## Actions
 
-- [ ] Resolve target issue number from user input or title search. Prompt if missing.
-- [ ] Verify clean working tree. Stop if dirty until resolved.
-- [ ] Checkout local `main` and pull `origin/main`.
-- [ ] Checkout linked issue branch (or existing local branch).
-- [ ] Self-assign issue to `@me`.
-- [ ] Set ticket to `In Progress` in Project #8.
-- [ ] Set parent Spec to `In Progress` in Project #8 if linked.
+1. Validate issue number, title, and link. Halt immediately if any detail is missing.
+2. Inspect working tree (`git status --porcelain`). Halt immediately if dirty.
+3. Checkout and update `main` (`git checkout main && git pull origin main`).
+4. Create and checkout native linked branch (`gh issue develop <number> --checkout`).
+5. Assign issue to `@me` (`gh issue edit <number> --add-assignee @me`).
+6. Set ticket and parent Spec to `In Progress` in Project #8 following `CONTRIBUTING.md`.
