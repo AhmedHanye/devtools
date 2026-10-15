@@ -51,7 +51,7 @@ The project organizes work into Specs and Tickets. Specs track milestone capabil
   ```
 - **Resolve parent Spec.** Look up the parent Spec number for a ticket:
   ```bash
-  gh api repos/:owner/:repo/issues/<ticket_number> --jq '.parent.number // empty'
+  gh api repos/:owner/:repo/issues/<ticket_number>/parent --jq .number 2>/dev/null
   ```
 - **Single source of truth.** Omit manual parent links, child checklists, and `Blocked by: #...` lines from markdown bodies when native issue hierarchy and dependencies are enabled.
 - **Milestones.** Assigned strictly to Specs to track milestone deliverables without metric dilution. Tickets do not receive milestones. Query active milestone titles:
@@ -88,8 +88,7 @@ gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field
 - **Parent Spec rollup.**
   - When any child ticket moves to `In Progress`, update the parent Spec to `In Progress` on the project board:
     ```bash
-    PARENT_NUM=$(gh api repos/:owner/:repo/issues/<ticket_number> --jq '.parent.number // empty')
-    if [[ -n "$PARENT_NUM" ]]; then
+    if PARENT_NUM=$(gh api repos/:owner/:repo/issues/<ticket_number>/parent --jq .number 2>/dev/null); then
       PARENT_ITEM_ID=$(gh project item-add 8 --owner AhmedHanye --url "https://github.com/AhmedHanye/devtools/issues/${PARENT_NUM}" --format json --jq .id)
       gh project item-edit --id "$PARENT_ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field-id "PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4" --single-select-option-id "47fc9ee4"
     fi
@@ -133,10 +132,11 @@ gh issue develop <ticket_number> --checkout
 
 This creates and checks out `<ticket_number>-<title-slug>` and links it to the issue in GitHub.
 
-If the branch was already created, check out the existing local branch:
+If the branch was already created, list linked branches or check out the existing local branch:
 
 ```bash
-git checkout $(git branch --list "*<ticket_number>*" | head -n 1 | tr -d ' *')
+gh issue develop <ticket_number> --list
+git checkout "$(git branch --list "<ticket_number>-*" | head -n 1 | sed 's/^[* ]*//')"
 ```
 
 ## Commits, releases, and pull requests
