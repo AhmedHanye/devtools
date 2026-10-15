@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # To tickets
 
-Break a plan, spec, or conversation into tracer-bullet tickets, each declaring its blocking dependencies.
+Break a plan, spec, or conversation into tracer-bullet tickets, each declaring its blocking dependencies. Follow Git and GitHub CLI workflows in `CONTRIBUTING.md`.
 
 ## Process
 
@@ -66,25 +66,7 @@ Completion criterion: Breakdown approved by the user without pending revisions.
 Determine the target destination from the user's prompt:
 
 - **Local files (default).** Unless the user explicitly requests publishing to GitHub or a remote tracker, save tickets locally under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Use the template below with `# <NN>: <Ticket title>` prepended and a `### Blocked by` section listing blocking ticket numbers or `None (can start immediately)`. Write one ticket per file, never a single combined file.
-- **GitHub.** When the user explicitly requests publishing to GitHub or the issue tracker, create one issue per ticket in dependency order (blockers first) with title prefix `[Slice]: <title>` and label `type:feat`. Use the ticket template below for the issue body. The tracker records the title and dependencies natively. If the ticket belongs to a parent Spec, attach it as a native sub-issue. Link blockers using native blocking dependencies:
-  ```bash
-  # 1. Create the issue and capture its number
-  TICKET_URL=$(gh issue create \
-    --title "[Slice]: <title>" \
-    --label "type:feat" \
-    --body "...")
-  TICKET_NUM="${TICKET_URL##*/}"
-
-  # 2. Attach as sub-issue if executing under a parent Spec
-  TICKET_ID=$(gh api "repos/:owner/:repo/issues/${TICKET_NUM}" --jq .id)
-  gh api --method POST "repos/:owner/:repo/issues/<spec_number>/sub_issues" \
-    -F sub_issue_id="$TICKET_ID"
-
-  # 3. Add blocking dependency if gated by another ticket
-  BLOCKER_ID=$(gh api "repos/:owner/:repo/issues/<blocker_number>" --jq .id)
-  gh api --method POST "repos/:owner/:repo/issues/${TICKET_NUM}/dependencies/blocked_by" \
-    -F issue_id="$BLOCKER_ID"
-  ```
+- **GitHub.** When the user explicitly requests publishing to GitHub or the issue tracker, create one issue per ticket in dependency order (blockers first) with title prefix `[Slice]: <title>` and label `type:feat`. Use the ticket template below for the issue body. If the ticket belongs to a parent Spec, attach it as a native sub-issue. Declare any blocking dependencies to gate start order.
 
 Leave parent Specs open in the issue tracker until all child tickets reach Done.
 

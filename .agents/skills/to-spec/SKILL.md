@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # To spec
 
-Synthesize conversation context and codebase understanding into a spec, confirming testing seams before publishing.
+Synthesize conversation context and codebase understanding into a spec, confirming testing seams before publishing. Follow Git and GitHub CLI workflows in `CONTRIBUTING.md`.
 
 ## Process
 
@@ -20,16 +20,7 @@ Confirm with the user that these seams match expectations.
 
 Completion criterion: Testing seams identified and user confirmation recorded in context.
 
-3. Write the spec using the template below and publish it with title prefix `[Spec]: <title>` and label `type:spec`. Assign the capability milestone:
-```bash
-gh issue create \
-  --title "[Spec]: <title>" \
-  --label "type:spec" \
-  --milestone "<milestone>" \
-  --body "..."
-```
-
-Query active milestone titles via `gh api repos/:owner/:repo/milestones --jq '.[].title'`.
+3. Write the spec using the template below and publish it as an issue with title prefix `[Spec]: <title>`, label `type:spec`, and the assigned capability milestone.
 
 Completion criterion: Spec issue published with prefix `[Spec]: <title>`, labeled `type:spec`, assigned to active milestone, and issue URL returned.
 
