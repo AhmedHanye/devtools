@@ -53,3 +53,17 @@ _Avoid_: Epic, feature initiative, milestone goal, parent issue
 **Ticket**:
 An atomic vertical slice issue that delivers end-to-end functionality in a single pull request, either standalone or linked to a parent Spec as a native sub-issue.
 _Avoid_: Sub-task, story, work item, task issue
+
+### Browser and audit infrastructure
+
+**Browser Resolution Waterfall**:
+The strict 3-tier precedence algorithm (explicit flag/env → managed cache & system probes → terminal remediation stop) that resolves a Chromium binary.
+_Avoid_: Browser detection chain, chrome locator pipeline, browser discovery fallback
+
+**Managed Browser Cache**:
+The centralized directory (`~/.devtools/browsers/`) hosting downloaded Chrome for Testing binaries across all local devtools workspaces.
+_Avoid_: Download cache, browser store, local chromium dir
+
+**Chrome for Testing (CfT)**:
+Google's dedicated, telemetry-free Chromium distribution specifically engineered for automated testing, distributed as `chrome-headless-shell` and `chrome`.
+_Avoid_: Test chromium, headless chrome binary, puppeteer browser
