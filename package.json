@@ -1,6 +1,6 @@
 {
   "name": "devtools",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Developer tooling monorepo providing development utilities and workflows across CLI, daemon, API, and frontend interfaces.",
   "license": "MIT",
   "author": "Ahmed Hanye",
