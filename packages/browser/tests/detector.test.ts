@@ -114,9 +114,10 @@ describe("Browser Detector & Executable Verification", () => {
   });
 
   test("probeManagedCache falls back to getManagedCacheDir when cacheDir is empty or whitespace", async () => {
-    const result1 = await probeManagedCache("");
+    const env = { DEVTOOLS_BROWSERS_DIR: join(testDir, "empty-cache") };
+    const result1 = await probeManagedCache("", env);
     expect(result1).toBeNull();
-    const result2 = await probeManagedCache("   ");
+    const result2 = await probeManagedCache("   ", env);
     expect(result2).toBeNull();
   });
 });
