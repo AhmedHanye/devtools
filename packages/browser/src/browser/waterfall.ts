@@ -69,11 +69,17 @@ export async function resolveBrowserPath(
   const probeToolCaches = deps?.probeToolCaches ?? defaultProbeToolCaches;
 
   // --- Tier 1: Explicit Path / Flags / Environment Variables ---
-  const explicitPath =
-    options?.chromePath ?? env.DEVTOOLS_CHROME_PATH ?? env.CHROME_PATH;
-
-  if (explicitPath && explicitPath.trim().length > 0) {
-    const trimmedPath = explicitPath.trim();
+  // If options.chromePath was explicitly supplied, validate it strictly.
+  // Empty or whitespace strings must fail fast rather than falling through to Tier 2.
+  if (options && "chromePath" in options && options.chromePath !== undefined) {
+    const rawPath = options.chromePath;
+    const trimmedPath = typeof rawPath === "string" ? rawPath.trim() : "";
+    if (trimmedPath.length === 0) {
+      throw new InvalidBrowserPathError(
+        rawPath,
+        "explicit --chrome-path cannot be empty or whitespace",
+      );
+    }
     const check = await verify(trimmedPath, timeoutMs);
     if (check.valid && check.version) {
       return {
@@ -85,6 +91,30 @@ export async function resolveBrowserPath(
     // Strict halt: Do NOT fall through to Tier 2
     throw new InvalidBrowserPathError(
       trimmedPath,
+      "path does not exist, is not executable, or failed the --version check",
+    );
+  }
+
+  // Next, inspect environment variable overrides in order of precedence:
+  // DEVTOOLS_CHROME_PATH then CHROME_PATH.
+  // Empty or whitespace strings are treated as unset.
+  const envCandidates = [env.DEVTOOLS_CHROME_PATH, env.CHROME_PATH];
+  const envPath = envCandidates
+    .map((p) => (typeof p === "string" ? p.trim() : ""))
+    .find((p) => p.length > 0);
+
+  if (envPath) {
+    const check = await verify(envPath, timeoutMs);
+    if (check.valid && check.version) {
+      return {
+        executablePath: envPath,
+        version: check.version,
+        source: "explicit",
+      };
+    }
+    // Strict halt: Do NOT fall through to Tier 2
+    throw new InvalidBrowserPathError(
+      envPath,
       "path does not exist, is not executable, or failed the --version check",
     );
   }
@@ -155,7 +185,15 @@ export async function getBrowserStatus(
     if (err instanceof BrowserNotFoundError) {
       return {
         found: false,
-        error: "No Chromium-compatible browser found.",
+        code: err.code,
+        error: err.message,
+      };
+    }
+    if (err instanceof InvalidBrowserPathError) {
+      return {
+        found: false,
+        code: err.code,
+        error: err.message,
       };
     }
     const message = err instanceof Error ? err.message : String(err);

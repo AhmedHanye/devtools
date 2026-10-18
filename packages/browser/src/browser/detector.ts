@@ -49,7 +49,7 @@ export async function verifyBrowserExecutable(
         try {
           proc = Bun.spawn([executablePath, "--version"], {
             stdout: "pipe",
-            stderr: "pipe",
+            stderr: "ignore",
           });
 
           timer = setTimeout(() => {
@@ -106,9 +106,10 @@ export function getManagedCacheDir(
   env?: Record<string, string | undefined>,
 ): string {
   const currentEnv = env ?? process.env;
-  return (
-    currentEnv.DEVTOOLS_BROWSERS_DIR ?? join(homedir(), ".devtools", "browsers")
-  );
+  const override = currentEnv.DEVTOOLS_BROWSERS_DIR?.trim();
+  return override && override.length > 0
+    ? override
+    : join(homedir(), ".devtools", "browsers");
 }
 
 export async function probeManagedCache(
@@ -221,46 +222,85 @@ export async function probeAlternativeBrowsers(): Promise<
   return rawCandidates.filter((item) => isExecutable(item.path));
 }
 
+function getToolCacheBase(
+  home: string,
+  osType: string,
+  tool: "ms-playwright" | "puppeteer",
+): string {
+  if (osType === "darwin") {
+    return join(home, "Library", "Caches", tool);
+  }
+  if (osType === "win32") {
+    const localAppData = process.env.LOCALAPPDATA;
+    if (localAppData && localAppData.trim().length > 0) {
+      return join(localAppData, tool);
+    }
+    return join(home, "AppData", "Local", tool);
+  }
+  return join(home, ".cache", tool);
+}
+
 export async function probeToolCaches(
   home = homedir(),
 ): Promise<Array<CandidateBrowser<"playwright" | "puppeteer">>> {
   const osType = platform();
   const found: Array<CandidateBrowser<"playwright" | "puppeteer">> = [];
 
-  // 1. Playwright cache (~/.cache/ms-playwright)
-  const playwrightBase =
-    osType === "darwin"
-      ? join(home, "Library", "Caches", "ms-playwright")
-      : join(home, ".cache", "ms-playwright");
+  // 1. Playwright cache
+  const playwrightBase = getToolCacheBase(home, osType, "ms-playwright");
 
   if (existsSync(playwrightBase)) {
     try {
       const entries = readdirSync(playwrightBase);
       for (const entry of entries) {
-        if (entry.startsWith("chromium-")) {
-          const chromeLinux = join(
-            playwrightBase,
-            entry,
-            "chrome-linux",
-            "chrome",
-          );
-          const chromeMac = join(
-            playwrightBase,
-            entry,
-            "chrome-mac",
-            "Chromium.app",
-            "Contents",
-            "MacOS",
-            "Chromium",
-          );
-          const chromeWin = join(
-            playwrightBase,
-            entry,
-            "chrome-win",
-            "chrome.exe",
-          );
+        if (
+          entry.startsWith("chromium-") ||
+          entry.startsWith("chromium_headless_shell-")
+        ) {
+          const candidates = [
+            join(playwrightBase, entry, "chrome-linux", "chrome"),
+            join(playwrightBase, entry, "chrome-linux", "headless_shell"),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-mac",
+              "Chromium.app",
+              "Contents",
+              "MacOS",
+              "Chromium",
+            ),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-mac-arm64",
+              "Chromium.app",
+              "Contents",
+              "MacOS",
+              "Chromium",
+            ),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-headless-shell-mac",
+              "chrome-headless-shell",
+            ),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-headless-shell-mac-arm64",
+              "chrome-headless-shell",
+            ),
+            join(playwrightBase, entry, "chrome-win", "chrome.exe"),
+            join(playwrightBase, entry, "chrome-win64", "chrome.exe"),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-headless-shell-win64",
+              "chrome-headless-shell.exe",
+            ),
+          ];
 
-          for (const candidate of [chromeLinux, chromeMac, chromeWin]) {
+          for (const candidate of candidates) {
             if (isExecutable(candidate)) {
               found.push({ path: candidate, source: "playwright" });
             }
@@ -272,11 +312,8 @@ export async function probeToolCaches(
     }
   }
 
-  // 2. Puppeteer cache (~/.cache/puppeteer)
-  const puppeteerBase =
-    osType === "darwin"
-      ? join(home, "Library", "Caches", "puppeteer")
-      : join(home, ".cache", "puppeteer");
+  // 2. Puppeteer cache
+  const puppeteerBase = getToolCacheBase(home, osType, "puppeteer");
 
   if (existsSync(puppeteerBase)) {
     try {

@@ -173,7 +173,51 @@ describe("Browser Resolution Waterfall", () => {
     }
   });
 
-  test("getBrowserStatus returns found=true on success and clean single-line error on failure", async () => {
+  test("Tier 1: strictly throws InvalidBrowserPathError when explicit --chrome-path is empty or whitespace", async () => {
+    let tier2Probed = false;
+    await expect(
+      resolveBrowserPath(
+        { chromePath: "" },
+        {
+          probeManagedCache: async () => {
+            tier2Probed = true;
+            return null;
+          },
+        },
+      ),
+    ).rejects.toThrow(InvalidBrowserPathError);
+    expect(tier2Probed).toBe(false);
+
+    await expect(
+      resolveBrowserPath(
+        { chromePath: "   " },
+        {
+          probeManagedCache: async () => {
+            tier2Probed = true;
+            return null;
+          },
+        },
+      ),
+    ).rejects.toThrow(InvalidBrowserPathError);
+    expect(tier2Probed).toBe(false);
+  });
+
+  test("Tier 1: empty DEVTOOLS_CHROME_PATH does not mask valid CHROME_PATH", async () => {
+    const mockBin = join(testDir, "env-chrome-valid.sh");
+    writeFileSync(mockBin, '#!/bin/sh\necho "Fallback Chrome 122.0.0"\n');
+    chmodSync(mockBin, 0o755);
+
+    const res = await resolveBrowserPath({
+      env: {
+        DEVTOOLS_CHROME_PATH: "",
+        CHROME_PATH: mockBin,
+      },
+    });
+    expect(res.executablePath).toBe(mockBin);
+    expect(res.source).toBe("explicit");
+  });
+
+  test("getBrowserStatus returns found=true on success and actionable error with code on failure", async () => {
     const mockBin = join(testDir, "status-chrome.sh");
     writeFileSync(mockBin, '#!/bin/sh\necho "Chrome 130.0.0"\n');
     chmodSync(mockBin, 0o755);
@@ -199,7 +243,11 @@ describe("Browser Resolution Waterfall", () => {
     );
     expect(missingStatus.found).toBe(false);
     if (!missingStatus.found) {
-      expect(missingStatus.error).toBe("No Chromium-compatible browser found.");
+      expect(missingStatus.code).toBe("BROWSER_NOT_FOUND");
+      expect(missingStatus.error).toContain(
+        "No Chromium-compatible browser found.",
+      );
+      expect(missingStatus.error).toContain('Run "devtools browser install"');
     }
   });
 });

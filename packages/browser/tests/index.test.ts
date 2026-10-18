@@ -10,4 +10,19 @@ describe("@devtools/browser exports", () => {
     expect(browser.BrowserNotFoundError).toBeDefined();
     expect(browser.InvalidBrowserPathError).toBeDefined();
   });
+
+  test("error classes instantiate with code and exitCode 1", () => {
+    const notFound = new browser.BrowserNotFoundError();
+    expect(notFound.exitCode).toBe(1);
+    expect(notFound.code).toBe("BROWSER_NOT_FOUND");
+    expect(notFound.message).toBe(browser.DEFAULT_BROWSER_NOT_FOUND_MESSAGE);
+
+    const invalidPath = new browser.InvalidBrowserPathError(
+      "/bad/path",
+      "not executable",
+    );
+    expect(invalidPath.exitCode).toBe(1);
+    expect(invalidPath.code).toBe("INVALID_BROWSER_PATH");
+    expect(invalidPath.message).toContain("/bad/path");
+  });
 });

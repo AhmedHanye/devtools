@@ -70,11 +70,30 @@ describe("Browser Detector & Executable Verification", () => {
     expect(result.valid).toBe(false);
   });
 
+  test("verifyBrowserExecutable does not deadlock when executable produces heavy stderr", async () => {
+    const mockBin = join(testDir, "mock-noisy-stderr.sh");
+    writeFileSync(
+      mockBin,
+      '#!/bin/sh\nfor i in $(seq 1 500); do echo "Diagnostic log line $i" >&2; done\necho "Google Chrome 132.0.0.0"\n',
+    );
+    chmodSync(mockBin, 0o755);
+
+    const result = await verifyBrowserExecutable(mockBin, 3000);
+    expect(result.valid).toBe(true);
+    expect(result.version).toBe("Google Chrome 132.0.0.0");
+  });
+
   test("getManagedCacheDir resolves DEVTOOLS_BROWSERS_DIR override or default", () => {
     expect(getManagedCacheDir({ DEVTOOLS_BROWSERS_DIR: "/custom/cache" })).toBe(
       "/custom/cache",
     );
     expect(getManagedCacheDir({})).toBe(
+      join(homedir(), ".devtools", "browsers"),
+    );
+    expect(getManagedCacheDir({ DEVTOOLS_BROWSERS_DIR: "" })).toBe(
+      join(homedir(), ".devtools", "browsers"),
+    );
+    expect(getManagedCacheDir({ DEVTOOLS_BROWSERS_DIR: "   " })).toBe(
       join(homedir(), ".devtools", "browsers"),
     );
   });

@@ -20,6 +20,8 @@ export interface ResolveBrowserOptions {
   timeoutMs?: number;
 }
 
+export type BrowserErrorCode = "BROWSER_NOT_FOUND" | "INVALID_BROWSER_PATH";
+
 export type BrowserStatus =
   | {
       found: true;
@@ -29,6 +31,7 @@ export type BrowserStatus =
     }
   | {
       found: false;
+      code?: BrowserErrorCode | (string & {});
       error: string;
     };
 
