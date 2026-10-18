@@ -67,3 +67,11 @@ _Avoid_: Download cache, browser store, local chromium dir
 **Chrome for Testing (CfT)**:
 Google's dedicated, telemetry-free Chromium distribution specifically engineered for automated testing, distributed as `chrome-headless-shell` and `chrome`.
 _Avoid_: Test chromium, headless chrome binary, puppeteer browser
+
+**Explicit Browser Override**:
+A developer-supplied binary path provided via the `--chrome-path` CLI option or the `DEVTOOLS_CHROME_PATH` / `CHROME_PATH` environment variables that bypasses auto-detection.
+_Avoid_: Custom chrome binary, manual browser path, chrome flag
+
+**Managed Cache Override**:
+A custom filesystem directory designated via `--path` or `DEVTOOLS_BROWSERS_DIR` that replaces the default `~/.devtools/browsers/` location for downloaded Chrome for Testing binaries.
+_Avoid_: Custom download dir, browser store path, alternate cache location
