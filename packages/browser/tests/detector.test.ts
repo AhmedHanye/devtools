@@ -112,4 +112,11 @@ describe("Browser Detector & Executable Verification", () => {
     const result = await probeManagedCache(testDir);
     expect(result).toBeNull();
   });
+
+  test("probeManagedCache falls back to getManagedCacheDir when cacheDir is empty or whitespace", async () => {
+    const result1 = await probeManagedCache("");
+    expect(result1).toBeNull();
+    const result2 = await probeManagedCache("   ");
+    expect(result2).toBeNull();
+  });
 });

@@ -117,7 +117,9 @@ export async function probeManagedCache(
   env?: Record<string, string | undefined>,
   timeoutMs?: number,
 ): Promise<{ path: string; version: string } | null> {
-  const targetDir = cacheDir ?? getManagedCacheDir(env);
+  const trimmed = typeof cacheDir === "string" ? cacheDir.trim() : undefined;
+  const targetDir =
+    trimmed && trimmed.length > 0 ? trimmed : getManagedCacheDir(env);
   if (!existsSync(targetDir)) {
     return null;
   }

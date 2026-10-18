@@ -122,8 +122,7 @@ export async function resolveBrowserPath(
   // --- Tier 2: Managed Cache & System Discovery ---
 
   // 1. Managed Browser Cache (~/.devtools/browsers/)
-  const cacheDirOverride = options?.cacheDir ?? env.DEVTOOLS_BROWSERS_DIR;
-  const cacheHit = await probeCache(cacheDirOverride, options?.env, timeoutMs);
+  const cacheHit = await probeCache(options?.cacheDir, env, timeoutMs);
   if (cacheHit) {
     return {
       executablePath: cacheHit.path,

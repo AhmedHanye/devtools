@@ -39,6 +39,7 @@ describe("CLI Browser Command Surface", () => {
     const statusOptionNames = statusCmd?.options.map((opt) => opt.name());
     expect(statusOptionNames).toContain("json");
     expect(statusOptionNames).toContain("chrome-path");
+    expect(statusOptionNames).toContain("path");
 
     const installCmd = browserCmd?.commands.find(
       (cmd) => cmd.name() === "install",
@@ -294,5 +295,56 @@ describe("CLI Browser Command Surface", () => {
       console.error = origErr;
       process.exit = origExit;
     }
+  });
+
+  test("runBrowserStatusCommand forwards path option as cacheDir to getBrowserStatus", async () => {
+    let capturedOptions: any;
+    const origLog = console.log;
+    console.log = () => {};
+    try {
+      await runBrowserStatusCommand(
+        { path: "/custom/cache/dir" },
+        {
+          getBrowserStatus: async (opts) => {
+            capturedOptions = opts;
+            return {
+              found: true,
+              path: "/custom/cache/dir/chrome",
+              version: "Chrome for Testing 131.0.0",
+              source: "managed-cache",
+            };
+          },
+        },
+      );
+      expect(capturedOptions?.cacheDir).toBe("/custom/cache/dir");
+    } finally {
+      console.log = origLog;
+    }
+  });
+
+  test("status command respects --path option to probe custom managed cache directory", async () => {
+    const customCache = join(testDir, "custom-cache");
+    mkdirSync(customCache, { recursive: true });
+
+    const proc = Bun.spawn(
+      ["bun", binPath, "browser", "status", "--path", customCache, "--json"],
+      {
+        env: {
+          ...process.env,
+          DEVTOOLS_CHROME_PATH: "",
+          CHROME_PATH: "",
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
+    const exitCode = await proc.exited;
+    expect(exitCode).toBe(1);
+
+    const stdout = await new Response(proc.stdout).text();
+    const parsed = JSON.parse(stdout.trim());
+    expect(parsed.found).toBe(false);
+    expect(parsed.code).toBe("BROWSER_NOT_FOUND");
   });
 });

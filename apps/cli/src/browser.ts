@@ -9,6 +9,7 @@ import pc from "picocolors";
 export interface BrowserStatusOptions {
   json?: boolean;
   chromePath?: string;
+  path?: string;
 }
 
 export interface BrowserInstallOptions {
@@ -17,9 +18,12 @@ export interface BrowserInstallOptions {
 
 export async function runBrowserStatusCommand(
   options: BrowserStatusOptions = {},
+  deps?: { getBrowserStatus?: typeof getBrowserStatus },
 ): Promise<void> {
-  const status: BrowserStatus = await getBrowserStatus({
+  const doStatus = deps?.getBrowserStatus ?? getBrowserStatus;
+  const status: BrowserStatus = await doStatus({
     chromePath: options.chromePath,
+    cacheDir: options.path,
   });
 
   if (options.json) {
@@ -103,6 +107,7 @@ export function registerBrowserCommands(program: Command): Command {
       "--chrome-path <path>",
       "Specify an explicit browser binary path to test",
     )
+    .option("--path <dir>", "Custom directory to probe managed cache in")
     .action(async (options: BrowserStatusOptions) => {
       await runBrowserStatusCommand(options);
     });

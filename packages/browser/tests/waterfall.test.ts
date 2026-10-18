@@ -250,4 +250,41 @@ describe("Browser Resolution Waterfall", () => {
       expect(missingStatus.error).toContain('Run "devtools browser install"');
     }
   });
+
+  test("Tier 2: forwards options.cacheDir and sanitized env to probeCache, preserving empty DEVTOOLS_BROWSERS_DIR fallback", async () => {
+    let capturedCacheDir: string | undefined = "sentinel";
+    let capturedEnv: Record<string, string | undefined> | undefined;
+
+    const mockHeadless = join(testDir, "mock-cft.sh");
+    writeFileSync(
+      mockHeadless,
+      '#!/bin/sh\necho "Chrome for Testing 131.0.0"\n',
+    );
+    chmodSync(mockHeadless, 0o755);
+
+    const res = await resolveBrowserPath(
+      {
+        env: {
+          DEVTOOLS_BROWSERS_DIR: "",
+          CHROME_PATH: undefined,
+          DEVTOOLS_CHROME_PATH: undefined,
+        },
+      },
+      {
+        probeManagedCache: async (cacheDir, env) => {
+          capturedCacheDir = cacheDir;
+          capturedEnv = env;
+          return {
+            path: mockHeadless,
+            version: "Chrome for Testing 131.0.0",
+          };
+        },
+      },
+    );
+
+    expect(capturedCacheDir).toBeUndefined();
+    expect(capturedEnv?.DEVTOOLS_BROWSERS_DIR).toBe("");
+    expect(res.executablePath).toBe(mockHeadless);
+    expect(res.source).toBe("managed-cache");
+  });
 });
