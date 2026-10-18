@@ -147,4 +147,110 @@ describe("Browser Detector & Executable Verification", () => {
     expect(matched).toBeDefined();
     expect(matched?.source).toBe("playwright");
   });
+
+  test("probeToolCaches discovers Playwright in PLAYWRIGHT_BROWSERS_PATH override", async () => {
+    const customPlaywrightDir = join(testDir, "custom-pw");
+    const browserDir = join(
+      customPlaywrightDir,
+      "chromium-2000",
+      "chrome-linux",
+    );
+    mkdirSync(browserDir, { recursive: true });
+    const mockExe = join(browserDir, "chrome");
+    writeFileSync(mockExe, "#!/bin/sh\nexit 0\n");
+    chmodSync(mockExe, 0o755);
+
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        PLAYWRIGHT_BROWSERS_PATH: customPlaywrightDir,
+      },
+    );
+    const found = candidates.find((c) => c.path === mockExe);
+    expect(found).toBeDefined();
+    expect(found?.source).toBe("playwright");
+  });
+
+  test("probeToolCaches honors PLAYWRIGHT_BROWSERS_PATH=0 gracefully", async () => {
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        PLAYWRIGHT_BROWSERS_PATH: "0",
+      },
+    );
+    expect(Array.isArray(candidates)).toBe(true);
+  });
+
+  test("probeToolCaches resolves relative PLAYWRIGHT_BROWSERS_PATH using INIT_CWD", async () => {
+    const customPlaywrightDir = join(testDir, "init-cwd-base", "relative-pw");
+    const browserDir = join(
+      customPlaywrightDir,
+      "chromium-2002",
+      "chrome-linux",
+    );
+    mkdirSync(browserDir, { recursive: true });
+    const mockExe = join(browserDir, "chrome");
+    writeFileSync(mockExe, "#!/bin/sh\nexit 0\n");
+    chmodSync(mockExe, 0o755);
+
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        INIT_CWD: join(testDir, "init-cwd-base"),
+        PLAYWRIGHT_BROWSERS_PATH: "relative-pw",
+      },
+    );
+    const found = candidates.find((c) => c.path === mockExe);
+    expect(found).toBeDefined();
+    expect(found?.source).toBe("playwright");
+  });
+
+  test("probeToolCaches discovers Playwright in XDG_CACHE_HOME on Linux", async () => {
+    if (process.platform !== "linux") return;
+    const customXdg = join(testDir, "custom-xdg");
+    const browserDir = join(
+      customXdg,
+      "ms-playwright",
+      "chromium-2001",
+      "chrome-linux",
+    );
+    mkdirSync(browserDir, { recursive: true });
+    const mockExe = join(browserDir, "chrome");
+    writeFileSync(mockExe, "#!/bin/sh\nexit 0\n");
+    chmodSync(mockExe, 0o755);
+
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        XDG_CACHE_HOME: customXdg,
+      },
+    );
+    const found = candidates.find((c) => c.path === mockExe);
+    expect(found).toBeDefined();
+    expect(found?.source).toBe("playwright");
+  });
+
+  test("probeToolCaches discovers Puppeteer in PUPPETEER_CACHE_DIR override", async () => {
+    const customPuppeteerDir = join(testDir, "custom-puppeteer");
+    const browserDir = join(
+      customPuppeteerDir,
+      "chrome",
+      "linux-130.0.6723.69",
+      "chrome-linux64",
+    );
+    mkdirSync(browserDir, { recursive: true });
+    const mockExe = join(browserDir, "chrome");
+    writeFileSync(mockExe, "#!/bin/sh\nexit 0\n");
+    chmodSync(mockExe, 0o755);
+
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        PUPPETEER_CACHE_DIR: customPuppeteerDir,
+      },
+    );
+    const found = candidates.find((c) => c.path === mockExe);
+    expect(found).toBeDefined();
+    expect(found?.source).toBe("puppeteer");
+  });
 });

@@ -5,8 +5,9 @@ import {
   readdirSync,
   statSync,
 } from "node:fs";
+import { createRequire } from "node:module";
 import { homedir, platform } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { getInstalledBrowsers } from "@puppeteer/browsers";
 import * as chromeLauncher from "chrome-launcher";
 
@@ -252,16 +253,38 @@ function getPlaywrightCacheBase(
   env?: Record<string, string | undefined>,
 ): string {
   const currentEnv = env ?? process.env;
+  const browsersPath = currentEnv.PLAYWRIGHT_BROWSERS_PATH?.trim();
+
+  if (browsersPath !== undefined && browsersPath.length > 0) {
+    const cwd = currentEnv.INIT_CWD?.trim() || process.cwd();
+    if (browsersPath === "0") {
+      try {
+        const req = createRequire(join(cwd, "noop.js"));
+        const pkgJson = req.resolve("playwright-core/package.json");
+        return join(dirname(pkgJson), ".local-browsers");
+      } catch {
+        return join(cwd, "node_modules", "playwright-core", ".local-browsers");
+      }
+    }
+    return resolve(cwd, browsersPath);
+  }
+
   if (osType === "darwin") {
     return join(home, "Library", "Caches", "ms-playwright");
   }
   if (osType === "win32") {
-    const localAppData = currentEnv.LOCALAPPDATA;
-    if (localAppData && localAppData.trim().length > 0) {
+    const localAppData = currentEnv.LOCALAPPDATA?.trim();
+    if (localAppData && localAppData.length > 0) {
       return join(localAppData, "ms-playwright");
     }
     return join(home, "AppData", "Local", "ms-playwright");
   }
+
+  const xdgCache = currentEnv.XDG_CACHE_HOME?.trim();
+  if (xdgCache && xdgCache.length > 0) {
+    return join(xdgCache, "ms-playwright");
+  }
+
   return join(home, ".cache", "ms-playwright");
 }
 
@@ -376,7 +399,7 @@ export async function probeToolCaches(
   }
 
   // 2. Puppeteer cache
-  const puppeteerBase = getPuppeteerCacheBase(home);
+  const puppeteerBase = getPuppeteerCacheBase(home, env);
 
   if (existsSync(puppeteerBase)) {
     try {
