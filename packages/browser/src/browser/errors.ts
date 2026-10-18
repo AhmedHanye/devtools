@@ -2,6 +2,7 @@ export const DEFAULT_BROWSER_NOT_FOUND_MESSAGE =
   'No Chromium-compatible browser found.\nRun "devtools browser install" to install Chrome for Testing,\nor pass "--chrome-path <path>" to specify an existing binary.';
 
 export class BrowserNotFoundError extends Error {
+  // fallow-ignore-next-line unused-class-member
   readonly exitCode = 1;
   readonly code = "BROWSER_NOT_FOUND" as const;
 
@@ -12,7 +13,9 @@ export class BrowserNotFoundError extends Error {
 }
 
 export class InvalidBrowserPathError extends Error {
+  // fallow-ignore-next-line unused-class-member
   readonly exitCode = 1;
+  // fallow-ignore-next-line unused-class-member
   readonly code = "INVALID_BROWSER_PATH" as const;
 
   constructor(path: string, reason?: string) {
