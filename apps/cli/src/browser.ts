@@ -49,7 +49,7 @@ export async function runBrowserInstallCommand(
   options: BrowserInstallOptions = {},
   deps?: { installBrowser?: typeof installBrowser },
 ): Promise<void> {
-  const isTTY = Boolean(process.stderr.isTTY || process.stdout.isTTY);
+  const isTTY = Boolean(process.stderr.isTTY);
   const doInstall = deps?.installBrowser ?? installBrowser;
 
   console.error(

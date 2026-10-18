@@ -325,12 +325,16 @@ describe("CLI Browser Command Surface", () => {
   test("status command respects --path option to probe custom managed cache directory", async () => {
     const customCache = join(testDir, "custom-cache");
     mkdirSync(customCache, { recursive: true });
+    const isolatedHome = join(testDir, "home-custom");
+    mkdirSync(isolatedHome, { recursive: true });
 
     const proc = Bun.spawn(
       ["bun", binPath, "browser", "status", "--path", customCache, "--json"],
       {
         env: {
           ...process.env,
+          PATH: dirname(process.execPath),
+          HOME: isolatedHome,
           DEVTOOLS_CHROME_PATH: "",
           CHROME_PATH: "",
         },
