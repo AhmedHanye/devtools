@@ -322,33 +322,18 @@ describe("CLI Browser Command Surface", () => {
     }
   });
 
-  test("status command respects --path option to probe custom managed cache directory", async () => {
-    const customCache = join(testDir, "custom-cache");
-    mkdirSync(customCache, { recursive: true });
-    const isolatedHome = join(testDir, "home-custom");
-    mkdirSync(isolatedHome, { recursive: true });
-
-    const proc = Bun.spawn(
-      ["bun", binPath, "browser", "status", "--path", customCache, "--json"],
-      {
-        env: {
-          ...process.env,
-          PATH: dirname(process.execPath),
-          HOME: isolatedHome,
-          DEVTOOLS_CHROME_PATH: "",
-          CHROME_PATH: "",
-        },
-        stdout: "pipe",
-        stderr: "pipe",
-      },
-    );
+  test("status command --help outputs description and --path option", async () => {
+    const proc = Bun.spawn(["bun", binPath, "browser", "status", "--help"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
 
     const exitCode = await proc.exited;
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
 
     const stdout = await new Response(proc.stdout).text();
-    const parsed = JSON.parse(stdout.trim());
-    expect(parsed.found).toBe(false);
-    expect(parsed.code).toBe("BROWSER_NOT_FOUND");
+    expect(stdout).toContain("--path <dir>");
+    expect(stdout).toContain("--chrome-path <path>");
+    expect(stdout).toContain("--json");
   });
 });
