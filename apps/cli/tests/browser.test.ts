@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import {
   createProgram,
   runBrowserInstallCommand,
@@ -53,9 +53,14 @@ describe("CLI Browser Command Surface", () => {
   });
 
   test("status command exits 1 with remediation error in human mode when no browser is found", async () => {
+    const isolatedHome = join(testDir, "home");
+    mkdirSync(isolatedHome, { recursive: true });
+
     const proc = Bun.spawn(["bun", binPath, "browser", "status"], {
       env: {
         ...process.env,
+        PATH: dirname(process.execPath),
+        HOME: isolatedHome,
         DEVTOOLS_BROWSERS_DIR: join(testDir, "empty-cache"),
         CHROME_PATH: "",
         DEVTOOLS_CHROME_PATH: "",
@@ -94,10 +99,33 @@ describe("CLI Browser Command Surface", () => {
     expect(stderr).toContain(invalidPath);
   });
 
+  test("status command exits 1 with diagnostic error in human mode when explicit path is empty", async () => {
+    const proc = Bun.spawn(
+      ["bun", binPath, "browser", "status", "--chrome-path", ""],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
+    const exitCode = await proc.exited;
+    expect(exitCode).toBe(1);
+
+    const stderr = await new Response(proc.stderr).text();
+    expect(stderr).toContain(
+      "explicit --chrome-path cannot be empty or whitespace",
+    );
+  });
+
   test("status command exits 1 with JSON payload in --json mode when no browser is found", async () => {
+    const isolatedHome = join(testDir, "home");
+    mkdirSync(isolatedHome, { recursive: true });
+
     const proc = Bun.spawn(["bun", binPath, "browser", "status", "--json"], {
       env: {
         ...process.env,
+        PATH: dirname(process.execPath),
+        HOME: isolatedHome,
         DEVTOOLS_BROWSERS_DIR: join(testDir, "empty-cache"),
         CHROME_PATH: "",
         DEVTOOLS_CHROME_PATH: "",
@@ -112,7 +140,9 @@ describe("CLI Browser Command Surface", () => {
     const stdout = await new Response(proc.stdout).text();
     const parsed = JSON.parse(stdout.trim());
     expect(parsed.found).toBe(false);
+    expect(parsed.code).toBe("BROWSER_NOT_FOUND");
     expect(parsed.error).toContain("No Chromium-compatible browser found.");
+    expect(parsed.error).toContain('Run "devtools browser install"');
   });
 
   test("status command exits 0 with details when valid browser is resolved via explicit env", async () => {

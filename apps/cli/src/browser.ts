@@ -1,5 +1,4 @@
 import {
-  DEFAULT_BROWSER_NOT_FOUND_MESSAGE,
   getBrowserStatus,
   installBrowser,
   type BrowserStatus,
@@ -37,11 +36,7 @@ export async function runBrowserStatusCommand(
     console.log(`  ${pc.bold("Version:")} ${status.version}`);
     console.log(`  ${pc.bold("Source:")}  ${status.source}`);
   } else {
-    if (status.error === "No Chromium-compatible browser found.") {
-      console.error(pc.red(DEFAULT_BROWSER_NOT_FOUND_MESSAGE));
-    } else {
-      console.error(pc.red(status.error));
-    }
+    console.error(pc.red(status.error));
     process.exit(1);
   }
 }
@@ -50,10 +45,10 @@ export async function runBrowserInstallCommand(
   options: BrowserInstallOptions = {},
   deps?: { installBrowser?: typeof installBrowser },
 ): Promise<void> {
-  const isTTY = Boolean(process.stdout.isTTY);
+  const isTTY = Boolean(process.stderr.isTTY || process.stdout.isTTY);
   const doInstall = deps?.installBrowser ?? installBrowser;
 
-  console.log(
+  console.error(
     pc.cyan("Installing Chrome for Testing (chrome-headless-shell@stable)..."),
   );
 
@@ -66,7 +61,7 @@ export async function runBrowserInstallCommand(
           const percent = Math.floor((downloadedBytes / totalBytes) * 100);
           if (percent !== lastPercent) {
             lastPercent = percent;
-            process.stdout.write(
+            process.stderr.write(
               `\rDownloading chrome-headless-shell: ${percent}%`,
             );
           }
@@ -75,7 +70,7 @@ export async function runBrowserInstallCommand(
     });
 
     if (isTTY) {
-      process.stdout.write("\n");
+      process.stderr.write("\n");
     }
 
     console.log(
@@ -85,7 +80,7 @@ export async function runBrowserInstallCommand(
     );
   } catch (err: unknown) {
     if (isTTY) {
-      process.stdout.write("\n");
+      process.stderr.write("\n");
     }
     const message = err instanceof Error ? err.message : String(err);
     console.error(pc.red(`Failed to install browser: ${message}`));
