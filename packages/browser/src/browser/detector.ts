@@ -43,14 +43,36 @@ export async function verifyBrowserExecutable(
   let proc: ReturnType<typeof Bun.spawn> | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
+  const isWin = platform() === "win32";
+  const lowerPath = executablePath.toLowerCase();
+  const isWindowsGuiBinary =
+    isWin && lowerPath.endsWith(".exe") && !lowerPath.includes("headless");
+
   try {
     const exitedPromise = new Promise<{ code: number; stdout: string }>(
       (resolve, reject) => {
         try {
-          proc = Bun.spawn([executablePath, "--version"], {
-            stdout: "pipe",
-            stderr: "ignore",
-          });
+          if (isWindowsGuiBinary) {
+            const escapedPath = executablePath.replace(/'/g, "''");
+            proc = Bun.spawn(
+              [
+                "powershell",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                `(Get-Item -LiteralPath '${escapedPath}').VersionInfo.ProductVersion`,
+              ],
+              {
+                stdout: "pipe",
+                stderr: "ignore",
+              },
+            );
+          } else {
+            proc = Bun.spawn([executablePath, "--version"], {
+              stdout: "pipe",
+              stderr: "ignore",
+            });
+          }
 
           timer = setTimeout(() => {
             try {
@@ -224,32 +246,46 @@ export async function probeAlternativeBrowsers(): Promise<
   return rawCandidates.filter((item) => isExecutable(item.path));
 }
 
-function getToolCacheBase(
+function getPlaywrightCacheBase(
   home: string,
   osType: string,
-  tool: "ms-playwright" | "puppeteer",
+  env?: Record<string, string | undefined>,
 ): string {
+  const currentEnv = env ?? process.env;
   if (osType === "darwin") {
-    return join(home, "Library", "Caches", tool);
+    return join(home, "Library", "Caches", "ms-playwright");
   }
   if (osType === "win32") {
-    const localAppData = process.env.LOCALAPPDATA;
+    const localAppData = currentEnv.LOCALAPPDATA;
     if (localAppData && localAppData.trim().length > 0) {
-      return join(localAppData, tool);
+      return join(localAppData, "ms-playwright");
     }
-    return join(home, "AppData", "Local", tool);
+    return join(home, "AppData", "Local", "ms-playwright");
   }
-  return join(home, ".cache", tool);
+  return join(home, ".cache", "ms-playwright");
+}
+
+function getPuppeteerCacheBase(
+  home: string,
+  env?: Record<string, string | undefined>,
+): string {
+  const currentEnv = env ?? process.env;
+  const envOverride = currentEnv.PUPPETEER_CACHE_DIR?.trim();
+  if (envOverride && envOverride.length > 0) {
+    return envOverride;
+  }
+  return join(home, ".cache", "puppeteer");
 }
 
 export async function probeToolCaches(
   home = homedir(),
+  env?: Record<string, string | undefined>,
 ): Promise<Array<CandidateBrowser<"playwright" | "puppeteer">>> {
   const osType = platform();
   const found: Array<CandidateBrowser<"playwright" | "puppeteer">> = [];
 
   // 1. Playwright cache
-  const playwrightBase = getToolCacheBase(home, osType, "ms-playwright");
+  const playwrightBase = getPlaywrightCacheBase(home, osType, env);
 
   if (existsSync(playwrightBase)) {
     try {
@@ -262,6 +298,13 @@ export async function probeToolCaches(
           const candidates = [
             join(playwrightBase, entry, "chrome-linux", "chrome"),
             join(playwrightBase, entry, "chrome-linux", "headless_shell"),
+            join(playwrightBase, entry, "chrome-linux64", "chrome"),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-headless-shell-linux64",
+              "chrome-headless-shell",
+            ),
             join(
               playwrightBase,
               entry,
@@ -274,11 +317,29 @@ export async function probeToolCaches(
             join(
               playwrightBase,
               entry,
+              "chrome-mac",
+              "Google Chrome for Testing.app",
+              "Contents",
+              "MacOS",
+              "Google Chrome for Testing",
+            ),
+            join(
+              playwrightBase,
+              entry,
               "chrome-mac-arm64",
               "Chromium.app",
               "Contents",
               "MacOS",
               "Chromium",
+            ),
+            join(
+              playwrightBase,
+              entry,
+              "chrome-mac-arm64",
+              "Google Chrome for Testing.app",
+              "Contents",
+              "MacOS",
+              "Google Chrome for Testing",
             ),
             join(
               playwrightBase,
@@ -315,7 +376,7 @@ export async function probeToolCaches(
   }
 
   // 2. Puppeteer cache
-  const puppeteerBase = getToolCacheBase(home, osType, "puppeteer");
+  const puppeteerBase = getPuppeteerCacheBase(home);
 
   if (existsSync(puppeteerBase)) {
     try {

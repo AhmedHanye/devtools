@@ -24,9 +24,10 @@ export interface WaterfallDependencies {
   probeAlternativeBrowsers?: () => Promise<
     Array<CandidateBrowser<"edge" | "brave">>
   >;
-  probeToolCaches?: () => Promise<
-    Array<CandidateBrowser<"playwright" | "puppeteer">>
-  >;
+  probeToolCaches?: (
+    home?: string,
+    env?: Record<string, string | undefined>,
+  ) => Promise<Array<CandidateBrowser<"playwright" | "puppeteer">>>;
   verifyBrowserExecutable?: (
     path: string,
     timeoutMs?: number,
@@ -154,7 +155,7 @@ export async function resolveBrowserPath(
   }
 
   // 4. Test tool caches (Playwright, Puppeteer)
-  const toolCandidates = await probeToolCaches();
+  const toolCandidates = await probeToolCaches(undefined, env);
   const toolHit = await findFirstRunnableCandidate(
     toolCandidates,
     verify,

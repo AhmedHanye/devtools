@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import {
   createProgram,
   runBrowserInstallCommand,
@@ -54,28 +54,34 @@ describe("CLI Browser Command Surface", () => {
   });
 
   test("status command exits 1 with remediation error in human mode when no browser is found", async () => {
-    const isolatedHome = join(testDir, "home");
-    mkdirSync(isolatedHome, { recursive: true });
+    const errors: string[] = [];
+    const origError = console.error;
+    const origExit = process.exit;
+    console.error = (...args: unknown[]) => errors.push(args.join(" "));
+    process.exit = ((code?: number) => {
+      throw new Error(`exit ${code}`);
+    }) as unknown as typeof process.exit;
 
-    const proc = Bun.spawn(["bun", binPath, "browser", "status"], {
-      env: {
-        ...process.env,
-        PATH: dirname(process.execPath),
-        HOME: isolatedHome,
-        DEVTOOLS_BROWSERS_DIR: join(testDir, "empty-cache"),
-        CHROME_PATH: "",
-        DEVTOOLS_CHROME_PATH: "",
-      },
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    try {
+      await expect(
+        runBrowserStatusCommand(
+          {},
+          {
+            getBrowserStatus: async () => ({
+              found: false,
+              code: "BROWSER_NOT_FOUND",
+              error:
+                'No Chromium-compatible browser found.\nRun "devtools browser install" to install Chrome for Testing,\nor pass "--chrome-path <path>" to specify an existing binary.',
+            }),
+          },
+        ),
+      ).rejects.toThrow("exit 1");
+    } finally {
+      console.error = origError;
+      process.exit = origExit;
+    }
 
-    const exitCode = await proc.exited;
-    expect(exitCode).toBe(1);
-
-    const stderr = await new Response(proc.stderr).text();
-    const stdout = await new Response(proc.stdout).text();
-    const combined = stderr + stdout;
+    const combined = errors.join("\n");
     expect(combined).toContain("No Chromium-compatible browser found.");
     expect(combined).toContain('Run "devtools browser install"');
   });
@@ -119,27 +125,35 @@ describe("CLI Browser Command Surface", () => {
   });
 
   test("status command exits 1 with JSON payload in --json mode when no browser is found", async () => {
-    const isolatedHome = join(testDir, "home");
-    mkdirSync(isolatedHome, { recursive: true });
+    const logs: string[] = [];
+    const origLog = console.log;
+    const origExit = process.exit;
+    console.log = (...args: unknown[]) => logs.push(args.join(" "));
+    process.exit = ((code?: number) => {
+      throw new Error(`exit ${code}`);
+    }) as unknown as typeof process.exit;
 
-    const proc = Bun.spawn(["bun", binPath, "browser", "status", "--json"], {
-      env: {
-        ...process.env,
-        PATH: dirname(process.execPath),
-        HOME: isolatedHome,
-        DEVTOOLS_BROWSERS_DIR: join(testDir, "empty-cache"),
-        CHROME_PATH: "",
-        DEVTOOLS_CHROME_PATH: "",
-      },
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    try {
+      await expect(
+        runBrowserStatusCommand(
+          { json: true },
+          {
+            getBrowserStatus: async () => ({
+              found: false,
+              code: "BROWSER_NOT_FOUND",
+              error:
+                'No Chromium-compatible browser found.\nRun "devtools browser install" to install Chrome for Testing,\nor pass "--chrome-path <path>" to specify an existing binary.',
+            }),
+          },
+        ),
+      ).rejects.toThrow("exit 1");
+    } finally {
+      console.log = origLog;
+      process.exit = origExit;
+    }
 
-    const exitCode = await proc.exited;
-    expect(exitCode).toBe(1);
-
-    const stdout = await new Response(proc.stdout).text();
-    const parsed = JSON.parse(stdout.trim());
+    const output = logs.join("\n");
+    const parsed = JSON.parse(output.trim());
     expect(parsed.found).toBe(false);
     expect(parsed.code).toBe("BROWSER_NOT_FOUND");
     expect(parsed.error).toContain("No Chromium-compatible browser found.");

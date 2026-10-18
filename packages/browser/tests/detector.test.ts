@@ -7,6 +7,7 @@ import {
   probeAlternativeBrowsers,
   probeManagedCache,
   probeSystemInstallations,
+  probeToolCaches,
   verifyBrowserExecutable,
 } from "../src/browser/detector";
 
@@ -119,5 +120,31 @@ describe("Browser Detector & Executable Verification", () => {
     expect(result1).toBeNull();
     const result2 = await probeManagedCache("   ", env);
     expect(result2).toBeNull();
+  });
+
+  test("probeToolCaches discovers modern Playwright chrome-linux64 and chrome-headless-shell-linux64 binaries", async () => {
+    const mockHome = join(testDir, "home");
+    const localAppData = join(mockHome, "AppData", "Local");
+    const playwrightDir = join(
+      mockHome,
+      process.platform === "darwin"
+        ? "Library/Caches/ms-playwright"
+        : process.platform === "win32"
+          ? "AppData/Local/ms-playwright"
+          : ".cache/ms-playwright",
+      "chromium-1148",
+      "chrome-linux64",
+    );
+    mkdirSync(playwrightDir, { recursive: true });
+    const mockExecutable = join(playwrightDir, "chrome");
+    writeFileSync(mockExecutable, "#!/bin/sh\necho 1\n");
+    chmodSync(mockExecutable, 0o755);
+
+    const candidates = await probeToolCaches(mockHome, {
+      LOCALAPPDATA: localAppData,
+    });
+    const matched = candidates.find((c) => c.path === mockExecutable);
+    expect(matched).toBeDefined();
+    expect(matched?.source).toBe("playwright");
   });
 });
