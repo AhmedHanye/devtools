@@ -1,6 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "entry": ["apps/frontend/steiger.config.js"],
+  "entry": [
+    "apps/frontend/steiger.config.js",
+    "packages/browser/src/index.ts",
+    "packages/core/src/index.ts",
+    "packages/db/src/index.ts"
+  ],
   "ignoreDependencies": ["prettier-plugin-tailwindcss"],
   "ignoreUnresolvedImports": [
     "./.next/**",
@@ -10,6 +15,16 @@
   ],
   "overrides": [
     {
+      "files": [
+        "packages/**/errors.ts",
+        "packages/**/src/**/errors.ts",
+        "packages/**/src/browser/errors.ts"
+      ],
+      "rules": {
+        "unused-class-member": "off"
+      }
+    },
+    {
       "files": ["apps/frontend/src/shared/ui/shadcn/**"],
       "rules": {
         "unused-export": "off"
@@ -17,7 +32,6 @@
     }
   ],
   "boundaries": {
-    "preset": "feature-sliced",
     "zones": [
       {
         "name": "app",
@@ -28,20 +42,22 @@
         "patterns": ["apps/frontend/src/pages/**"]
       },
       {
-        "name": "widgets",
-        "patterns": ["apps/frontend/src/widgets/**"]
-      },
-      {
-        "name": "features",
-        "patterns": ["apps/frontend/src/features/**"]
-      },
-      {
-        "name": "entities",
-        "patterns": ["apps/frontend/src/entities/**"]
-      },
-      {
         "name": "shared",
         "patterns": ["apps/frontend/src/shared/**"]
+      }
+    ],
+    "rules": [
+      {
+        "from": "app",
+        "allow": ["pages", "shared"]
+      },
+      {
+        "from": "pages",
+        "allow": ["shared"]
+      },
+      {
+        "from": "shared",
+        "allow": []
       }
     ]
   }
