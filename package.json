@@ -22,10 +22,14 @@
     "check": "oxlint . && prettier --check .",
     "typecheck": "bun --filter '*' typecheck",
     "test": "bun --filter '*' test && bun test scripts/",
+    "test:coverage": "bun scripts/collect-coverage.ts",
     "build": "bun --filter '*' build",
+    "build:smoke": "bun build apps/cli/bin/devtools.js --compile --outfile dist/devtools && ./dist/devtools --help",
     "audit": "bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm",
     "pin:actions": ".agents/skills/github-actions/scripts/pin-action.sh",
-    "verify": "bun run check && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bunx fallow dead-code && bun run typecheck && bun run test"
+    "lint:workflows": ".agents/skills/github-actions/scripts/lint.sh",
+    "verify:fast": "bun run check && bun run typecheck && bunx fallow dead-code",
+    "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test && bun run audit && bun run build:smoke && bun run lint:workflows"
   },
   "devDependencies": {
     "@types/bun": "latest",

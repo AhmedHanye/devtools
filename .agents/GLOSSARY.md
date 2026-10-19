@@ -32,6 +32,14 @@ _Avoid_: Hash list, verification file, signature manifest
 The change-scoped automated test, lint, typecheck, and formatting checks executed before committing, pushing, or opening a pull request.
 _Avoid_: Pre-PR gate, full quality gate, verification pipeline, CI suite
 
+**Fast Verification Gate**:
+The change-scoped, sub-5-second local check (`bun run verify:fast`) executed by Lefthook `pre-commit` combining Oxlint, Prettier check, TypeScript typechecking, and Fallow dead-code analysis.
+_Avoid_: Fast check, quick verify, pre-push check, smoke lint
+
+**Diff-Coverage Gate**:
+The continuous integration gate enforcing 100% test coverage strictly on newly added or modified lines within a pull request diff without penalizing untouched legacy code.
+_Avoid_: PR coverage check, patch coverage, line gate, coverage delta
+
 **Manual Verification Checklist**:
 An interactive, step-by-step test procedure executed in a browser or terminal to verify sensory behavior, visual presentation, and user flows.
 _Avoid_: QA checklist, testing checklist, manual test plan
