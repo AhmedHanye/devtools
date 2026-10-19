@@ -1,4 +1,3 @@
-/* oxlint-disable node/no-process-env */
 import {
   probeAlternativeBrowsers as defaultProbeAlternatives,
   probeManagedCache as defaultProbeCache,
@@ -22,9 +21,9 @@ export interface WaterfallDependencies {
     timeoutMs?: number,
   ) => Promise<{ path: string; version: string } | null>;
   probeSystemInstallations?: () => Promise<string[]>;
-  probeAlternativeBrowsers?: () => Promise<
-    Array<CandidateBrowser<"edge" | "brave">>
-  >;
+  probeAlternativeBrowsers?: (
+    env?: Record<string, string | undefined>,
+  ) => Promise<Array<CandidateBrowser<"edge" | "brave">>>;
   probeToolCaches?: (
     home?: string,
     env?: Record<string, string | undefined>,
@@ -145,7 +144,7 @@ export async function resolveBrowserPath(
   }
 
   // 3. Alternative Chromium browsers (Microsoft Edge, Brave)
-  const altCandidates = await probeAlternatives();
+  const altCandidates = await probeAlternatives(env);
   const altHit = await findFirstRunnableCandidate(
     altCandidates,
     verify,

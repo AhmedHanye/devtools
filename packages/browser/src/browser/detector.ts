@@ -1,4 +1,3 @@
-/* oxlint-disable node/no-process-env */
 import {
   accessSync,
   constants,
@@ -181,10 +180,11 @@ export async function probeSystemInstallations(): Promise<string[]> {
   }
 }
 
-export async function probeAlternativeBrowsers(): Promise<
-  Array<CandidateBrowser<"edge" | "brave">>
-> {
+export async function probeAlternativeBrowsers(
+  env?: Record<string, string | undefined>,
+): Promise<Array<CandidateBrowser<"edge" | "brave">>> {
   const osType = platform();
+  const currentEnv = env ?? process.env;
   const rawCandidates: Array<{ path: string; source: "edge" | "brave" }> = [];
 
   if (osType === "linux") {
@@ -209,9 +209,9 @@ export async function probeAlternativeBrowsers(): Promise<
       },
     );
   } else if (osType === "win32") {
-    const programFiles = process.env["PROGRAMFILES"] ?? "C:\\Program Files";
+    const programFiles = currentEnv["PROGRAMFILES"] ?? "C:\\Program Files";
     const programFilesX86 =
-      process.env["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)";
+      currentEnv["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)";
     rawCandidates.push(
       {
         path: join(

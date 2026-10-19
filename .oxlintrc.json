@@ -57,6 +57,17 @@
       }
     },
     {
+      "files": [
+        "**/packages/db/src/config.ts",
+        "**/packages/browser/src/browser/detector.ts",
+        "**/packages/browser/src/browser/waterfall.ts"
+      ],
+      "plugins": ["node"],
+      "rules": {
+        "node/no-process-env": "off"
+      }
+    },
+    {
       "files": ["apps/cli/**", "apps/api/**", "scripts/**"],
       "plugins": ["node"],
       "rules": {
