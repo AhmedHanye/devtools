@@ -3,7 +3,7 @@
 # https://github.com/evilmartians/lefthook
 
 pre-commit:
-  parallel: true
+  parallel: false
   commands:
     lint-and-format:
       glob: "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}"
@@ -19,19 +19,8 @@ pre-commit:
       glob: "{apps/frontend,site}/**/*.{js,jsx,ts,tsx}"
       run: bunx react-doctor --project apps/frontend,site --staged --blocking error --no-telemetry --no-supply-chain
 
-    workflow-lint:
-      glob: ".github/**/*.{yml,yaml}"
-      run: .agents/skills/github-actions/scripts/lint.sh
-
     verify-secrets:
       run: bun scripts/verify-staged-secrets.ts {staged_files}
-
-    test-scripts:
-      glob: "scripts/*"
-      run: bun test scripts/
-
-    fast-verification-gate:
-      run: bun run verify:fast
 
 commit-msg:
   commands:

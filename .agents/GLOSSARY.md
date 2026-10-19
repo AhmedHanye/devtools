@@ -37,8 +37,8 @@ The change-scoped automated test, lint, typecheck, and formatting checks execute
 _Avoid_: Pre-PR gate, full quality gate, verification pipeline, CI suite
 
 **Fast Verification Gate**:
-The change-scoped, sub-5-second local check (`bun run verify:fast`) executed by Lefthook `pre-commit` combining Oxlint, Prettier check, TypeScript typechecking, and Fallow dead-code analysis.
-_Avoid_: Fast check, quick verify, pre-push check, smoke lint
+The sub-5-second local check (`bun run verify:fast`) combining Oxlint, Prettier check, TypeScript typechecking, and Fallow dead-code analysis.
+_Avoid_: Fast check, quick verify, pre-commit gate, smoke lint
 
 **Zero-Warning Gate**:
 The continuous integration and local lint check requiring zero compiler, linter, or static analysis warnings across all monorepo packages.
@@ -47,6 +47,10 @@ _Avoid_: Strict lint check, zero-warning policy, deny-warnings check
 **Diff-Coverage Gate**:
 The continuous integration gate enforcing 100% test coverage strictly on newly added or modified lines within a pull request diff without penalizing untouched legacy code.
 _Avoid_: PR coverage check, patch coverage, line gate, coverage delta
+
+**Type-Only Source Exemption**:
+The automated bypass within the Diff-Coverage Gate that excludes modules emitting zero runtime JavaScript statements from executable line requirements.
+_Avoid_: Type ignore, interface exclusion, non-code bypass
 
 **Duplication Baseline**:
 The version-controlled reference snapshot of acceptable legacy code clone groups used by static analysis to prevent newly introduced duplicate logic.

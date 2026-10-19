@@ -12,21 +12,24 @@ Rules for selecting verification commands tailored to changed files and enforcin
 
 Agents and developers must follow the verification ladder before committing, pushing, or requesting review:
 
-1. **Fast Verification Gate (<5s)**:
+1. **Pre-Commit Staged Quality Gate (<1s)**:
+   Executed automatically by Lefthook `pre-commit` across staged files. Auto-fixes Oxlint lint rules, formats code and docs with Prettier, validates React quality with `react-doctor --staged`, and checks staged secrets without whole-repo overhead.
+2. **Fast Verification Gate (<5s)**:
    ```bash
    bun run verify:fast
    ```
-   Runs Oxlint, Prettier check, workspace typechecks, and Fallow dead-code analysis. Executed automatically by Lefthook `pre-commit` and `pre-push`.
-2. **Workspace Test Run**:
+   Runs Oxlint, Prettier check, workspace typechecks, and Fallow dead-code analysis across the entire repository. Used for rapid feedback during iterative coding.
+3. **Workspace Test Run**:
    ```bash
    bun --filter <package-name> test
    ```
    Runs targeted tests during iterative development and TDD red-green cycles.
-3. **Canonical Local Verification Gate (Pre-PR & Post-Implementation)**:
+4. **Canonical Local Verification Gate (Pre-Push, Pre-PR & Post-Implementation)**:
    ```bash
    bun run verify
    ```
-   Runs `bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test && bun run audit && bun run build:smoke && bun run lint:workflows`.
+   Runs `bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth && bun run test:coverage && bun scripts/verify-diff-coverage.ts --base origin/main && bun run audit && bun run build:smoke && bun run lint:workflows`.
+   Executed automatically by Lefthook `pre-push`.
    **Mandatory requirement**: Agents must execute `bun run verify` with exit code 0 after completing an implementation plan or before completing `/code-review`.
 
 ## Scope-based verification
