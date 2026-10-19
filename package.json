@@ -29,7 +29,7 @@
     "pin:actions": ".agents/skills/github-actions/scripts/pin-action.sh",
     "lint:workflows": ".agents/skills/github-actions/scripts/lint.sh",
     "verify:fast": "bun run check && bun run typecheck && bunx fallow dead-code",
-    "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test && bun run audit && bun run build:smoke && bun run lint:workflows"
+    "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test:coverage && bun scripts/verify-diff-coverage.ts --base origin/main && bun run audit && bun run build:smoke && bun run lint:workflows"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

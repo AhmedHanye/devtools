@@ -40,7 +40,8 @@ function isTestableSourceFile(filePath: string): boolean {
     normalized.endsWith(".d.ts") ||
     normalized.includes("/tests/") ||
     normalized.includes(".stories.") ||
-    /\.config\.[a-z]+$/.test(normalized)
+    /\.config\.[a-z]+$/.test(normalized) ||
+    normalized.startsWith("scripts/")
   ) {
     return false;
   }
@@ -152,11 +153,14 @@ export function calculateDiffCoverage(
   const fileResults: FileDiffCoverage[] = [];
 
   for (const [file, modifiedLines] of diffMap.entries()) {
+    if (!isTestableSourceFile(file)) {
+      continue;
+    }
+
     const fileLcov = lcovMap.get(file);
 
     if (!fileLcov) {
-      // Check if this is a testable source file that has zero coverage records
-      if (isTestableSourceFile(file) && modifiedLines.length > 0) {
+      if (modifiedLines.length > 0) {
         totalModifiedExecutableLines += modifiedLines.length;
         fileResults.push({
           file,
