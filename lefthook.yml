@@ -36,7 +36,7 @@ pre-commit:
 commit-msg:
   commands:
     conventional-commits:
-      run: bun scripts/verify-commit-msg.ts {1}
+      run: bunx commitlint --edit {1}
 
 pre-push:
   parallel: false

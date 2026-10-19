@@ -32,6 +32,8 @@
     "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test && bun run audit && bun run build:smoke && bun run lint:workflows"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@types/bun": "latest",
     "fallow": "^3.31.0",
     "lefthook": "^2.1.17",
