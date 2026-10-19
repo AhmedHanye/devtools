@@ -40,9 +40,17 @@ _Avoid_: Pre-PR gate, full quality gate, verification pipeline, CI suite
 The change-scoped, sub-5-second local check (`bun run verify:fast`) executed by Lefthook `pre-commit` combining Oxlint, Prettier check, TypeScript typechecking, and Fallow dead-code analysis.
 _Avoid_: Fast check, quick verify, pre-push check, smoke lint
 
+**Zero-Warning Gate**:
+The continuous integration and local lint check requiring zero compiler, linter, or static analysis warnings across all monorepo packages.
+_Avoid_: Strict lint check, zero-warning policy, deny-warnings check
+
 **Diff-Coverage Gate**:
 The continuous integration gate enforcing 100% test coverage strictly on newly added or modified lines within a pull request diff without penalizing untouched legacy code.
 _Avoid_: PR coverage check, patch coverage, line gate, coverage delta
+
+**Duplication Baseline**:
+The version-controlled reference snapshot of acceptable legacy code clone groups used by static analysis to prevent newly introduced duplicate logic.
+_Avoid_: Dupe lockfile, clone cache, duplication snapshot, clone baseline
 
 **Manual Verification Checklist**:
 An interactive, step-by-step test procedure executed in a browser or terminal to verify sensory behavior, visual presentation, and user flows.
