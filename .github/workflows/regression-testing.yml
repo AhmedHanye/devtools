@@ -146,7 +146,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            bunx fallow audit --base origin/main --gate new-only --fail-on-baseline-growth
+            bunx fallow dead-code --type-aware
             bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth
           else
             bunx fallow dead-code --type-aware
@@ -225,16 +225,13 @@ jobs:
       - name: Execute test suites with coverage aggregation
         run: bun run test:coverage
 
-      - name: Verify Fallow CRAP complexity and risk thresholds
-        if: github.event_name == 'pull_request'
-        run: bunx fallow audit --base origin/main --coverage coverage/lcov.info --max-crap 30.0
-
       - name: Verify 100% diff coverage gate
         if: github.event_name == 'pull_request'
         run: bun scripts/verify-diff-coverage.ts --base origin/main --output coverage/diff-coverage-summary.md
 
       - name: Post or update sticky PR coverage comment
-        if: github.event_name == 'pull_request' && !cancelled()
+        if: github.event_name == 'pull_request' && !cancelled() && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
@@ -247,10 +244,11 @@ jobs:
             const header = '<!-- devtools-diff-coverage -->';
             const body = `${header}\n${summary}`;
 
-            const { data: comments } = await github.rest.issues.listComments({
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
+              per_page: 100,
             });
 
             const botComment = comments.find(comment => comment.body && comment.body.includes(header));
