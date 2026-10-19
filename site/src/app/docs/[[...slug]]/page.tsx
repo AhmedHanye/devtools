@@ -17,6 +17,42 @@ import { resolveDocPage, source } from "@/lib/source";
 import { resolvePageDetails } from "@/lib/docs-index";
 import { Mermaid } from "@/components/mermaid";
 
+const BREADCRUMB_CONFIG = { enabled: true } as const;
+const TOC_CONFIG = { enabled: true } as const;
+const TOC_POPOVER_CONFIG = { enabled: true } as const;
+
+const MDX_COMPONENTS = {
+  ...defaultMdxComponents,
+  Step,
+  Steps,
+  Tab,
+  Tabs,
+  Card,
+  Cards,
+  File,
+  Folder,
+  Files,
+  Accordion,
+  Accordions,
+  TypeTable,
+  Callout,
+  Mermaid,
+};
+
+const SECTION_STYLES = new Map<string, React.CSSProperties>();
+
+function getSectionStyle(section?: string): React.CSSProperties | undefined {
+  if (!section) return undefined;
+  let style = SECTION_STYLES.get(section);
+  if (!style) {
+    style = {
+      "--color-fd-primary": `var(--${section}-color)`,
+    } as React.CSSProperties;
+    SECTION_STYLES.set(section, style);
+  }
+  return style;
+}
+
 interface PageProps {
   params: Promise<{
     slug?: string[];
@@ -42,45 +78,23 @@ export default async function Page({ params }: PageProps) {
       ? "tutorials"
       : slug?.[0];
 
+  const pageStyle = getSectionStyle(section);
+
   return (
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      breadcrumb={{ enabled: true }}
-      tableOfContent={{ enabled: true }}
-      tableOfContentPopover={{ enabled: true }}
+      breadcrumb={BREADCRUMB_CONFIG}
+      tableOfContent={TOC_CONFIG}
+      tableOfContentPopover={TOC_POPOVER_CONFIG}
       className={section ? `${section} group-${section}` : ""}
-      style={
-        section
-          ? ({
-              "--color-fd-primary": `var(--${section}-color)`,
-            } as React.CSSProperties)
-          : undefined
-      }
+      style={pageStyle}
     >
       <DocsTitle>{title}</DocsTitle>
       {description ? <DocsDescription>{description}</DocsDescription> : null}
       <DocsBody>
         {typeof MDX === "function" ? (
-          <MDX
-            components={{
-              ...defaultMdxComponents,
-              Step,
-              Steps,
-              Tab,
-              Tabs,
-              Card,
-              Cards,
-              File,
-              Folder,
-              Files,
-              Accordion,
-              Accordions,
-              TypeTable,
-              Callout,
-              Mermaid,
-            }}
-          />
+          <MDX components={MDX_COMPONENTS} />
         ) : (
           <div>
             <p>{description || details.content}</p>
