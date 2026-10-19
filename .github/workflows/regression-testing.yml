@@ -65,6 +65,7 @@ jobs:
               - '.github/**'
               - '.oxlintrc.json'
               - '.fallowrc.json'
+              - '.fallow/**'
               - 'lefthook.yml'
             site:
               - 'site/**'
@@ -114,7 +115,7 @@ jobs:
     name: Architecture & Health
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.site == 'true'
     timeout-minutes: 10
     permissions:
       contents: read
@@ -146,13 +147,14 @@ jobs:
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
             bunx fallow audit --base origin/main --gate new-only --fail-on-baseline-growth
+            bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth
           else
-            bunx fallow dead-code
+            bunx fallow dead-code --type-aware
           fi
 
       - name: Scan React regressions (React Doctor)
         if: github.event_name == 'pull_request'
-        run: bunx react-doctor apps/frontend --scope changed --base origin/main --no-telemetry --no-supply-chain
+        run: bunx react-doctor --project apps/frontend,site --scope changed --base origin/main --no-telemetry --no-supply-chain
 
   typecheck:
     name: Typecheck

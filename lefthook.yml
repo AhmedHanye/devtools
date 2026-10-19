@@ -16,8 +16,8 @@ pre-commit:
       stage_fixed: true
 
     react-doctor:
-      glob: "apps/frontend/**/*.{js,jsx,ts,tsx}"
-      run: bunx react-doctor apps/frontend --staged --blocking error --no-telemetry --no-supply-chain
+      glob: "{apps/frontend,site}/**/*.{js,jsx,ts,tsx}"
+      run: bunx react-doctor --project apps/frontend,site --staged --blocking error --no-telemetry --no-supply-chain
 
     workflow-lint:
       glob: ".github/**/*.{yml,yaml}"
