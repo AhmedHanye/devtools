@@ -81,8 +81,7 @@ export function resolvePageDetails(page: Page): ResolvedPageDetails {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function buildSearchIndex(page: any) {
+export async function buildSearchIndex(page: Page) {
   const details = resolvePageDetails(page);
   const data = page.data as {
     structuredData?: unknown;

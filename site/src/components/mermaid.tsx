@@ -64,7 +64,6 @@ export function Mermaid({
         }
       } catch (err) {
         if (isMounted) {
-          // eslint-disable-next-line no-console
           console.error("Failed to render Mermaid diagram:", err);
           setHasError(true);
         }
