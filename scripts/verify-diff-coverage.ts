@@ -49,6 +49,45 @@ function isTestableSourceFile(filePath: string): boolean {
 }
 
 /**
+ * Checks whether source code contains only type definitions and emits no runtime JavaScript statements.
+ */
+export function isTypeOnlySource(
+  sourceText: string,
+  filePath = "file.ts",
+): boolean {
+  if (!sourceText || !sourceText.trim()) {
+    return true;
+  }
+  if (typeof Bun !== "undefined" && Bun.Transpiler) {
+    try {
+      const loader =
+        filePath.endsWith(".tsx") || filePath.endsWith(".jsx") ? "tsx" : "ts";
+      const transpiler = new Bun.Transpiler({ loader });
+      const transformed = transpiler.transformSync(sourceText);
+      return transformed.replace(/export\s*\{\s*\};?/g, "").trim().length === 0;
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks whether a repository file consists exclusively of type definitions.
+ */
+export function isTypeOnlyFile(filePath: string): boolean {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+  try {
+    const content = fs.readFileSync(filePath, "utf8");
+    return isTypeOnlySource(content, filePath);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parses LCOV content into a map of:
  * normalizedFilePath -> (lineNumber -> hitCount)
  */
@@ -124,6 +163,10 @@ export function parseGitDiff(diffText: string): Map<string, number[]> {
         currentLineInNew = Number.parseInt(match[1], 10);
       }
     } else if (currentFile) {
+      if (line.startsWith("\\")) {
+        // e.g. "\ No newline at end of file"; metadata line, does not represent source lines
+        continue;
+      }
       if (line.startsWith("+") && !line.startsWith("+++")) {
         const list = result.get(currentFile)!;
         list.push(currentLineInNew);
@@ -140,6 +183,10 @@ export function parseGitDiff(diffText: string): Map<string, number[]> {
   return result;
 }
 
+export interface DiffCoverageOptions {
+  isTypeOnly?: (filePath: string) => boolean;
+}
+
 /**
  * Computes diff coverage by matching added/modified lines in git diff against LCOV execution data.
  */
@@ -147,10 +194,12 @@ export function calculateDiffCoverage(
   diffMap: Map<string, number[]>,
   lcovMap: Map<string, Map<number, number>>,
   threshold = 100,
+  options?: DiffCoverageOptions,
 ): DiffCoverageResult {
   let totalModifiedExecutableLines = 0;
   let coveredModifiedLines = 0;
   const fileResults: FileDiffCoverage[] = [];
+  const checkTypeOnly = options?.isTypeOnly ?? isTypeOnlyFile;
 
   for (const [file, modifiedLines] of diffMap.entries()) {
     if (!isTestableSourceFile(file)) {
@@ -160,6 +209,9 @@ export function calculateDiffCoverage(
     const fileLcov = lcovMap.get(file);
 
     if (!fileLcov) {
+      if (checkTypeOnly(file)) {
+        continue;
+      }
       if (modifiedLines.length > 0) {
         totalModifiedExecutableLines += modifiedLines.length;
         fileResults.push({
@@ -289,6 +341,14 @@ async function runCli(): Promise<number> {
   const lcovContent = fs.readFileSync(lcovPath, "utf8");
   const lcovMap = parseLcov(lcovContent);
 
+  let mergeBaseRef = baseRef;
+  const mbCmd = spawnSync("git", ["merge-base", baseRef, headRef], {
+    encoding: "utf8",
+  });
+  if (mbCmd.status === 0 && mbCmd.stdout && mbCmd.stdout.trim()) {
+    mergeBaseRef = mbCmd.stdout.trim();
+  }
+
   let diffArgs = [`${baseRef}...${headRef}`];
   if (headRef === "HEAD") {
     const status = spawnSync("git", ["status", "--porcelain"], {
@@ -299,7 +359,7 @@ async function runCli(): Promise<number> {
       status.stdout &&
       status.stdout.trim().length > 0
     ) {
-      diffArgs = [baseRef];
+      diffArgs = [mergeBaseRef];
     }
   }
 
@@ -310,9 +370,9 @@ async function runCli(): Promise<number> {
   let diffText = "";
   if (gitDiffCmd.status === 0) {
     diffText = gitDiffCmd.stdout || "";
-    // If diff between baseRef and headRef is empty, check working tree against baseRef
+    // If diff between baseRef and headRef is empty, check working tree against mergeBaseRef
     if (!diffText.trim()) {
-      const workingDiff = spawnSync("git", ["diff", "-U0", baseRef], {
+      const workingDiff = spawnSync("git", ["diff", "-U0", mergeBaseRef], {
         encoding: "utf8",
       });
       if (workingDiff.status === 0 && workingDiff.stdout) {

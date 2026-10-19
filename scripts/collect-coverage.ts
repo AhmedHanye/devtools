@@ -179,17 +179,18 @@ export async function collectCoverage(
           let filteredContent = content;
           if (isScripts) {
             const records = content.split("end_of_record\n");
-            filteredContent = records
-              .filter((rec) => {
-                const sfMatch = rec.match(/SF:(.+)/);
-                if (!sfMatch) return false;
-                const p = sfMatch[1]!.trim();
-                return p.startsWith("scripts/") || p.startsWith("./scripts/");
-              })
-              .join("end_of_record\n");
-            if (filteredContent && !filteredContent.endsWith("\n")) {
-              filteredContent += "\n";
-            }
+            const matchingRecords = records.filter((rec) => {
+              const sfMatch = rec.match(/SF:(.+)/);
+              if (!sfMatch) return false;
+              const p = sfMatch[1]!.trim();
+              return p.startsWith("scripts/") || p.startsWith("./scripts/");
+            });
+            filteredContent =
+              matchingRecords.length > 0
+                ? matchingRecords
+                    .map((r) => r.trimEnd())
+                    .join("\nend_of_record\n") + "\nend_of_record\n"
+                : "";
           }
           lcovEntries.push({ content: filteredContent, baseDir: workspaceDir });
         }
@@ -204,6 +205,15 @@ export async function collectCoverage(
   console.log(
     `Successfully merged ${lcovEntries.length} coverage files into ${mergedLcovPath}`,
   );
+
+  const frontendIstanbulJson = path.join(
+    root,
+    "apps/frontend/coverage/coverage-final.json",
+  );
+  const targetIstanbulJson = path.join(mergedLcovDir, "coverage-final.json");
+  if (fs.existsSync(frontendIstanbulJson)) {
+    fs.copyFileSync(frontendIstanbulJson, targetIstanbulJson);
+  }
 
   return {
     mergedCount: lcovEntries.length,

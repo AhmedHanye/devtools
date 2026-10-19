@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   calculateDiffCoverage,
   generateMarkdownSummary,
+  isTypeOnlySource,
   parseGitDiff,
   parseLcov,
 } from "./verify-diff-coverage";
@@ -94,6 +95,52 @@ deleted file mode 100644
       const diffMap = parseGitDiff(sampleDiff);
       expect(diffMap.size).toBe(0);
     });
+
+    it("ignores diff metadata lines such as '\\ No newline at end of file' without advancing line counter", () => {
+      const sampleDiff = `
+diff --git a/file.ts b/file.ts
+--- a/file.ts
++++ b/file.ts
+@@ -1,2 +1,3 @@
+ context 1
++added line 2
+\\ No newline at end of file
++added line 3
+`.trim();
+
+      const diffMap = parseGitDiff(sampleDiff);
+      const lines = diffMap.get("file.ts")!;
+      // Line 2 was added at 2; the metadata line should not advance line counter to 4 for line 3
+      expect(lines).toEqual([2, 3]);
+    });
+  });
+
+  describe("isTypeOnlySource", () => {
+    it("identifies pure TypeScript type aliases, interfaces, and type re-exports as type-only", () => {
+      expect(isTypeOnlySource("export type User = { id: string };")).toBe(true);
+      expect(
+        isTypeOnlySource("export interface Config { timeout: number; }"),
+      ).toBe(true);
+      expect(
+        isTypeOnlySource(
+          'import type { Foo } from "./foo"; export type { Foo };',
+        ),
+      ).toBe(true);
+      expect(isTypeOnlySource("// just a comment\n")).toBe(true);
+      expect(isTypeOnlySource("")).toBe(true);
+    });
+
+    it("identifies code emitting runtime statements as NOT type-only", () => {
+      expect(
+        isTypeOnlySource("export const API_URL = 'http://localhost';"),
+      ).toBe(false);
+      expect(isTypeOnlySource("export function compute() { return 42; }")).toBe(
+        false,
+      );
+      expect(isTypeOnlySource("export enum Status { Active, Inactive }")).toBe(
+        false,
+      );
+    });
   });
 
   describe("calculateDiffCoverage", () => {
@@ -168,6 +215,33 @@ deleted file mode 100644
       expect(result.totalModifiedExecutableLines).toBe(0);
       expect(result.coveredModifiedLines).toBe(0);
       expect(result.diffCoveragePercent).toBe(100);
+    });
+
+    it("exempts type-only TypeScript files without LCOV entries via type-only exemption", () => {
+      const diffMap = new Map<string, number[]>([
+        ["packages/core/src/types.ts", [1, 2, 3]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>();
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100, {
+        isTypeOnly: () => true,
+      });
+      expect(result.passed).toBe(true);
+      expect(result.totalModifiedExecutableLines).toBe(0);
+      expect(result.diffCoveragePercent).toBe(100);
+      expect(result.fileResults).toHaveLength(0);
+    });
+
+    it("excludes internal scripts from diff-coverage gate while verifying application workspaces", () => {
+      const diffMap = new Map<string, number[]>([
+        ["scripts/my-script.ts", [10, 11]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>();
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100);
+      expect(result.passed).toBe(true);
+      expect(result.totalModifiedExecutableLines).toBe(0);
+      expect(result.fileResults).toHaveLength(0);
     });
   });
 
