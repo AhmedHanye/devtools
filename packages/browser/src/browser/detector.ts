@@ -10,6 +10,19 @@ import { homedir, platform } from "node:os";
 import { dirname, join, resolve as pathResolve } from "node:path";
 import { getInstalledBrowsers } from "@puppeteer/browsers";
 import * as chromeLauncher from "chrome-launcher";
+import {
+  resolveCwd,
+  resolveLocalAppData,
+  resolveManagedCacheDir,
+  resolvePlatform,
+  resolvePlaywrightCustomPath,
+  resolvePuppeteerCacheDir,
+  resolveSeam,
+  resolveWindowsProgramFiles,
+  resolveXdgCacheHome,
+  type BrowserConfigSeam,
+  type BrowserSeamOptions,
+} from "../config";
 
 export interface VerificationResult {
   valid: boolean;
@@ -126,24 +139,21 @@ export async function verifyBrowserExecutable(
   }
 }
 
-export function getManagedCacheDir(
-  env?: Record<string, string | undefined>,
-): string {
-  const currentEnv = env ?? process.env;
-  const override = currentEnv.DEVTOOLS_BROWSERS_DIR?.trim();
-  return override && override.length > 0
-    ? override
-    : join(homedir(), ".devtools", "browsers");
+export type ManagedCacheDirOptions =
+  BrowserSeamOptions | BrowserConfigSeam | Record<string, string | undefined>;
+
+export function getManagedCacheDir(envOrSeam?: ManagedCacheDirOptions): string {
+  const seam = resolveSeam(envOrSeam);
+  return resolveManagedCacheDir(undefined, seam);
 }
 
 export async function probeManagedCache(
   cacheDir?: string,
-  env?: Record<string, string | undefined>,
+  envOrSeam?: ManagedCacheDirOptions,
   timeoutMs?: number,
 ): Promise<{ path: string; version: string } | null> {
-  const trimmed = typeof cacheDir === "string" ? cacheDir.trim() : undefined;
-  const targetDir =
-    trimmed && trimmed.length > 0 ? trimmed : getManagedCacheDir(env);
+  const seam = resolveSeam(envOrSeam);
+  const targetDir = resolveManagedCacheDir(cacheDir, seam);
   if (!existsSync(targetDir)) {
     return null;
   }
@@ -180,12 +190,15 @@ export async function probeSystemInstallations(): Promise<string[]> {
   }
 }
 
+export type ProbeAlternativeBrowsersOptions =
+  BrowserSeamOptions | Record<string, string | undefined>;
+
 export async function probeAlternativeBrowsers(
-  env?: Record<string, string | undefined>,
-  platformOverride?: NodeJS.Platform,
+  optionsOrEnv?: ProbeAlternativeBrowsersOptions,
+  platformOverride?: NodeJS.Platform | string,
 ): Promise<Array<CandidateBrowser<"edge" | "brave">>> {
-  const osType = platformOverride ?? platform();
-  const currentEnv = env ?? process.env;
+  const seam = resolveSeam(optionsOrEnv, platformOverride);
+  const osType = resolvePlatform(seam);
   const rawCandidates: Array<{ path: string; source: "edge" | "brave" }> = [];
 
   if (osType === "linux") {
@@ -210,9 +223,7 @@ export async function probeAlternativeBrowsers(
       },
     );
   } else if (osType === "win32") {
-    const programFiles = currentEnv["PROGRAMFILES"] ?? "C:\\Program Files";
-    const programFilesX86 =
-      currentEnv["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)";
+    const { programFiles, programFilesX86 } = resolveWindowsProgramFiles(seam);
     rawCandidates.push(
       {
         path: join(
@@ -252,14 +263,13 @@ export async function probeAlternativeBrowsers(
 
 function getPlaywrightCacheBase(
   home: string,
-  osType: string,
-  env?: Record<string, string | undefined>,
+  osType: NodeJS.Platform | string,
+  seam?: BrowserConfigSeam,
 ): string {
-  const currentEnv = env ?? process.env;
-  const browsersPath = currentEnv.PLAYWRIGHT_BROWSERS_PATH?.trim();
+  const browsersPath = resolvePlaywrightCustomPath(seam);
 
   if (browsersPath !== undefined && browsersPath.length > 0) {
-    const cwd = currentEnv.INIT_CWD?.trim() || process.cwd();
+    const cwd = resolveCwd(seam);
     if (browsersPath === "0") {
       try {
         const req = createRequire(join(cwd, "noop.js"));
@@ -276,14 +286,14 @@ function getPlaywrightCacheBase(
     return join(home, "Library", "Caches", "ms-playwright");
   }
   if (osType === "win32") {
-    const localAppData = currentEnv.LOCALAPPDATA?.trim();
+    const localAppData = resolveLocalAppData(seam);
     if (localAppData && localAppData.length > 0) {
       return join(localAppData, "ms-playwright");
     }
     return join(home, "AppData", "Local", "ms-playwright");
   }
 
-  const xdgCache = currentEnv.XDG_CACHE_HOME?.trim();
+  const xdgCache = resolveXdgCacheHome(seam);
   if (xdgCache && xdgCache.length > 0) {
     return join(xdgCache, "ms-playwright");
   }
@@ -291,27 +301,23 @@ function getPlaywrightCacheBase(
   return join(home, ".cache", "ms-playwright");
 }
 
-function getPuppeteerCacheBase(
-  home: string,
-  env?: Record<string, string | undefined>,
-): string {
-  const currentEnv = env ?? process.env;
-  const envOverride = currentEnv.PUPPETEER_CACHE_DIR?.trim();
-  if (envOverride && envOverride.length > 0) {
-    return envOverride;
-  }
-  return join(home, ".cache", "puppeteer");
+function getPuppeteerCacheBase(home: string, seam?: BrowserConfigSeam): string {
+  return resolvePuppeteerCacheDir(home, seam);
 }
+
+export type ProbeToolCachesOptions =
+  BrowserSeamOptions | BrowserConfigSeam | Record<string, string | undefined>;
 
 export async function probeToolCaches(
   home = homedir(),
-  env?: Record<string, string | undefined>,
+  envOrSeam?: ProbeToolCachesOptions,
 ): Promise<Array<CandidateBrowser<"playwright" | "puppeteer">>> {
-  const osType = platform();
+  const seam = resolveSeam(envOrSeam);
+  const osType = resolvePlatform(seam);
   const found: Array<CandidateBrowser<"playwright" | "puppeteer">> = [];
 
   // 1. Playwright cache
-  const playwrightBase = getPlaywrightCacheBase(home, osType, env);
+  const playwrightBase = getPlaywrightCacheBase(home, osType, seam);
 
   if (existsSync(playwrightBase)) {
     try {
@@ -402,7 +408,7 @@ export async function probeToolCaches(
   }
 
   // 2. Puppeteer cache
-  const puppeteerBase = getPuppeteerCacheBase(home, env);
+  const puppeteerBase = getPuppeteerCacheBase(home, seam);
 
   if (existsSync(puppeteerBase)) {
     try {

@@ -305,6 +305,124 @@ export function generateMarkdownSummary(result: DiffCoverageResult): string {
   return md;
 }
 
+export interface VerifyDiffCoverageOptions {
+  baseRef?: string;
+  headRef?: string;
+  lcovPath?: string;
+  threshold?: number;
+  outputFile?: string | null;
+  gitCommand?: (args: string[]) => {
+    status: number | null;
+    stdout?: string;
+    stderr?: string;
+  };
+  log?: (msg: string) => void;
+  error?: (msg: string) => void;
+  warn?: (msg: string) => void;
+  readFile?: (path: string, encoding: "utf8") => string;
+  writeFile?: (path: string, content: string, encoding: "utf8") => void;
+  fileExists?: (path: string) => boolean;
+  mkdir?: (path: string, options: { recursive: boolean }) => void;
+}
+
+/**
+ * Runs diff coverage verification against the base ref and coverage report.
+ * Fails closed immediately if the diff cannot be computed against the base ref.
+ */
+export function verifyDiffCoverage(
+  options: VerifyDiffCoverageOptions = {},
+): number {
+  const baseRef = options.baseRef || "origin/main";
+  const headRef = options.headRef || "HEAD";
+  const lcovPath = options.lcovPath || "coverage/lcov.info";
+  const threshold = options.threshold ?? 100;
+  const outputFile = options.outputFile ?? null;
+
+  const log = options.log ?? console.log;
+  const error = options.error ?? console.error;
+  const fileExists = options.fileExists ?? fs.existsSync;
+  const readFile = options.readFile ?? fs.readFileSync;
+  const writeFile = options.writeFile ?? fs.writeFileSync;
+  const mkdir = options.mkdir ?? fs.mkdirSync;
+  const gitCommand =
+    options.gitCommand ??
+    ((args: string[]) =>
+      spawnSync("git", args, {
+        encoding: "utf8",
+      }));
+
+  if (!fileExists(lcovPath)) {
+    error(
+      `Error: LCOV coverage file not found at "${lcovPath}". Run "bun run test:coverage" first.`,
+    );
+    return 1;
+  }
+
+  const lcovContent = readFile(lcovPath, "utf8");
+  const lcovMap = parseLcov(lcovContent);
+
+  let mergeBaseRef = baseRef;
+  const mbCmd = gitCommand(["merge-base", baseRef, headRef]);
+  if (mbCmd.status === 0 && mbCmd.stdout && mbCmd.stdout.trim()) {
+    mergeBaseRef = mbCmd.stdout.trim();
+  }
+
+  let diffArgs = [`${baseRef}...${headRef}`];
+  if (headRef === "HEAD") {
+    const status = gitCommand(["status", "--porcelain"]);
+    if (
+      status.status === 0 &&
+      status.stdout &&
+      status.stdout.trim().length > 0
+    ) {
+      diffArgs = [mergeBaseRef];
+    }
+  }
+
+  const gitDiffCmd = gitCommand(["diff", "-U0", ...diffArgs]);
+
+  let diffText = "";
+  if (gitDiffCmd.status === 0) {
+    diffText = gitDiffCmd.stdout || "";
+    // If diff between baseRef and headRef is empty, check working tree against mergeBaseRef
+    if (!diffText.trim()) {
+      const workingDiff = gitCommand(["diff", "-U0", mergeBaseRef]);
+      if (workingDiff.status === 0 && workingDiff.stdout) {
+        diffText = workingDiff.stdout;
+      }
+    }
+  } else {
+    const cleanBase = baseRef.replace(/^origin\//, "");
+    error(
+      `Error: Could not diff against "${baseRef}...${headRef}". ` +
+        `Ensure the base ref exists locally (e.g. run "git fetch origin ${cleanBase}").\n` +
+        `Git error: ${gitDiffCmd.stderr || gitDiffCmd.stdout || "unknown error"}`,
+    );
+    return 1;
+  }
+
+  const diffMap = parseGitDiff(diffText);
+  const result = calculateDiffCoverage(diffMap, lcovMap, threshold);
+  const summary = generateMarkdownSummary(result);
+
+  log(summary);
+
+  if (outputFile) {
+    mkdir(path.dirname(outputFile), { recursive: true });
+    writeFile(outputFile, summary, "utf8");
+    log(`Coverage summary written to ${outputFile}`);
+  }
+
+  if (!result.passed) {
+    error(
+      `Diff coverage ${result.diffCoveragePercent.toFixed(2)}% is below required ${threshold}%.`,
+    );
+    return 1;
+  }
+
+  return 0;
+}
+
 /**
  * CLI Runner. Returns a numeric exit code (0 for success, non-zero for failure).
  */
@@ -331,88 +449,13 @@ async function runCli(): Promise<number> {
     }
   }
 
-  if (!fs.existsSync(lcovPath)) {
-    console.error(
-      `Error: LCOV coverage file not found at "${lcovPath}". Run "bun run test:coverage" first.`,
-    );
-    return 1;
-  }
-
-  const lcovContent = fs.readFileSync(lcovPath, "utf8");
-  const lcovMap = parseLcov(lcovContent);
-
-  let mergeBaseRef = baseRef;
-  const mbCmd = spawnSync("git", ["merge-base", baseRef, headRef], {
-    encoding: "utf8",
+  return verifyDiffCoverage({
+    baseRef,
+    headRef,
+    lcovPath,
+    threshold,
+    outputFile,
   });
-  if (mbCmd.status === 0 && mbCmd.stdout && mbCmd.stdout.trim()) {
-    mergeBaseRef = mbCmd.stdout.trim();
-  }
-
-  let diffArgs = [`${baseRef}...${headRef}`];
-  if (headRef === "HEAD") {
-    const status = spawnSync("git", ["status", "--porcelain"], {
-      encoding: "utf8",
-    });
-    if (
-      status.status === 0 &&
-      status.stdout &&
-      status.stdout.trim().length > 0
-    ) {
-      diffArgs = [mergeBaseRef];
-    }
-  }
-
-  const gitDiffCmd = spawnSync("git", ["diff", "-U0", ...diffArgs], {
-    encoding: "utf8",
-  });
-
-  let diffText = "";
-  if (gitDiffCmd.status === 0) {
-    diffText = gitDiffCmd.stdout || "";
-    // If diff between baseRef and headRef is empty, check working tree against mergeBaseRef
-    if (!diffText.trim()) {
-      const workingDiff = spawnSync("git", ["diff", "-U0", mergeBaseRef], {
-        encoding: "utf8",
-      });
-      if (workingDiff.status === 0 && workingDiff.stdout) {
-        diffText = workingDiff.stdout;
-      }
-    }
-  } else {
-    console.warn(
-      `Warning: Could not diff against "${baseRef}...${headRef}". Falling back to "git diff -U0 HEAD^...HEAD"`,
-    );
-    const fallback = spawnSync("git", ["diff", "-U0", "HEAD^...HEAD"], {
-      encoding: "utf8",
-    });
-    if (fallback.status !== 0) {
-      console.error(`Error executing git diff: ${fallback.stderr}`);
-      return 1;
-    }
-    diffText = fallback.stdout || "";
-  }
-
-  const diffMap = parseGitDiff(diffText);
-  const result = calculateDiffCoverage(diffMap, lcovMap, threshold);
-  const summary = generateMarkdownSummary(result);
-
-  console.log(summary);
-
-  if (outputFile) {
-    fs.mkdirSync(path.dirname(outputFile), { recursive: true });
-    fs.writeFileSync(outputFile, summary, "utf8");
-    console.log(`Coverage summary written to ${outputFile}`);
-  }
-
-  if (!result.passed) {
-    console.error(
-      `Diff coverage ${result.diffCoveragePercent.toFixed(2)}% is below required ${threshold}%.`,
-    );
-    return 1;
-  }
-
-  return 0;
 }
 
 if (import.meta.main) {

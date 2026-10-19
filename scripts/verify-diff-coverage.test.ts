@@ -5,6 +5,7 @@ import {
   isTypeOnlySource,
   parseGitDiff,
   parseLcov,
+  verifyDiffCoverage,
 } from "./verify-diff-coverage";
 
 describe("verify-diff-coverage", () => {
@@ -292,6 +293,91 @@ diff --git a/file.ts b/file.ts
       expect(md).toContain("Diff Coverage Gate: FAILED");
       expect(md).toContain("80.00%");
       expect(md).toContain("15, 22");
+    });
+  });
+
+  describe("verifyDiffCoverage", () => {
+    it("fails closed when git diff against baseRef fails, without falling back to HEAD^...HEAD", () => {
+      const gitCalls: string[][] = [];
+      const errorLogs: string[] = [];
+
+      const exitCode = verifyDiffCoverage({
+        baseRef: "origin/main",
+        headRef: "HEAD",
+        lcovPath: "coverage/lcov.info",
+        fileExists: () => true,
+        readFile: () =>
+          "TN:\nSF:packages/core/src/index.ts\nDA:1,1\nend_of_record",
+        gitCommand: (args) => {
+          gitCalls.push(args);
+          if (args[0] === "diff" && args.includes("origin/main...HEAD")) {
+            return {
+              status: 128,
+              stdout: "",
+              stderr: "fatal: bad revision 'origin/main...HEAD'",
+            };
+          }
+          return { status: 0, stdout: "", stderr: "" };
+        },
+        error: (msg) => errorLogs.push(msg),
+        log: () => {},
+      });
+
+      expect(exitCode).toBe(1);
+      const madeFallbackCall = gitCalls.some((args) =>
+        args.includes("HEAD^...HEAD"),
+      );
+      expect(madeFallbackCall).toBe(false);
+      expect(
+        errorLogs.some((msg) => msg.includes("git fetch origin main")),
+      ).toBe(true);
+    });
+
+    it("passes when diff coverage meets threshold", () => {
+      const exitCode = verifyDiffCoverage({
+        baseRef: "origin/main",
+        headRef: "HEAD",
+        lcovPath: "coverage/lcov.info",
+        fileExists: () => true,
+        readFile: () =>
+          "TN:\nSF:packages/core/src/index.ts\nDA:1,1\nend_of_record",
+        gitCommand: (args) => {
+          if (args[0] === "merge-base") {
+            return { status: 0, stdout: "abc1234", stderr: "" };
+          }
+          if (args[0] === "status") {
+            return { status: 0, stdout: "", stderr: "" };
+          }
+          if (args[0] === "diff") {
+            return {
+              status: 0,
+              stdout:
+                "diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts\n--- a/packages/core/src/index.ts\n+++ b/packages/core/src/index.ts\n@@ -1 +1 @@\n+export const a = 1;",
+              stderr: "",
+            };
+          }
+          return { status: 0, stdout: "", stderr: "" };
+        },
+        log: () => {},
+        error: () => {},
+      });
+
+      expect(exitCode).toBe(0);
+    });
+
+    it("fails closed when lcov coverage file does not exist", () => {
+      const errorLogs: string[] = [];
+      const exitCode = verifyDiffCoverage({
+        lcovPath: "nonexistent/lcov.info",
+        fileExists: () => false,
+        error: (msg) => errorLogs.push(msg),
+        log: () => {},
+      });
+
+      expect(exitCode).toBe(1);
+      expect(
+        errorLogs.some((msg) => msg.includes("LCOV coverage file not found")),
+      ).toBe(true);
     });
   });
 });

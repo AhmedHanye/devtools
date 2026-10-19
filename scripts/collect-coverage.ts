@@ -82,15 +82,31 @@ export function mergeLcovContents(
   return mergedChunks.join("\n") + "\n";
 }
 
+export interface CollectCoverageOptions {
+  repoRoot?: string;
+  outputDir?: string;
+  spawnCommand?: (
+    cmd: string,
+    args: string[],
+    options: { cwd: string; stdio?: string },
+  ) => { status: number | null };
+}
+
 /**
  * Runs Bun tests with coverage for a directory.
  */
-function runBunCoverage(cwd: string, extraArgs: string[] = []): void {
+function runBunCoverage(
+  cwd: string,
+  extraArgs: string[] = [],
+  spawnFn: (
+    cmd: string,
+    args: string[],
+    options: { cwd: string; stdio?: string },
+  ) => { status: number | null } = (cmd, args, opts) =>
+    spawnSync(cmd, args, { cwd: opts.cwd, stdio: "inherit" }),
+): void {
   const args = ["test", "--coverage", "--coverage-reporter=lcov", ...extraArgs];
-  const res = spawnSync("bun", args, {
-    cwd,
-    stdio: "inherit",
-  });
+  const res = spawnFn("bun", args, { cwd, stdio: "inherit" });
   if (res.status !== 0) {
     throw new Error(`Test suite failed in ${cwd} with exit code ${res.status}`);
   }
@@ -100,14 +116,19 @@ function runBunCoverage(cwd: string, extraArgs: string[] = []): void {
  * Executes test suites with coverage across workspaces and merges the resulting LCOV files.
  */
 export async function collectCoverage(
-  options: {
-    repoRoot?: string;
-    outputDir?: string;
-  } = {},
+  options: CollectCoverageOptions = {},
 ): Promise<{ mergedCount: number; outputPath: string }> {
   const root = options.repoRoot ?? process.cwd();
   const mergedLcovDir = options.outputDir ?? path.join(root, "coverage");
   const mergedLcovPath = path.join(mergedLcovDir, "lcov.info");
+
+  const spawnCommand =
+    options.spawnCommand ??
+    ((cmd, args, opts) =>
+      spawnSync(cmd, args, {
+        cwd: opts.cwd,
+        stdio: (opts.stdio as "inherit" | "pipe") ?? "inherit",
+      }));
 
   fs.mkdirSync(mergedLcovDir, { recursive: true });
 
@@ -124,19 +145,35 @@ export async function collectCoverage(
   for (const pkg of bunWorkspaces) {
     const pkgDir = path.join(root, pkg);
     if (fs.existsSync(pkgDir)) {
+      if (pkg === "site") {
+        console.log(`Running fumadocs-mdx codegen for ${pkg}...`);
+        const preRes = spawnCommand("bunx", ["fumadocs-mdx"], {
+          cwd: pkgDir,
+          stdio: "inherit",
+        });
+        if (preRes.status !== 0) {
+          throw new Error(
+            `fumadocs-mdx failed in ${pkgDir} with exit code ${preRes.status}`,
+          );
+        }
+      }
       console.log(`Running coverage for ${pkg}...`);
-      runBunCoverage(pkgDir, ["--coverage-dir=coverage"]);
+      runBunCoverage(pkgDir, ["--coverage-dir=coverage"], spawnCommand);
     }
   }
 
   // 2. Run root scripts test coverage into coverage/scripts/ to avoid collision with final merged output
   console.log("Running coverage for scripts/...");
-  runBunCoverage(root, ["--coverage-dir=coverage/scripts", "scripts/"]);
+  runBunCoverage(
+    root,
+    ["--coverage-dir=coverage/scripts", "scripts/"],
+    spawnCommand,
+  );
 
   // 3. Run frontend Vitest coverage
   if (fs.existsSync(path.join(root, "apps/frontend"))) {
     console.log("Running coverage for apps/frontend (Vitest)...");
-    const frontendRes = spawnSync(
+    const frontendRes = spawnCommand(
       "bun",
       ["--filter", "@devtools/frontend", "test", "--", "--coverage"],
       {

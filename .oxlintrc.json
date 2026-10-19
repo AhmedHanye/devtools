@@ -59,8 +59,7 @@
     {
       "files": [
         "**/packages/db/src/config.ts",
-        "**/packages/browser/src/browser/detector.ts",
-        "**/packages/browser/src/browser/waterfall.ts"
+        "**/packages/browser/src/config.ts"
       ],
       "plugins": ["node"],
       "rules": {

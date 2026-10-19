@@ -28,7 +28,7 @@ Agents and developers must follow the verification ladder before committing, pus
    ```bash
    bun run verify
    ```
-   Runs `bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth && bun run test:coverage && bun scripts/verify-diff-coverage.ts --base origin/main && bun run audit && bun run build:smoke && bun run lint:workflows`.
+   Runs `bun run verify:fast && bun run lint:design && bun run lint:fsd && bun run fallow:dupes && bun run test:coverage && bun run verify:diff-coverage && bun run audit && bun run build:smoke && bun run lint:workflows`.
    Executed automatically by Lefthook `pre-push`.
    **Mandatory requirement**: Agents must execute `bun run verify` with exit code 0 after completing an implementation plan or before completing `/code-review`.
 

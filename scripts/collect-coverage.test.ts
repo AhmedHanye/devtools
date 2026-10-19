@@ -1,6 +1,10 @@
 import path from "node:path";
 import { describe, expect, it } from "bun:test";
-import { mergeLcovContents, normalizeLcovPaths } from "./collect-coverage";
+import {
+  collectCoverage,
+  mergeLcovContents,
+  normalizeLcovPaths,
+} from "./collect-coverage";
 
 describe("collect-coverage", () => {
   const repoRoot = path.resolve("test-fixtures/mock-repo");
@@ -90,6 +94,50 @@ end_of_record
     it("handles empty array or empty content gracefully", () => {
       const merged = mergeLcovContents([], repoRoot);
       expect(merged).toBe("");
+    });
+  });
+
+  describe("collectCoverage", () => {
+    it("invokes bunx fumadocs-mdx in site directory before running tests for site", async () => {
+      const commands: Array<{ cmd: string; args: string[]; cwd: string }> = [];
+
+      await collectCoverage({
+        repoRoot: process.cwd(),
+        outputDir: path.join(process.cwd(), "coverage"),
+        spawnCommand: (cmd, args, opts) => {
+          commands.push({ cmd, args, cwd: opts.cwd });
+          return { status: 0 };
+        },
+      });
+
+      const mdxCallIndex = commands.findIndex(
+        (c) =>
+          c.cmd === "bunx" &&
+          c.args.includes("fumadocs-mdx") &&
+          c.cwd.endsWith("site"),
+      );
+      const siteTestIndex = commands.findIndex(
+        (c) =>
+          c.cmd === "bun" && c.args.includes("test") && c.cwd.endsWith("site"),
+      );
+
+      expect(mdxCallIndex).toBeGreaterThanOrEqual(0);
+      expect(siteTestIndex).toBeGreaterThan(mdxCallIndex);
+    });
+
+    it("throws an error if fumadocs-mdx fails in site", async () => {
+      await expect(
+        collectCoverage({
+          repoRoot: process.cwd(),
+          outputDir: path.join(process.cwd(), "coverage"),
+          spawnCommand: (cmd, args, _opts) => {
+            if (cmd === "bunx" && args.includes("fumadocs-mdx")) {
+              return { status: 1 };
+            }
+            return { status: 0 };
+          },
+        }),
+      ).rejects.toThrow("fumadocs-mdx failed in");
     });
   });
 });

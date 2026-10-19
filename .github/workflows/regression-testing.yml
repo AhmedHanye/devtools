@@ -106,10 +106,10 @@ jobs:
         run: bun run lint
 
       - name: Run Steiger FSD architecture linting
-        run: bun --filter @devtools/frontend lint:fsd
+        run: bun run lint:fsd
 
       - name: Run frontend design tokens linting
-        run: bun --filter @devtools/frontend lint:design
+        run: bun run lint:design
 
   architecture-and-health:
     name: Architecture & Health
@@ -142,19 +142,15 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Verify architecture boundaries and dead code (Fallow)
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            bunx fallow dead-code --type-aware
-            bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth
-          else
-            bunx fallow dead-code --type-aware
-          fi
+        run: bun run fallow:dead-code
+
+      - name: Verify duplication baseline (Fallow)
+        if: github.event_name == 'pull_request'
+        run: bun run fallow:dupes
 
       - name: Scan React regressions (React Doctor)
         if: github.event_name == 'pull_request'
-        run: bunx react-doctor --project apps/frontend,site --scope changed --base origin/main --no-telemetry --no-supply-chain
+        run: bun run react-doctor
 
   typecheck:
     name: Typecheck
@@ -304,4 +300,4 @@ jobs:
         run: bun run build:smoke
 
       - name: Cross-compile standalone CLI for darwin-arm64
-        run: bun build apps/cli/bin/devtools.js --compile --target=bun-darwin-arm64 --outfile dist/devtools-darwin-arm64
+        run: bun run build:darwin-arm64

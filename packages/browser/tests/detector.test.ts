@@ -282,4 +282,62 @@ describe("Browser Detector & Executable Verification", () => {
     );
     expect(candidates).toBeArray();
   });
+
+  test("probeAlternativeBrowsers accepts ProbeAlternativeBrowsersOptions seam", async () => {
+    const candidatesLinux = await probeAlternativeBrowsers({
+      seam: {
+        platform: () => "linux",
+        env: {},
+      },
+    });
+    expect(candidatesLinux).toBeArray();
+
+    const candidatesDarwin = await probeAlternativeBrowsers({
+      platform: "darwin",
+      env: {},
+    });
+    expect(candidatesDarwin).toBeArray();
+
+    const candidatesWin32 = await probeAlternativeBrowsers({
+      platform: "win32",
+      env: {
+        PROGRAMFILES: "C:\\Program Files",
+      },
+    });
+    expect(candidatesWin32).toBeArray();
+
+    const candidatesOverride = await probeAlternativeBrowsers(
+      undefined,
+      "darwin",
+    );
+    expect(candidatesOverride).toBeArray();
+  });
+
+  test("probeToolCaches evaluates win32 and darwin platform cache directories with seams", async () => {
+    const mockHome = join(testDir, "win32-home");
+    const localAppData = join(mockHome, "CustomAppData", "Local");
+    const win32Candidates = await probeToolCaches(mockHome, {
+      seam: {
+        platform: () => "win32",
+        env: { LOCALAPPDATA: localAppData },
+      },
+    });
+    expect(win32Candidates).toBeArray();
+
+    const win32FallbackCandidates = await probeToolCaches(mockHome, {
+      seam: {
+        platform: () => "win32",
+        env: {},
+      },
+    });
+    expect(win32FallbackCandidates).toBeArray();
+
+    const darwinCandidates = await probeToolCaches(mockHome, {
+      seam: {
+        platform: () => "darwin",
+        env: {},
+      },
+    });
+    expect(darwinCandidates).toBeArray();
+  });
 });
