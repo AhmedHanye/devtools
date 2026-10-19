@@ -15,11 +15,11 @@
   ],
   "scripts": {
     "prepare": "lefthook install",
-    "lint": "oxlint .",
+    "lint": "oxlint --deny-warnings .",
     "lint:fix": "oxlint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "oxlint . && prettier --check .",
+    "check": "oxlint --deny-warnings . && prettier --check .",
     "typecheck": "bun --filter '*' typecheck",
     "test": "bun --filter '*' test && bun test scripts/",
     "test:coverage": "bun scripts/collect-coverage.ts",
@@ -28,8 +28,8 @@
     "audit": "bun audit --audit-level=high --ignore GHSA-vfj7-8cjw-p6xm",
     "pin:actions": ".agents/skills/github-actions/scripts/pin-action.sh",
     "lint:workflows": ".agents/skills/github-actions/scripts/lint.sh",
-    "verify:fast": "bun run check && bun run typecheck && bunx fallow dead-code",
-    "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bun run test:coverage && bun scripts/verify-diff-coverage.ts --base origin/main && bun run audit && bun run build:smoke && bun run lint:workflows"
+    "verify:fast": "bun run check && bun run typecheck && bunx fallow dead-code --type-aware",
+    "verify": "bun run verify:fast && bun --filter '*' lint:design && bun --filter '*' lint:fsd && bunx fallow dupes --mode semantic --baseline .fallow/dupes-baseline.json --fail-on-baseline-growth && bun run test:coverage && bun scripts/verify-diff-coverage.ts --base origin/main && bun run audit && bun run build:smoke && bun run lint:workflows"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

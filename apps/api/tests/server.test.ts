@@ -75,12 +75,14 @@ describe("Standalone Server Lifecycle", () => {
       let ready = false;
       for (let i = 0; i < 20; i++) {
         try {
+          // eslint-disable-next-line eslint/no-await-in-loop -- sequential server polling retry
           const res = await fetch(`http://127.0.0.1:${freePort}/api/health`);
           if (res.status === 200) {
             ready = true;
             break;
           }
         } catch {
+          // eslint-disable-next-line eslint/no-await-in-loop -- sequential server polling delay
           await Bun.sleep(50);
         }
       }

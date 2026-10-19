@@ -26,7 +26,7 @@
       "plugins": ["react", "react-perf", "jsx-a11y", "nextjs"],
       "rules": {
         "react/react-in-jsx-scope": "off",
-        "react/no-unstable-nested-components": "off",
+        "react/no-unstable-nested-components": "deny",
         "react/exhaustive-deps": "deny",
         "react/jsx-key": "deny",
         "react/jsx-no-duplicate-props": "deny",
@@ -64,7 +64,8 @@
       ],
       "plugins": ["node"],
       "rules": {
-        "node/no-process-env": "off"
+        "node/no-process-env": "off",
+        "no-await-in-loop": "off"
       }
     },
     {
