@@ -1,3 +1,4 @@
+/* oxlint-disable node/no-process-env */
 import {
   accessSync,
   constants,
@@ -7,7 +8,7 @@ import {
 } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir, platform } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve as pathResolve } from "node:path";
 import { getInstalledBrowsers } from "@puppeteer/browsers";
 import * as chromeLauncher from "chrome-launcher";
 
@@ -93,6 +94,7 @@ export async function verifyBrowserExecutable(
             .then(([code, text]) => {
               if (timer) clearTimeout(timer);
               resolve({ code, stdout: text });
+              return undefined;
             })
             .catch((err) => {
               if (timer) clearTimeout(timer);
@@ -108,7 +110,7 @@ export async function verifyBrowserExecutable(
     const { code, stdout } = await exitedPromise;
 
     if (code === 0 && stdout.trim().length > 0) {
-      const firstLine = stdout.trim().split("\n")[0].trim();
+      const firstLine = stdout.trim().split("\n")[0]?.trim() ?? "";
       return { valid: true, version: firstLine };
     }
 
@@ -266,7 +268,7 @@ function getPlaywrightCacheBase(
         return join(cwd, "node_modules", "playwright-core", ".local-browsers");
       }
     }
-    return resolve(cwd, browsersPath);
+    return pathResolve(cwd, browsersPath);
   }
 
   if (osType === "darwin") {

@@ -11,7 +11,7 @@ export interface ResolvedPageDetails {
 
 function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-  if (!match) {
+  if (!match || !match[1] || match[2] === undefined) {
     return {
       title: "DevTools Documentation",
       description: undefined,
@@ -26,12 +26,12 @@ function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
   let description: string | undefined;
 
   const titleMatch = frontmatterStr.match(/^title:\s*(.+)$/m);
-  if (titleMatch) {
+  if (titleMatch?.[1]) {
     title = titleMatch[1].trim().replace(/^['"]|['"]$/g, "");
   }
 
   const descMatch = frontmatterStr.match(/^description:\s*(.+)$/m);
-  if (descMatch) {
+  if (descMatch?.[1]) {
     description = descMatch[1].trim().replace(/^['"]|['"]$/g, "");
   }
 
