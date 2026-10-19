@@ -26,6 +26,10 @@ _Avoid_: Native binary, compiled bundle, distribution build
 The cryptographic verification file (`SHA256SUMS.txt`) documenting SHA256 hashes of compiled standalone executables attached to a GitHub release.
 _Avoid_: Hash list, verification file, signature manifest
 
+**Configuration Seam**:
+A dedicated package module that isolates ambient environment variable reads and accepts an optional injection parameter for hermetic test execution.
+_Avoid_: Config adapter, env wrapper, config provider, environment bridge
+
 ### Verification and review workflows
 
 **Local Verification Gate**:

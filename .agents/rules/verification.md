@@ -55,6 +55,5 @@ During iterative development, run verification commands matching modified files 
 To prevent regressions and recurring review findings:
 
 - **No `process.exit()` in business logic**: Command handlers and library functions must return numeric exit codes (`Promise<number>`) or throw typed errors. Use Commander's `.exitOverride()` so CLI parsing errors are testable without killing the test runner.
-- **Dependency injection over ambient globals**: Shared packages (`packages/**`) must not access ambient `process.env` directly; pass options or environment maps via explicit parameters.
 - **Isolate host environment in unit tests**: Do not probe host binaries or ambient filesystem state without mock seams.
 - **Platform seams**: Code branching on `platform()` or OS-specific paths must accept a seam (e.g., `seam?: { platform?: () => string }`) to allow deterministic verification on any runner.
