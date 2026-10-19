@@ -1,0 +1,223 @@
+import { describe, expect, it } from "bun:test";
+import {
+  calculateDiffCoverage,
+  generateMarkdownSummary,
+  parseGitDiff,
+  parseLcov,
+} from "./verify-diff-coverage";
+
+describe("verify-diff-coverage", () => {
+  describe("parseLcov", () => {
+    it("parses LCOV content into file -> line -> hitCount map", () => {
+      const sampleLcov = `
+TN:
+SF:packages/core/src/index.ts
+DA:1,2
+DA:2,0
+DA:5,10
+end_of_record
+SF:apps/cli/src/daemon.ts
+DA:10,1
+DA:11,0
+end_of_record
+`.trim();
+
+      const lcovMap = parseLcov(sampleLcov);
+      expect(lcovMap.has("packages/core/src/index.ts")).toBe(true);
+      expect(lcovMap.has("apps/cli/src/daemon.ts")).toBe(true);
+
+      const coreLines = lcovMap.get("packages/core/src/index.ts")!;
+      expect(coreLines.get(1)).toBe(2);
+      expect(coreLines.get(2)).toBe(0);
+      expect(coreLines.get(5)).toBe(10);
+      expect(coreLines.has(3)).toBe(false);
+
+      const cliLines = lcovMap.get("apps/cli/src/daemon.ts")!;
+      expect(cliLines.get(10)).toBe(1);
+      expect(cliLines.get(11)).toBe(0);
+    });
+
+    it("handles empty or whitespace-only LCOV gracefully", () => {
+      const lcovMap = parseLcov("");
+      expect(lcovMap.size).toBe(0);
+    });
+  });
+
+  describe("parseGitDiff", () => {
+    it("parses git diff hunk headers to extract added and modified line numbers", () => {
+      const sampleDiff = `
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index abc..def 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -10,2 +10,3 @@
+ context line
++added line 11
++added line 12
+@@ -25,0 +28,2 @@
++added line 28
++added line 29
+diff --git a/apps/frontend/src/app.tsx b/apps/frontend/src/app.tsx
+--- a/apps/frontend/src/app.tsx
++++ b/apps/frontend/src/app.tsx
+@@ -5 +5 @@
+-old line
++replaced line 5
+`.trim();
+
+      const diffMap = parseGitDiff(sampleDiff);
+      expect(diffMap.has("packages/core/src/index.ts")).toBe(true);
+      expect(diffMap.has("apps/frontend/src/app.tsx")).toBe(true);
+
+      const coreLines = diffMap.get("packages/core/src/index.ts")!;
+      expect(coreLines).toContain(11);
+      expect(coreLines).toContain(12);
+      expect(coreLines).toContain(28);
+      expect(coreLines).toContain(29);
+      expect(coreLines).not.toContain(10);
+
+      const frontendLines = diffMap.get("apps/frontend/src/app.tsx")!;
+      expect(frontendLines).toEqual([5]);
+    });
+
+    it("ignores deleted files (dev/null target)", () => {
+      const sampleDiff = `
+diff --git a/deleted.ts b/dev/null
+deleted file mode 100644
+--- a/deleted.ts
++++ /dev/null
+@@ -1,5 +0,0 @@
+-line1
+-line2
+`.trim();
+
+      const diffMap = parseGitDiff(sampleDiff);
+      expect(diffMap.size).toBe(0);
+    });
+  });
+
+  describe("calculateDiffCoverage", () => {
+    it("returns 100% diff coverage when all modified executable lines have test hits", () => {
+      const diffMap = new Map<string, number[]>([
+        ["packages/core/src/index.ts", [1, 2, 3]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>([
+        [
+          "packages/core/src/index.ts",
+          new Map([
+            [1, 5],
+            [2, 1],
+            // line 3 is non-executable (e.g. comment/type), not present in LCOV
+          ]),
+        ],
+      ]);
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100);
+      expect(result.passed).toBe(true);
+      expect(result.totalModifiedExecutableLines).toBe(2);
+      expect(result.coveredModifiedLines).toBe(2);
+      expect(result.diffCoveragePercent).toBe(100);
+      expect(result.fileResults).toHaveLength(1);
+      expect(result.fileResults[0]!.uncoveredLines).toEqual([]);
+    });
+
+    it("fails when an executable modified line has 0 test hits", () => {
+      const diffMap = new Map<string, number[]>([
+        ["packages/core/src/index.ts", [10, 11]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>([
+        [
+          "packages/core/src/index.ts",
+          new Map([
+            [10, 3],
+            [11, 0], // executable but not covered
+          ]),
+        ],
+      ]);
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100);
+      expect(result.passed).toBe(false);
+      expect(result.totalModifiedExecutableLines).toBe(2);
+      expect(result.coveredModifiedLines).toBe(1);
+      expect(result.diffCoveragePercent).toBe(50);
+      expect(result.fileResults[0]!.uncoveredLines).toEqual([11]);
+    });
+
+    it("fails when an entire new source file has zero test coverage", () => {
+      const diffMap = new Map<string, number[]>([
+        ["packages/core/src/new-feature.ts", [1, 2, 3]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>();
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100);
+      expect(result.passed).toBe(false);
+      expect(result.totalModifiedExecutableLines).toBe(3);
+      expect(result.coveredModifiedLines).toBe(0);
+      expect(result.diffCoveragePercent).toBe(0);
+      expect(result.fileResults[0]!.uncoveredLines).toEqual([1, 2, 3]);
+    });
+
+    it("passes with 100% coverage if diff contains zero executable lines (e.g. markdown, types)", () => {
+      const diffMap = new Map<string, number[]>([
+        ["docs/readme.md", [1, 2, 3]],
+      ]);
+      const lcovMap = new Map<string, Map<number, number>>();
+
+      const result = calculateDiffCoverage(diffMap, lcovMap, 100);
+      expect(result.passed).toBe(true);
+      expect(result.totalModifiedExecutableLines).toBe(0);
+      expect(result.coveredModifiedLines).toBe(0);
+      expect(result.diffCoveragePercent).toBe(100);
+    });
+  });
+
+  describe("generateMarkdownSummary", () => {
+    it("generates markdown summary for passing coverage", () => {
+      const result = {
+        totalModifiedExecutableLines: 10,
+        coveredModifiedLines: 10,
+        diffCoveragePercent: 100,
+        passed: true,
+        threshold: 100,
+        fileResults: [
+          {
+            file: "packages/core/src/index.ts",
+            modifiedExecutable: 10,
+            covered: 10,
+            percent: 100,
+            uncoveredLines: [],
+          },
+        ],
+      };
+
+      const md = generateMarkdownSummary(result);
+      expect(md).toContain("Diff Coverage Gate: PASSED");
+      expect(md).toContain("100.00%");
+      expect(md).toContain("packages/core/src/index.ts");
+    });
+
+    it("generates markdown summary highlighting uncovered lines for failing coverage", () => {
+      const result = {
+        totalModifiedExecutableLines: 10,
+        coveredModifiedLines: 8,
+        diffCoveragePercent: 80,
+        passed: false,
+        threshold: 100,
+        fileResults: [
+          {
+            file: "packages/core/src/index.ts",
+            modifiedExecutable: 10,
+            covered: 8,
+            percent: 80,
+            uncoveredLines: [15, 22],
+          },
+        ],
+      };
+
+      const md = generateMarkdownSummary(result);
+      expect(md).toContain("Diff Coverage Gate: FAILED");
+      expect(md).toContain("80.00%");
+      expect(md).toContain("15, 22");
+    });
+  });
+});
