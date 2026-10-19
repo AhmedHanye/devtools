@@ -289,13 +289,23 @@ async function runCli(): Promise<number> {
   const lcovContent = fs.readFileSync(lcovPath, "utf8");
   const lcovMap = parseLcov(lcovContent);
 
-  const gitDiffCmd = spawnSync(
-    "git",
-    ["diff", "-U0", `${baseRef}...${headRef}`],
-    {
+  let diffArgs = [`${baseRef}...${headRef}`];
+  if (headRef === "HEAD") {
+    const status = spawnSync("git", ["status", "--porcelain"], {
       encoding: "utf8",
-    },
-  );
+    });
+    if (
+      status.status === 0 &&
+      status.stdout &&
+      status.stdout.trim().length > 0
+    ) {
+      diffArgs = [baseRef];
+    }
+  }
+
+  const gitDiffCmd = spawnSync("git", ["diff", "-U0", ...diffArgs], {
+    encoding: "utf8",
+  });
 
   let diffText = "";
   if (gitDiffCmd.status === 0) {

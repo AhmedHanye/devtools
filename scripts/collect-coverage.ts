@@ -174,10 +174,24 @@ export async function collectCoverage(
           // The base directory for relative paths in this lcov file is typically the workspace root
           // i.e. two levels up from <workspace>/coverage/lcov.info (or root for scripts)
           const parentDir = path.dirname(fullPath);
-          const workspaceDir = parentDir.endsWith("coverage/scripts")
-            ? root
-            : path.dirname(parentDir);
-          lcovEntries.push({ content, baseDir: workspaceDir });
+          const isScripts = parentDir.endsWith("coverage/scripts");
+          const workspaceDir = isScripts ? root : path.dirname(parentDir);
+          let filteredContent = content;
+          if (isScripts) {
+            const records = content.split("end_of_record\n");
+            filteredContent = records
+              .filter((rec) => {
+                const sfMatch = rec.match(/SF:(.+)/);
+                if (!sfMatch) return false;
+                const p = sfMatch[1]!.trim();
+                return p.startsWith("scripts/") || p.startsWith("./scripts/");
+              })
+              .join("end_of_record\n");
+            if (filteredContent && !filteredContent.endsWith("\n")) {
+              filteredContent += "\n";
+            }
+          }
+          lcovEntries.push({ content: filteredContent, baseDir: workspaceDir });
         }
       }
     }

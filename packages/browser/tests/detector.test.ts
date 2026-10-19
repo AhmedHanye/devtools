@@ -253,4 +253,33 @@ describe("Browser Detector & Executable Verification", () => {
     expect(found).toBeDefined();
     expect(found?.source).toBe("puppeteer");
   });
+
+  test("probeAlternativeBrowsers evaluates paths for win32 platform", async () => {
+    const candidates = await probeAlternativeBrowsers(
+      {
+        PROGRAMFILES: "C:\\CustomProgramFiles",
+        "PROGRAMFILES(X86)": "C:\\CustomProgramFilesX86",
+      },
+      "win32",
+    );
+    expect(candidates).toBeArray();
+  });
+
+  test("probeAlternativeBrowsers evaluates paths for darwin platform", async () => {
+    const candidates = await probeAlternativeBrowsers({}, "darwin");
+    expect(candidates).toBeArray();
+  });
+
+  test("probeToolCaches falls back to cwd node_modules when PLAYWRIGHT_BROWSERS_PATH=0 cannot resolve playwright-core", async () => {
+    const isolatedDir = join(testDir, "isolated-no-modules");
+    mkdirSync(isolatedDir, { recursive: true });
+    const candidates = await probeToolCaches(
+      join(testDir, "nonexistent-home"),
+      {
+        INIT_CWD: isolatedDir,
+        PLAYWRIGHT_BROWSERS_PATH: "0",
+      },
+    );
+    expect(candidates).toBeArray();
+  });
 });

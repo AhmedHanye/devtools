@@ -182,8 +182,9 @@ export async function probeSystemInstallations(): Promise<string[]> {
 
 export async function probeAlternativeBrowsers(
   env?: Record<string, string | undefined>,
+  platformOverride?: NodeJS.Platform,
 ): Promise<Array<CandidateBrowser<"edge" | "brave">>> {
-  const osType = platform();
+  const osType = platformOverride ?? platform();
   const currentEnv = env ?? process.env;
   const rawCandidates: Array<{ path: string; source: "edge" | "brave" }> = [];
 
