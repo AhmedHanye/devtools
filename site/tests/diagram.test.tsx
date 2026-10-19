@@ -15,7 +15,7 @@ describe("diagram rendering component seam", () => {
     expect(fallbackConfig.theme).toBe("neutral");
   });
 
-  it("renders accessible diagram container with role, aria-label, and describedby association", () => {
+  it("renders accessible diagram container with semantic figure, aria-label, and describedby association", () => {
     const sampleChart = `
 flowchart TD
   CLI["CLI Process"] --> Daemon["Background Daemon"]
@@ -29,7 +29,7 @@ flowchart TD
       }),
     );
 
-    expect(html).toContain('role="figure"');
+    expect(html.startsWith("<figure")).toBe(true);
     expect(html).toContain('aria-label="Architecture Flow"');
 
     const match = html.match(/aria-describedby="([^"]+)"/);
@@ -50,7 +50,7 @@ sequenceDiagram
       }),
     );
 
-    expect(html).toContain('role="figure"');
+    expect(html.startsWith("<figure")).toBe(true);
     expect(html).toContain('aria-label="Diagram visualization"');
   });
 });

@@ -1,3 +1,4 @@
+/* oxlint-disable node/no-process-env */
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";

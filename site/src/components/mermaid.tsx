@@ -80,7 +80,6 @@ export function Mermaid({
 
   return (
     <figure
-      role="figure"
       aria-label={title || "Diagram visualization"}
       aria-describedby={description ? descId : undefined}
       className={`my-6 w-full overflow-x-auto rounded-lg border border-fd-border bg-fd-card/50 p-4 transition-colors ${className}`}
