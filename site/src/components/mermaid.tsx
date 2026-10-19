@@ -10,6 +10,7 @@ export interface MermaidProps {
   title?: string;
   description?: string;
   className?: string;
+  /** Pre-rendered SVG markup for SSR or testing seam */
   initialSvg?: string;
 }
 

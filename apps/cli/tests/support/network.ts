@@ -28,13 +28,11 @@ export async function waitForServer(
 ): Promise<boolean> {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      // eslint-disable-next-line eslint/no-await-in-loop -- sequential polling retry
       const res = await fetch(`http://${host}:${port}/api/health`);
       if (res.status === 200) {
         return true;
       }
     } catch {
-      // eslint-disable-next-line eslint/no-await-in-loop -- sequential polling backoff delay
       await Bun.sleep(intervalMs);
     }
   }

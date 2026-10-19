@@ -64,7 +64,15 @@
       ],
       "plugins": ["node"],
       "rules": {
-        "node/no-process-env": "off",
+        "node/no-process-env": "off"
+      }
+    },
+    {
+      "files": [
+        "**/packages/browser/src/browser/detector.ts",
+        "**/packages/browser/src/browser/waterfall.ts"
+      ],
+      "rules": {
         "no-await-in-loop": "off"
       }
     },
@@ -90,7 +98,8 @@
         "vitest/expect-expect": "warn",
         "vitest/no-identical-title": "deny",
         "typescript/no-floating-promises": "off",
-        "unicorn/consistent-function-scoping": "off"
+        "unicorn/consistent-function-scoping": "off",
+        "no-await-in-loop": "off"
       }
     }
   ],

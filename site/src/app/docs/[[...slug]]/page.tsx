@@ -39,19 +39,20 @@ const MDX_COMPONENTS = {
   Mermaid,
 };
 
-const SECTION_STYLES = new Map<string, React.CSSProperties>();
-
-function getSectionStyle(section?: string): React.CSSProperties | undefined {
-  if (!section) return undefined;
-  let style = SECTION_STYLES.get(section);
-  if (!style) {
-    style = {
-      "--color-fd-primary": `var(--${section}-color)`,
-    } as React.CSSProperties;
-    SECTION_STYLES.set(section, style);
-  }
-  return style;
-}
+const SECTION_STYLES: Record<string, React.CSSProperties> = {
+  explanation: {
+    "--color-fd-primary": "var(--explanation-color)",
+  } as React.CSSProperties,
+  "how-to": {
+    "--color-fd-primary": "var(--how-to-color)",
+  } as React.CSSProperties,
+  reference: {
+    "--color-fd-primary": "var(--reference-color)",
+  } as React.CSSProperties,
+  tutorials: {
+    "--color-fd-primary": "var(--tutorials-color)",
+  } as React.CSSProperties,
+};
 
 interface PageProps {
   params: Promise<{
@@ -78,7 +79,7 @@ export default async function Page({ params }: PageProps) {
       ? "tutorials"
       : slug?.[0];
 
-  const pageStyle = getSectionStyle(section);
+  const pageStyle = section ? SECTION_STYLES[section] : undefined;
 
   return (
     <DocsPage
