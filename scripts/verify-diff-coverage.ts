@@ -137,13 +137,15 @@ export function parseGitDiff(diffText: string): Map<string, number[]> {
 
   let currentFile: string | null = null;
   let currentLineInNew = 0;
+  let inHunk = false;
 
   for (const rawLine of diffText.split("\n")) {
     const line = rawLine.replace(/\r$/, "");
 
     if (line.startsWith("diff --git ")) {
       currentFile = null;
-    } else if (line.startsWith("+++ ")) {
+      inHunk = false;
+    } else if (line.startsWith("+++ ") && !inHunk) {
       const target = line.slice(4).trim();
       if (target === "/dev/null" || target === "b/dev/null") {
         currentFile = null;
@@ -156,22 +158,23 @@ export function parseGitDiff(diffText: string): Map<string, number[]> {
       }
     } else if (line.startsWith("@@ ")) {
       // e.g. @@ -10,3 +10,4 @@ or @@ -1 +1 @@
+      inHunk = true;
       const match = line.match(
         /^@@\s+-[0-9]+(?:,[0-9]+)?\s+\+([0-9]+)(?:,([0-9]+))?\s+@@/,
       );
       if (match && match[1]) {
         currentLineInNew = Number.parseInt(match[1], 10);
       }
-    } else if (currentFile) {
+    } else if (currentFile && inHunk) {
       if (line.startsWith("\\")) {
         // e.g. "\ No newline at end of file"; metadata line, does not represent source lines
         continue;
       }
-      if (line.startsWith("+") && !line.startsWith("+++")) {
+      if (line.startsWith("+")) {
         const list = result.get(currentFile)!;
         list.push(currentLineInNew);
         currentLineInNew++;
-      } else if (line.startsWith("-") && !line.startsWith("---")) {
+      } else if (line.startsWith("-")) {
         // Line removed from old version; does not advance new file line counter
       } else {
         // Context line

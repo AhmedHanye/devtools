@@ -9,9 +9,18 @@ export interface ResolvedPageDetails {
   content: string;
 }
 
-function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
+export function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
+  const emptyMatch = raw.match(/^---\r?\n---\r?\n([\s\S]*)$/);
+  if (emptyMatch && emptyMatch[1] !== undefined) {
+    return {
+      title: "DevTools Documentation",
+      description: undefined,
+      content: emptyMatch[1].trim(),
+    };
+  }
+
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-  if (!match || !match[1] || match[2] === undefined) {
+  if (!match || match[2] === undefined) {
     return {
       title: "DevTools Documentation",
       description: undefined,
@@ -19,7 +28,7 @@ function parseMarkdownMetadata(raw: string): ResolvedPageDetails {
     };
   }
 
-  const frontmatterStr = match[1];
+  const frontmatterStr = match[1] ?? "";
   const bodyContent = match[2].trim();
 
   let title: string | undefined;

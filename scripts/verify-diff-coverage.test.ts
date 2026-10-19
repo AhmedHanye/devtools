@@ -114,6 +114,23 @@ diff --git a/file.ts b/file.ts
       // Line 2 was added at 2; the metadata line should not advance line counter to 4 for line 3
       expect(lines).toEqual([2, 3]);
     });
+
+    it("correctly includes added lines starting with ++ and handles -- inside hunks", () => {
+      const sampleDiff = `
+diff --git a/counter.ts b/counter.ts
+--- a/counter.ts
++++ b/counter.ts
+@@ -1,3 +1,4 @@
+ context 1
+----removed;
++++counter;
++regularAdded;
+`.trim();
+
+      const diffMap = parseGitDiff(sampleDiff);
+      const lines = diffMap.get("counter.ts")!;
+      expect(lines).toEqual([2, 3]);
+    });
   });
 
   describe("isTypeOnlySource", () => {

@@ -11,6 +11,7 @@ export interface BrowserSeamOptions {
   seam?: BrowserConfigSeam;
   env?: Record<string, string | undefined>;
   platform?: NodeJS.Platform | string | (() => NodeJS.Platform | string);
+  cwd?: () => string;
 }
 
 /**
@@ -35,10 +36,15 @@ export function resolveSeam(
   ) {
     return input.seam as BrowserConfigSeam;
   }
-  if ("platform" in input && typeof input.platform === "function") {
+  if (
+    "platform" in input &&
+    typeof input.platform === "function" &&
+    !("env" in input) &&
+    !("cwd" in input)
+  ) {
     return input as BrowserConfigSeam;
   }
-  const hasSeamProps = "env" in input || "platform" in input;
+  const hasSeamProps = "env" in input || "platform" in input || "cwd" in input;
   const env = hasSeamProps
     ? typeof input.env === "object" && input.env !== null
       ? (input.env as Record<string, string | undefined>)
@@ -55,9 +61,14 @@ export function resolveSeam(
       : rawPlat
         ? () => rawPlat as NodeJS.Platform | string
         : undefined;
+  const cwd =
+    "cwd" in input && typeof input.cwd === "function"
+      ? (input.cwd as () => string)
+      : undefined;
   return {
     env,
     platform: plat,
+    ...(cwd ? { cwd } : {}),
   };
 }
 

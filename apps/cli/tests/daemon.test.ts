@@ -32,16 +32,26 @@ describe("Unified Loopback Daemon Lifecycle and Routing", () => {
 
   test("throws and attaches cause when database migrations fail", () => {
     resetDb();
+    const migrationError = new Error("Disk full or corrupted SQLite database");
     const migrationSpy = spyOn(dbModule, "runMigrations").mockImplementation(
       () => {
-        throw new Error("Disk full or corrupted SQLite database");
+        throw migrationError;
       },
     );
 
     try {
-      expect(() => startDaemon({ port: 0, host: "127.0.0.1" })).toThrow(
+      let caughtError: unknown;
+      try {
+        startDaemon({ port: 0, host: "127.0.0.1" });
+      } catch (err) {
+        caughtError = err;
+      }
+
+      expect(caughtError).toBeInstanceOf(Error);
+      expect((caughtError as Error).message).toBe(
         "Fatal: failed to initialize persistence database: Disk full or corrupted SQLite database",
       );
+      expect((caughtError as Error).cause).toBe(migrationError);
     } finally {
       migrationSpy.mockRestore();
     }

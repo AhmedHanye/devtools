@@ -200,5 +200,18 @@ describe("packages/browser/src/config", () => {
         resolveSeam("invalid-string" as unknown as undefined),
       ).toBeUndefined();
     });
+
+    it("preserves cwd function for cwd-only seams and mixed env seams", () => {
+      const cwdFn = () => "/custom/project/dir";
+      const seamWithCwd = resolveSeam({ cwd: cwdFn });
+      expect(seamWithCwd?.cwd?.()).toBe("/custom/project/dir");
+
+      const seamWithEnvAndCwd = resolveSeam({
+        env: { FOO: "bar" },
+        cwd: cwdFn,
+      });
+      expect(seamWithEnvAndCwd?.env).toEqual({ FOO: "bar" });
+      expect(seamWithEnvAndCwd?.cwd?.()).toBe("/custom/project/dir");
+    });
   });
 });

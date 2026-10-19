@@ -85,6 +85,7 @@ export function mergeLcovContents(
 export interface CollectCoverageOptions {
   repoRoot?: string;
   outputDir?: string;
+  cleanPriorReports?: boolean;
   spawnCommand?: (
     cmd: string,
     args: string[],
@@ -140,6 +141,25 @@ export async function collectCoverage(
     "apps/api",
     "site",
   ];
+
+  // Remove prior coverage artifacts before collection to prevent stale report merging when requested
+  if (options.cleanPriorReports) {
+    for (const pkg of bunWorkspaces) {
+      fs.rmSync(path.join(root, pkg, "coverage"), {
+        recursive: true,
+        force: true,
+      });
+    }
+    fs.rmSync(path.join(root, "coverage/scripts"), {
+      recursive: true,
+      force: true,
+    });
+    fs.rmSync(path.join(root, "apps/frontend/coverage"), {
+      recursive: true,
+      force: true,
+    });
+    fs.rmSync(mergedLcovPath, { force: true });
+  }
 
   // 1. Run Bun tests with LCOV coverage on native packages and site
   for (const pkg of bunWorkspaces) {
@@ -273,7 +293,7 @@ export async function collectCoverage(
 }
 
 if (import.meta.main) {
-  collectCoverage().catch((err) => {
+  collectCoverage({ cleanPriorReports: true }).catch((err) => {
     console.error(err);
     process.exit(1);
   });

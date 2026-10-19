@@ -155,7 +155,7 @@ export async function resolveBrowserPath(
   }
 
   // 4. Test tool caches (Playwright, Puppeteer)
-  const toolCandidates = await probeToolCaches(undefined, seam);
+  const toolCandidates = await probeToolCaches(undefined, options?.env);
   const toolHit = await findFirstRunnableCandidate(
     toolCandidates,
     verify,
