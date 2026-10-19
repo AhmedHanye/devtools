@@ -214,13 +214,27 @@ export async function collectCoverage(
           const isScripts = parentDir.endsWith("coverage/scripts");
           const workspaceDir = isScripts ? root : path.dirname(parentDir);
           let filteredContent = content;
+          const records = content.split("end_of_record\n");
           if (isScripts) {
-            const records = content.split("end_of_record\n");
             const matchingRecords = records.filter((rec) => {
               const sfMatch = rec.match(/SF:(.+)/);
               if (!sfMatch) return false;
               const p = sfMatch[1]!.trim();
               return p.startsWith("scripts/") || p.startsWith("./scripts/");
+            });
+            filteredContent =
+              matchingRecords.length > 0
+                ? matchingRecords
+                    .map((r) => r.trimEnd())
+                    .join("\nend_of_record\n") + "\nend_of_record\n"
+                : "";
+          } else {
+            // Workspace-scoped filter: avoid cross-workspace relative pollution (e.g. ../../packages/browser leaking into apps/cli coverage)
+            const matchingRecords = records.filter((rec) => {
+              const sfMatch = rec.match(/SF:(.+)/);
+              if (!sfMatch) return false;
+              const p = sfMatch[1]!.trim();
+              return !p.startsWith("../") && !p.startsWith("..\\");
             });
             filteredContent =
               matchingRecords.length > 0

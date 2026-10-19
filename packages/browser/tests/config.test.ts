@@ -9,6 +9,7 @@ import {
   resolvePlatform,
   resolvePlaywrightCustomPath,
   resolvePuppeteerCacheDir,
+  resolveSeam,
   resolveWindowsProgramFiles,
   resolveXdgCacheHome,
   type BrowserConfigSeam,
@@ -166,6 +167,38 @@ describe("packages/browser/src/config", () => {
         resolveXdgCacheHome({ env: { XDG_CACHE_HOME: "/mock/xdg" } }),
       ).toBe("/mock/xdg");
       expect(resolveXdgCacheHome({ env: {} })).toBeUndefined();
+    });
+
+    it("resolves Windows ProgramFiles directories with defaults and env overrides", () => {
+      const def = resolveWindowsProgramFiles({ env: {} });
+      expect(def.programFiles).toBe("C:\\Program Files");
+      expect(def.programFilesX86).toBe("C:\\Program Files (x86)");
+
+      const custom = resolveWindowsProgramFiles({
+        env: {
+          PROGRAMFILES: "D:\\ProgramFiles",
+          "PROGRAMFILES(X86)": "D:\\ProgramFilesX86",
+        },
+      });
+      expect(custom.programFiles).toBe("D:\\ProgramFiles");
+      expect(custom.programFilesX86).toBe("D:\\ProgramFilesX86");
+    });
+  });
+
+  describe("resolveSeam", () => {
+    it("handles functional platform and edge inputs", () => {
+      const funcPlat: BrowserConfigSeam = {
+        platform: () => "linux",
+      };
+      expect(resolveSeam(funcPlat)).toEqual(funcPlat);
+
+      expect(resolveSeam(undefined, "darwin")).toEqual({
+        platform: expect.any(Function),
+      });
+      expect(resolveSeam(null as unknown as undefined)).toBeUndefined();
+      expect(
+        resolveSeam("invalid-string" as unknown as undefined),
+      ).toBeUndefined();
     });
   });
 });

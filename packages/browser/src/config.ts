@@ -22,42 +22,43 @@ export function resolveSeam(
     BrowserSeamOptions | BrowserConfigSeam | Record<string, string | undefined>,
   platformOverride?: NodeJS.Platform | string,
 ): BrowserConfigSeam | undefined {
-  if (!input && !platformOverride) return undefined;
-  if (!input && platformOverride) return { platform: () => platformOverride };
-  if (typeof input === "object" && input !== null) {
-    if (
-      "seam" in input &&
-      typeof input.seam === "object" &&
-      input.seam !== null
-    ) {
-      return input.seam as BrowserConfigSeam;
-    }
-    if ("platform" in input && typeof input.platform === "function") {
-      return input as BrowserConfigSeam;
-    }
-    const hasSeamProps = "env" in input || "platform" in input;
-    const env = hasSeamProps
-      ? typeof input.env === "object" && input.env !== null
-        ? (input.env as Record<string, string | undefined>)
-        : undefined
-      : (input as Record<string, string | undefined>);
-    const rawPlat =
-      platformOverride ??
-      ("platform" in input && typeof input.platform !== "undefined"
-        ? input.platform
-        : undefined);
-    const plat =
-      typeof rawPlat === "function"
-        ? (rawPlat as () => NodeJS.Platform | string)
-        : rawPlat
-          ? () => rawPlat as NodeJS.Platform | string
-          : undefined;
-    return {
-      env,
-      platform: plat,
-    };
+  if (!input) {
+    return platformOverride ? { platform: () => platformOverride } : undefined;
   }
-  return undefined;
+  if (typeof input !== "object") {
+    return undefined;
+  }
+  if (
+    "seam" in input &&
+    typeof input.seam === "object" &&
+    input.seam !== null
+  ) {
+    return input.seam as BrowserConfigSeam;
+  }
+  if ("platform" in input && typeof input.platform === "function") {
+    return input as BrowserConfigSeam;
+  }
+  const hasSeamProps = "env" in input || "platform" in input;
+  const env = hasSeamProps
+    ? typeof input.env === "object" && input.env !== null
+      ? (input.env as Record<string, string | undefined>)
+      : undefined
+    : (input as Record<string, string | undefined>);
+  const rawPlat =
+    platformOverride ??
+    ("platform" in input && typeof input.platform !== "undefined"
+      ? input.platform
+      : undefined);
+  const plat =
+    typeof rawPlat === "function"
+      ? (rawPlat as () => NodeJS.Platform | string)
+      : rawPlat
+        ? () => rawPlat as NodeJS.Platform | string
+        : undefined;
+  return {
+    env,
+    platform: plat,
+  };
 }
 
 /**
