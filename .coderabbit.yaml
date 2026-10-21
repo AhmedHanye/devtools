@@ -191,10 +191,10 @@ knowledge_base:
     enabled: true
     filePatterns:
       - ".agents/AGENTS.md"
-      - ".agents/GLOSSARY.md"
+      - "docs/GLOSSARY.md"
       - ".agents/rules/*"
       - "CONTRIBUTING.md"
-      - ".agents/docs/adr/*"
+      - "docs/adr/*"
   learnings:
     scope: "local"
     approval_delay: 0

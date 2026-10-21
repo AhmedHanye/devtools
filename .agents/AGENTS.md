@@ -3,9 +3,9 @@
 ## Context pointers
 
 - **Git workflow and issues.** Read `CONTRIBUTING.md` when managing branches, pull requests, commits, and GitHub issues.
-- **Domain vocabulary.** Read `.agents/GLOSSARY.md` for system nouns and naming constraints.
-- **Architecture decision records.** Consult `.agents/docs/adr/` before changing runtime execution, persistence, or network boundaries.
-- **Documentation site architecture.** Read `.agents/docs/site-architecture.md` when modifying Fumadocs routing, MDX configurations, search APIs, or LLM endpoints.
+- **Domain vocabulary.** Read `docs/GLOSSARY.md` for system nouns and naming constraints.
+- **Architecture decision records.** Consult `docs/adr/` before changing runtime execution, persistence, or network boundaries.
+- **Documentation site architecture.** Read `docs/site-architecture.md` when modifying Fumadocs routing, MDX configurations, search APIs, or LLM endpoints.
 
 ## Execution boundaries
 

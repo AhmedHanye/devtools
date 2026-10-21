@@ -1,4 +1,4 @@
-# .agents/GLOSSARY.md Format
+# docs/GLOSSARY.md Format
 
 ## Structure
 
@@ -33,5 +33,5 @@ _Avoid_: Client, buyer, account
 
 ## Repository Location
 
-The domain glossary lives strictly at `.agents/GLOSSARY.md`. All system concepts, architecture nouns, governance definitions, and workflow vocabulary across packages and applications are maintained in this single canonical document.
+The domain glossary lives strictly at `docs/GLOSSARY.md`. All system concepts, architecture nouns, governance definitions, and workflow vocabulary across packages and applications are maintained in this single canonical document.
 
