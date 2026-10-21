@@ -191,7 +191,8 @@ knowledge_base:
     enabled: true
     filePatterns:
       - ".agents/AGENTS.md"
-      - "docs/GLOSSARY.md"
+      - "GLOSSARY-MAP.md"
+      - "docs/glossary/*"
       - ".agents/rules/*"
       - "CONTRIBUTING.md"
       - "docs/adr/*"

@@ -1,30 +1,36 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing docs/GLOSSARY.md, or recording or editing an ADR.
+description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing GLOSSARY-MAP.md or docs/glossary/*.md, or recording or editing an ADR.
 ---
 
 # Domain Modeling
 
-Actively build and sharpen the project's domain model as you design. This is the *active* discipline: challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* `docs/GLOSSARY.md` for vocabulary is not this skill: that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
+Actively build and sharpen the project's domain model as you design. This is the *active* discipline: challenging terms, inventing edge-case scenarios, and writing the glossary and decisions down the moment they crystallise. (Merely *reading* the glossary for vocabulary is not this skill: that's a one-line habit any skill can do. This skill is for when you're changing the model, not just consuming it.)
 
 ## File structure
 
-Domain glossary and system architecture decisions live strictly under `docs/`:
+DevTools organizes domain vocabulary across bounded contexts indexed by a root map:
 
 ```
-docs/
-├── GLOSSARY.md
-└── adr/
-    └── 0001-embedded-database-foundation.md
+/
+├── GLOSSARY-MAP.md
+├── docs/
+│   ├── glossary/
+│   │   ├── runtime.md       ← daemon, CLI, runtime stack, standalone binary
+│   │   ├── browser.md       ← resolution waterfall, managed cache, CfT
+│   │   └── persistence.md   ← database foundation, connection, seams
+│   └── adr/
+│       ├── 0001-embedded-database-foundation.md
+│       └── 0002-package-configuration-and-environment-seams.md
 ```
 
-Create files lazily: only when you have something to write. If no `docs/GLOSSARY.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Create files lazily: only when you have something to write.
 
 ## During the session
 
 ### Challenge against the glossary
 
-When the user uses a term that conflicts with the existing language in `docs/GLOSSARY.md`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y. Which is it?"
+When the user uses a term that conflicts with the existing language in the relevant context glossary under `docs/glossary/`, call it out immediately. "Your glossary defines 'cancellation' as X, but you seem to mean Y. Which is it?"
 
 ### Sharpen fuzzy language
 
@@ -38,11 +44,12 @@ When domain relationships are being discussed, stress-test them with specific sc
 
 When the user states how something works, check whether the code agrees. If you find a contradiction, surface it: "Your code cancels entire Orders, but you just said partial cancellation is possible. Which is right?"
 
-### Update docs/GLOSSARY.md inline
+### Update glossaries inline
 
-When a term is resolved, update `docs/GLOSSARY.md` right there using the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). Don't batch these up: capture them as they happen.
+When a term is resolved, infer which context it belongs to (or ask) and update that context file in `docs/glossary/` right there using the format in [GLOSSARY-FORMAT.md](./GLOSSARY-FORMAT.md). If a new context is introduced, add it to `GLOSSARY-MAP.md`. Don't batch these up: capture them as they happen.
+
+Domain glossaries should be totally devoid of implementation details and CI/CD/workflow rules. Verification gates belong in `.agents/rules/verification.md`; issue tracking belongs in `CONTRIBUTING.md`.
 
 ### Offer ADRs sparingly
 
 Only offer to create an ADR when all criteria in [ADR-FORMAT.md](./ADR-FORMAT.md) are met and explicitly approved by the maintainer. If any criterion is missing, skip the ADR.
-
