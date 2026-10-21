@@ -12,7 +12,6 @@ Author technical documentation for the documentation platform (`site/`, `@devtoo
 - **Diátaxis blueprints**: Read [.agents/skills/documentation-authoring/references/diataxis-quadrants.md](.agents/skills/documentation-authoring/references/diataxis-quadrants.md) for quadrant specifications, structural templates, and content boundaries.
 - **Fumadocs reference**: Read [.agents/skills/documentation-authoring/references/fumadocs-features.md](.agents/skills/documentation-authoring/references/fumadocs-features.md) for MDX components, Shiki code highlighting, styling tokens, accessibility standards, and compilation diagnostics.
 - **Verification rules**: Consult [.agents/rules/verification.md](.agents/rules/verification.md) for compiler verification commands and test invariants.
-- **Domain vocabulary**: Read [docs/GLOSSARY.md](docs/GLOSSARY.md) for platform terminology standards.
 
 ## Authoring workflow
 
