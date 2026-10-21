@@ -31,4 +31,5 @@ Thumbs.db
 
 # Fallow cache
 .fallow/*
+!.fallow/dupes-baseline.json
 
