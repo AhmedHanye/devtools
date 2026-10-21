@@ -88,16 +88,6 @@ Detailed technical findings for the second area.
 - Remaining uncertainties or unverified runtime behaviors.
 - Potential breaking changes or migration hurdles.
 
-## Recommended next steps
-
-Concrete, prioritized recommendations:
-1. First recommended action.
-2. Follow-up skill recommendation:
-   - Run `/to-spec` if findings warrant a capability specification.
-   - Run `/to-tickets` if the path forward is clear and needs vertical tracer-bullet slicing.
-   - Run `/prototype` if an empirical prototype is needed to settle remaining unknowns.
-   - Run `/grilling` to stress-test architectural decisions with the user.
-
 </research-template>
 
 Completion criterion: The file exists at `.scratch/research/<topic>.md` with all template sections completed and no placeholders remaining.
@@ -108,6 +98,5 @@ Deliver a response that:
 1. Answers the user question directly in under 300 words.
 2. Links to the report at `.scratch/research/<topic>.md`.
 3. Highlights key trade-offs and confidence levels.
-4. Suggests follow-up skills (`to-spec`, `to-tickets`, `prototype`, `grilling`) if needed.
 
-Completion criterion: Response sent to user with under 300 words, repository-relative link to `.scratch/research/<topic>.md`, trade-offs, and applicable follow-up skills.
+Completion criterion: Response sent to user with under 300 words, repository-relative link to `.scratch/research/<topic>.md`, and trade-offs.
