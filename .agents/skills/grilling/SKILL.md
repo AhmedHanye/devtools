@@ -11,7 +11,12 @@ Work the tree in **rounds**. The **frontier** is every decision whose prerequisi
 
 ## Execution boundaries
 
-Do not write files to `.scratch/`, mutate codebase files, or run mutative commands during the session. Require explicit user confirmation before applying settled agreements.
+Do not write files to `.scratch/`, mutate codebase files, edit repository documents, or run mutative commands during grilling rounds. Confine all writing during the interview exclusively to session artifacts (`grilling_round_<N>_<topic>.md` and the final summary). Never attempt to implement or stage changes while grilling is in progress. Require explicit user confirmation after the final summary before applying settled agreements.
+
+## Round structure and progression
+
+- **Initial rounds (problem definition)**: Map the problem space, clarify boundaries, and challenge assumptions. Do not propose technical solutions, code architectures, or speculative implementation choices before the problem boundaries are fully settled.
+- **Subsequent rounds (solution design)**: Once the problem frontier is agreed upon, evaluate solutions, trade-offs, and implementation strategies.
 
 ## Round presentation
 
