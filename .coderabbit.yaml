@@ -50,9 +50,9 @@ reviews:
       - name: "Feature-Sliced Design (FSD) Layer Purity"
         mode: "error"
         instructions: >-
-          Verify that frontend code under `apps/frontend/src` strictly follows FSD v2.1:
-          1. Imports flow strictly downwards: app -> pages -> widgets -> features -> entities -> shared.
-          2. Slices in the same layer must NEVER import directly from each other.
+          Verify that frontend code under `apps/frontend/src` strictly follows architectural boundaries:
+          1. Imports flow strictly downwards: app -> pages -> shared.
+          2. Slices in the same layer must not import directly from each other.
           3. Slices must be imported only through their public API entry point (`index.ts`).
       - name: "No Hardcoded Secrets or Credentials"
         mode: "error"

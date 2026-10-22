@@ -1,31 +1,80 @@
 # Contributing to DevTools
 
-Welcome to DevTools. This repository enforces an issue-first, vertical slice workflow with automated release management.
+DevTools is a developer tooling monorepo providing utilities and workflows across CLI, daemon, API, and frontend interfaces.
 
-## Development Workflow
+## Getting started
 
-1. **Issue-First**: Every change begins with an issue. Ensure every pull request links to an existing tracking issue.
-2. **Vertical Slices**: One ticket, one vertical slice. Deliver end-to-end functionality across schema, logic, UI, and tests in a single session.
-3. **Reviewed Pull Requests**: Deliver all code to `main` through reviewed and tested pull requests.
+### Prerequisites
 
-## Must-Know Global Invariants
+- [Bun](https://bun.sh/) 1.4.2 or higher
+- [GitHub CLI (`gh`)](https://cli.github.com/) 2.60.0 or higher
+- Git 2.40.0 or higher
 
-- **Git & GitHub CLI**: Use `gh` for all GitHub interactions. Create linked branches with `gh issue develop <ticket_number> --checkout`.
-- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <desc>`). Commit types (`feat:`, `fix:`) trigger automated releases via Release Please. Do **not** place issue references in commit subjects.
-- **Atomic Commits**: Stage files selectively by path (`git diff --cached --stat`). Never use blanket `git add .`.
-- **Pull Requests**:
-  - Always self-assign as the DRI (`gh pr create --assignee "@me"`).
-  - Follow [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).
-  - Resolve all reviewer and automated bot (e.g., CodeRabbit) comment threads prior to merge.
-  - Merge via squash merging (`gh pr merge --squash --delete-branch`).
+### Local setup
 
-## Detailed Documentation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/AhmedHanye/devtools.git
+   cd devtools
+   ```
+2. Install dependencies and set up git hooks:
+   ```bash
+   bun install
+   ```
 
-For full operational commands, bash snippets, and GraphQL queries, refer to the guides under [docs/contributing/](docs/contributing/):
+## Development commands
 
-| Guide                                                                   | Description                                                                                                                   |
-| :---------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| **[Pull Requests and Code Review](docs/contributing/pull-requests.md)** | Pull request creation, DRI assignment, status transitions, review thread resolution via GraphQL, and squash merge protocols.  |
-| **[Issue Tracking and Management](docs/contributing/issues.md)**        | Issue CLI commands, Spec vs. Ticket hierarchy, sub-issues and dependencies, linked branches, and GitHub Project #8 lifecycle. |
-| **[Commits and Atomic Changes](docs/contributing/commits.md)**          | Conventional Commits taxonomy, clean commit subjects, and atomic staging rules.                                               |
-| **[Releases and Distribution](docs/contributing/releases.md)**          | Google Release Please pipeline, semver bumping rules, and multi-architecture binary artifacts.                                |
+Run checks across the monorepo during development:
+
+- **Lint and format checks:**
+  ```bash
+  bun run check
+  ```
+- **Typecheck all workspaces:**
+  ```bash
+  bun run typecheck
+  ```
+- **Run test suites:**
+  ```bash
+  bun test
+  ```
+- **Fast local verification:**
+  ```bash
+  bun run verify:fast
+  ```
+- **Canonical local verification (on-demand):**
+  ```bash
+  bun run verify
+  ```
+
+## Contribution workflow
+
+1. **Start with an issue:** Every pull request links to an open tracking issue. Create a linked working branch:
+   ```bash
+   gh issue develop <ticket_number> --checkout
+   ```
+2. **Commit changes:** Follow [Conventional Commits](https://www.conventionalcommits.org/) (`<type>(<scope>): <description>`). Types `feat:` and `fix:` trigger automated semantic releases. Keep issue references in pull request descriptions rather than commit subjects.
+3. **Stage atomic changes:** Stage specific files by path and inspect staged contents:
+   ```bash
+   git add <path>
+   git diff --cached --stat
+   ```
+4. **Open a pull request:**
+   ```bash
+   gh pr create --assignee "@me" --fill
+   ```
+   Follow [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) and ensure the description includes `Closes #<ticket_number>`.
+5. **Resolve review comments:** Address reviewer and automated comments before merging.
+6. **Merge via squash merge:**
+   ```bash
+   gh pr merge <pr_number> --squash --delete-branch
+   ```
+
+## Documentation
+
+Detailed operational guides live under `docs/contributing/`:
+
+- [Pull requests and code review](docs/contributing/pull-requests.md): Review thread resolution and merge requirements.
+- [Issue tracking and management](docs/contributing/issues.md): Hierarchy, sub-issues, dependencies, and project lifecycle.
+- [Commits and atomic changes](docs/contributing/commits.md): Commit types, subject formats, and staging.
+- [Releases and distribution](docs/contributing/releases.md): Release Please workflow and standalone binary compilation.

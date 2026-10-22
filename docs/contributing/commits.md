@@ -1,8 +1,8 @@
-# Commits and Atomic Changes
+# Commits and atomic changes
 
 Guidelines for writing Conventional Commits, clean commit subjects, and staging atomic changesets.
 
-## Conventional Commits
+## Conventional commits
 
 Commit messages follow the Conventional Commits specification:
 
@@ -10,7 +10,7 @@ Commit messages follow the Conventional Commits specification:
 <type>(<scope>): <imperative description>
 ```
 
-### Commit Types
+### Commit types
 
 - `feat`: Adds a new feature or user-facing capability.
 - `fix`: Patches a bug or defect.
@@ -20,20 +20,21 @@ Commit messages follow the Conventional Commits specification:
 - `refactor`: Code change that neither fixes a bug nor adds a feature.
 - `style`: Formatting or cosmetic changes with zero logic impact.
 
-### Clean Commit Subjects
+### Clean commit subjects
 
-Keep commit subjects clean by reserving issue references (such as `Closes #123`) for pull request descriptions. Issue references are disallowed in commit subjects and enforced by repository commitlint rules. This prevents issue timeline pollution and preserves a clean linear history.
+Keep commit subjects focused on the change by placing issue references (such as `Closes #123`) in pull request descriptions. Commitlint rules reject issue references in commit subjects to keep git logs concise.
 
 Examples:
 
-- `feat(server): add initial health check endpoint`
-- `fix(web): resolve layout shift on mobile viewports`
+- `feat(cli): add initial health check command`
+- `fix(frontend): resolve layout shift on mobile viewports`
 - `chore(ci): update workflow dependencies`
 
-## Atomic Commits
+## Atomic commits
 
-Every commit must represent a single logical change scoped to a specific workspace (`<type>(<scope>): <desc>`). Never use blanket `git add .`; stage files selectively by path and verify staged contents before committing:
+Every commit represents a single logical change scoped to a workspace (`<type>(<scope>): <desc>`). Stage files selectively by path rather than staging the entire repository. Verify staged contents before committing:
 
 ```bash
+git add <path>
 git diff --cached --stat
 ```

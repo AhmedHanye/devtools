@@ -1,38 +1,43 @@
-# Pull Requests and Code Review
+# Pull requests and code review
 
 Guidelines for creating, reviewing, resolving threads, and merging pull requests.
 
-## Triage and Inspection
+## Triage and inspection
 
 External pull requests are not treated as feature requests. New capabilities must begin as issues.
 
 When inspecting pull requests:
 
-- **Read a PR**: `gh pr view <number> --json number,title,body,labels,comments` and `gh pr diff <number>` for the diff.
-- **List PRs**: `gh pr list --state open --json number,title,body,labels,author,comments`
+- **Read a PR:** `gh pr view <number> --json number,title,body,labels,comments` and `gh pr diff <number>` for the diff.
+- **List PRs:** `gh pr list --state open --json number,title,body,labels,author,comments`
 
-### GitHub CLI Operational Notes
+### GitHub CLI operational notes
 
-- **File-filtered PR diffs**: `gh pr diff <number>` does not accept path arguments. To inspect specific files on a PR branch, run `git diff origin/main...HEAD -- <path>`.
-- **Check run exit codes**: `gh pr checks <number>` exits with code `8` when CI checks are pending or in progress; use `gh pr checks <number> --watch` to await completion.
+- **File-filtered PR diffs:** `gh pr diff <number>` does not accept path arguments. To inspect specific files on a PR branch, run `git diff origin/main...HEAD -- <path>`.
+- **Check run exit codes:** `gh pr checks <number>` exits with code `8` when CI checks are pending or in progress; use `gh pr checks <number> --watch` to await completion.
 
-## Pull Request Rules
+## Pull request rules
 
-1. **Link the tracking issue:** `gh issue develop` links the issue automatically. If created manually, add `Closes #<issue>` to the pull request body.
-2. **Self-assign the pull request:** Always self-assign as the Directly Responsible Individual (DRI) when opening a pull request by passing `--assignee "@me"` (maintainer review is automatically requested via `CODEOWNERS`).
-3. **Follow the pull request structure:** PR descriptions must describe user-facing changes to `main` following `.github/PULL_REQUEST_TEMPLATE.md` (Summary with structural diff/tree, Evidence, and Merge Danger). Pull request descriptions cite permanent codebase paths and omit ephemeral workspace `.scratch/` paths, raw session logs, and agent execution notes.
+1. **Link the tracking issue:** `gh issue develop` links the issue automatically. When creating manually, add `Closes #<issue>` to the pull request description.
+2. **Self-assign the pull request:** Assign yourself as the Directly Responsible Individual (DRI) when opening a pull request by passing `--assignee "@me"` (maintainer review is automatically requested via `CODEOWNERS`).
+3. **Follow the pull request structure:** PR descriptions must describe user-facing changes to `main` following [.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md) (Summary with structural diff/tree, Evidence, and Merge Danger). Pull request descriptions cite permanent codebase paths and omit ephemeral workspace `.scratch/` paths, raw session logs, and agent execution notes.
 4. **Provide verification evidence:** Include terminal test output, commands, or observable behavior confirming all acceptance criteria.
-5. **Audit tracking issue checklist and instructions:** Before opening the pull request, inspect the linked issue/ticket description (`gh issue view <ticket_number>`). Check off all completed acceptance criteria (`- [x]`) and update any outdated instructions, commands, or scope definitions that evolved during implementation.
-6. **Open the pull request and update status.** Create the pull request, then transition the tracking issue to `In Review` in GitHub Project #8:
+5. **Verify tracking issue checklist:** Before opening the pull request, inspect the linked ticket description (`gh issue view <ticket_number>`) to confirm all acceptance criteria are met.
+6. **Open the pull request non-interactively:** Create the pull request using explicit title and body flags or `--fill` to avoid interactive terminal prompts:
    ```bash
-   gh pr create --assignee "@me"
-   ITEM_ID=$(gh project item-add 8 --owner AhmedHanye --url "https://github.com/AhmedHanye/devtools/issues/<ticket_number>" --format json --jq .id)
-   gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field-id "PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4" --single-select-option-id "27903ead"
+   gh pr create --assignee "@me" --fill
+   ```
+   If maintaining tracking status on a GitHub Project:
+   ```bash
+   ITEM_ID=$(gh project item-add <project_number> --owner <owner> --url "https://github.com/<owner>/<repo>/issues/<ticket_number>" --format json --jq .id 2>/dev/null || true)
+   if [ -n "$ITEM_ID" ]; then
+     gh project item-edit --id "$ITEM_ID" --project-id "<project_id>" --field-id "<status_field_id>" --single-select-option-id "<in_review_option_id>"
+   fi
    ```
 
-## Review Thread Resolution
+## Review thread resolution
 
-Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility.
+Branch protection enforces required review thread resolution. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be resolved before merge eligibility.
 
 ### 1. Inspect unresolved review threads
 
@@ -70,10 +75,10 @@ gh api graphql -F owner=':owner' -F repo=':repo' -F pr=<pr_number> -f query='
   ```bash
   gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<thread_node_id>"}) { clientMutationId } }'
   ```
-- **False positive / Hallucination:** Post a technical comment detailing why the remark is invalid or contradicts repo design, and resolve the thread via GraphQL.
-- **Ambiguous or high-risk finding:** Leave the thread unresolved and escalate to the maintainer.
+- **False positive or invalid suggestion:** Post a technical comment detailing why the remark is invalid or contradicts repo design, and resolve the thread via GraphQL.
+- **Ambiguous or high-risk finding:** Leave the thread open, post a comment explaining the architectural trade-off or risk, and request maintainer review.
 
-## Merging Pull Requests
+## Merging pull requests
 
 Squash merge into `main` after all review threads and status checks pass:
 
