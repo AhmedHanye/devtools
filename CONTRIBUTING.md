@@ -203,12 +203,38 @@ When inspecting pull requests:
    gh project item-edit --id "$ITEM_ID" --project-id "PVT_kwHOBtOqTs4BlBUk" --field-id "PVTSSF_lAHOBtOqTs4BlBUkzhjvvg4" --single-select-option-id "27903ead"
    ```
 7. **Review thread resolution:** Repository ruleset `#24154563` (`Protect Main Branch`) enforces `required_review_thread_resolution: true`. All comment threads opened by reviewers or automated review bots (such as CodeRabbit) must be addressed before merge eligibility:
+   - _Inspect unresolved review threads:_ Query open review threads, diff locations, authors, and conversation nodes via GitHub GraphQL:
+     ```bash
+     gh api graphql -F owner=':owner' -F repo=':repo' -F pr=<pr_number> -f query='
+       query($owner: String!, $repo: String!, $pr: Int!) {
+         repository(owner: $owner, name: $repo) {
+           pullRequest(number: $pr) {
+             reviewThreads(first: 100) {
+               nodes {
+                 id
+                 isResolved
+                 path
+                 line
+                 comments(first: 50) {
+                   nodes {
+                     id
+                     author { login }
+                     body
+                     createdAt
+                   }
+                 }
+               }
+             }
+           }
+         }
+       }' --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)'
+     ```
    - _Valid defect:_ Implement the code fix, confirm test passes, post a comment referencing the fix commit, and resolve the thread via GitHub GraphQL:
      ```bash
      gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<thread_node_id>"}) { clientMutationId } }'
      ```
    - _False positive / Hallucination:_ Post a technical comment detailing why the remark is invalid or contradicts repo design, and resolve the thread via GraphQL.
-   - _Ambiguous or high-risk finding:_ Leave the thread unresolved, apply the `needs-human-review` label, and escalate.
+   - _Ambiguous or high-risk finding:_ Leave the thread unresolved and escalate to the maintainer.
 8. **Squash merge into `main` after review passes:** `gh pr merge <pr_number> --squash --delete-branch`. Linear history with squash merging is enforced by repository rulesets.
 
 ## Code style and pre-commit hooks
@@ -236,4 +262,4 @@ Contributors and automated agents observe these security and contribution bounda
    Protected workflows (`.github/workflows/`), agent configurations (`.agents/`), and toolchain configurations (`bunfig.toml`, `lefthook.yml`, `package.json`) are guarded by GitHub Branch Rulesets and mandatory Code Owner review (`@AhmedHanye`). External pull requests modifying these protected boundaries cannot be merged without explicit maintainer approval.
 
 4. **Escalation:**
-   When requirements are ambiguous or tests fail repeatedly, apply `needs-human-review`, post a blocker summary, and yield execution to the maintainer.
+   When requirements are ambiguous or tests fail repeatedly, post a blocker summary and yield execution to the maintainer.
