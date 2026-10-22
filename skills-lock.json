@@ -73,12 +73,6 @@
       "skillPath": "skills/react-doctor/SKILL.md",
       "computedHash": "803447f3251d555207f8935893d4d2950243a2ac0b407a1c95c7755bb38433a3"
     },
-    "retro": {
-      "source": "mattpocock/skills",
-      "sourceType": "github",
-      "skillPath": "skills/engineering/retro/SKILL.md",
-      "computedHash": "b8d55851a2909e26c2dbb2e8563719c87b3b700559f604e4df344f8c27e21047"
-    },
     "show-me": {
       "source": "humanlayer/skills",
       "sourceType": "github",
