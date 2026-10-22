@@ -53,3 +53,12 @@ Domain glossaries should be totally devoid of implementation details and CI/CD/w
 ### Offer ADRs sparingly
 
 Only offer to create an ADR when all criteria in [ADR-FORMAT.md](./ADR-FORMAT.md) are met and explicitly approved by the maintainer. If any criterion is missing, skip the ADR.
+
+## Consumer habits
+
+When consuming domain models in engineering workflows:
+
+- **Vocabulary enforcement**: Use canonical terms from `GLOSSARY-MAP.md` and context glossaries in code symbols, PR and issue titles, tests, and documentation. Never use synonyms listed under `_Avoid_`.
+- **Silent absence**: Proceed silently when a glossary or `docs/adr/` does not exist. Do not scaffold empty placeholders.
+- **Domain gap signaling**: Treat missing domain concepts as unvetted jargon or model gaps requiring `/domain-modeling`. Do not invent ad-hoc terms.
+- **ADR conflict surfacing**: Surface contradictions explicitly when an exploration or refactor conflicts with an ADR: `Contradicts ADR-NNNN, but worth reopening because...`.
