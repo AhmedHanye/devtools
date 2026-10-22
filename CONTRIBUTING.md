@@ -180,6 +180,10 @@ Examples:
 - `fix(web): resolve layout shift on mobile viewports`
 - `chore(ci): update workflow dependencies`
 
+### Atomic commits
+
+Every commit must represent a single logical change scoped to a specific workspace (`<type>(<scope>): <desc>`). Never use blanket `git add .`; stage files selectively by path and verify with `git diff --cached --stat` before committing.
+
 ### Pull request triage
 
 External pull requests are not treated as feature requests. New features begin as issues.
@@ -188,6 +192,11 @@ When inspecting pull requests:
 
 - **Read a PR**: `gh pr view <number> --json number,title,body,labels,comments` and `gh pr diff <number>` for the diff.
 - **List PRs**: `gh pr list --state open --json number,title,body,labels,author,comments`
+
+### GitHub CLI operational notes
+
+- **File-filtered PR diffs**: `gh pr diff <number>` does not accept path arguments. To inspect specific files on a PR branch, run `git diff origin/main...HEAD -- <path>`.
+- **Check run exit codes**: `gh pr checks <number>` exits with code `8` when CI checks are pending or in progress; use `gh pr checks <number> --watch` to await completion.
 
 ### Pull request rules
 
