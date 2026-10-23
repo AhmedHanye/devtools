@@ -17,7 +17,7 @@ Follow verification tiers before committing, pushing, or requesting review:
    ```bash
    bun run verify:fast
    ```
-   Runs Oxlint, Prettier check, workspace typechecks, and Fallow dead-code analysis across the monorepo.
+   Runs Oxlint, Prettier check, workspace typechecks, Fallow dead-code analysis, and agent rule verification (bun run lint:agents) across the monorepo.
 3. **Workspace test run:**
    ```bash
    bun --filter @devtools/<package> test
@@ -49,7 +49,7 @@ During iterative development, run verification commands matching modified files 
 | `site/content/**`                            | Documentation content | `bunx prettier --check site/content/**`<br>`bun --filter @devtools/site typecheck`<br>`bun --filter @devtools/site build`                                                                                                                                               |
 | `site/**` (site application code)            | Site workspace        | `bunx oxlint site/src/**`<br>`bunx prettier --check site/**`<br>`bun --filter @devtools/site typecheck`<br>`bun --filter @devtools/site test`<br>`bun --filter @devtools/site build`                                                                                    |
 | `scripts/**`                                 | Internal scripts      | `bunx oxlint scripts/`<br>`bunx prettier --check scripts/`<br>`bun test scripts/`                                                                                                                                                                                       |
-| `.agents/**`, repository docs (`*.md`)       | Docs and guidelines   | `bunx prettier --check .agents/** *.md`                                                                                                                                                                                                                                 |
+| `.agents/**`, repository docs (`*.md`)       | Docs and guidelines   | `bun run lint:agents`<br>`bunx prettier --check .agents/** *.md`                                                                                                                                                                                                        |
 | Cross-cutting changes / pre-PR review        | Full verification     | `bun run verify`                                                                                                                                                                                                                                                        |
 
 ## Quality guardrails

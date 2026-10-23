@@ -57,6 +57,7 @@ gh api graphql -F owner='{owner}' -F repo='{repo}' -F pr=<pr_number> -f query='
             comments(first: 50) {
               nodes {
                 id
+                databaseId
                 author { login }
                 body
                 createdAt

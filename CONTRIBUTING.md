@@ -36,7 +36,7 @@ Run checks across the monorepo during development:
   ```
 - **Run test suites:**
   ```bash
-  bun test
+  bun run test
   ```
 - **Fast local verification:**
   ```bash

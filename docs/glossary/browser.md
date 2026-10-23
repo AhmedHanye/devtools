@@ -13,7 +13,7 @@ The centralized directory (`~/.devtools/browsers/`) hosting downloaded Chrome fo
 _Avoid_: Download cache, browser store, local chromium dir
 
 **Chrome for Testing (CfT)**:
-Google's dedicated, telemetry-free Chromium distribution specifically engineered for automated testing, distributed as `chrome-headless-shell` and `chrome`.
+Google's dedicated Chromium distribution specifically engineered for automated testing, distributed as `chrome-headless-shell` and `chrome`.
 _Avoid_: Test chromium, headless chrome binary, puppeteer browser
 
 **Explicit Browser Override**:

@@ -32,7 +32,7 @@ export interface SkillsLock {
 }
 
 const MACHINE_PATH_REGEX =
-  /(?:file:\/\/\/(?!path\/to\/)[a-zA-Z0-9_\-./]+|(?:\/home\/|\/Users\/)[a-zA-Z0-9_\-./]+)/g;
+  /(?:file:\/\/\/(?!path\/to\/)[a-zA-Z0-9_\-./]+|(?<=^|[\s"'`([<{])(?:\/home\/|\/Users\/)[a-zA-Z0-9_\-./]+)/g;
 const MARKDOWN_LINK_REGEX = /\[([^\]]*)\]\(([^)]+)\)/g;
 
 /**
@@ -182,9 +182,28 @@ export function checkMarkdownLinks(
   const findings: Finding[] = [];
   const fileDir = dirname(resolve(repoRoot, filePath));
   const lines = content.split("\n");
+  let insideFence = false;
+  let fenceMarker = "";
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const fenceMatch = line.match(/^(\s*)(`{3,}|~{3,})/);
+    if (fenceMatch) {
+      const marker = fenceMatch[2];
+      if (!insideFence) {
+        insideFence = true;
+        fenceMarker = marker;
+      } else if (
+        marker.length >= fenceMarker.length &&
+        marker[0] === fenceMarker[0]
+      ) {
+        insideFence = false;
+        fenceMarker = "";
+      }
+      continue;
+    }
+    if (insideFence) continue;
+
     // Ignore lines that are illustrative examples
     if (line.includes("for example,") || line.includes("For example,"))
       continue;
@@ -204,7 +223,8 @@ export function checkMarkdownLinks(
         continue;
       }
 
-      const rawTarget = match[2]?.trim();
+      const rawTargetWithTitle = match[2]?.trim();
+      const rawTarget = rawTargetWithTitle?.split(/\s+["']/)[0]?.trim();
       if (!rawTarget) continue;
 
       // Ignore external URLs, anchors, mailto, URI schemes, image data URIs, or generic examples
@@ -324,7 +344,7 @@ export function validateRuleFile(
       line: 2,
       rule: "rule/trigger-must-be-string",
       message:
-        "Rule 'trigger' must be a single glob string, not a YAML sequence (array). Antigravity fails to parse sequences with 'cannot unmarshal !!seq into string'. Use brace expansion instead, for example: trigger: \"{package.json,bun.lock}\"",
+        "Rule 'trigger' must be a single glob string, not a YAML sequence (array). Use brace expansion instead, for example: trigger: \"{package.json,bun.lock}\"",
       severity: "error",
     });
   } else if (typeof data.trigger !== "string" || !data.trigger.trim()) {

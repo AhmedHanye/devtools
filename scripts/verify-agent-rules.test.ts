@@ -119,6 +119,12 @@ const nested = true;
       const findings = checkMachinePaths(content, "test.md");
       expect(findings).toHaveLength(0);
     });
+
+    it("does not flag relative paths containing home directory segments", () => {
+      const content = "File path: apps/frontend/src/pages/home/index.ts";
+      const findings = checkMachinePaths(content, "test.md");
+      expect(findings).toHaveLength(0);
+    });
   });
 
   describe("checkMarkdownLinks", () => {
@@ -126,6 +132,22 @@ const nested = true;
       const content =
         "See `[file](nonexistent.md)` and for example, [doc](/docs/sample)";
       const findings = checkMarkdownLinks(content, ".agents/rules/test.md");
+      expect(findings).toHaveLength(0);
+    });
+
+    it("ignores bracketed syntax inside fenced code blocks", () => {
+      const content =
+        "```typescript\nconst res = handlers[type](payload);\n```";
+      const findings = checkMarkdownLinks(content, ".agents/rules/test.md");
+      expect(findings).toHaveLength(0);
+    });
+
+    it("handles links with title attributes", () => {
+      const content = 'See [package](../../../package.json "Package Root")';
+      const findings = checkMarkdownLinks(
+        content,
+        ".agents/skills/code-review/SKILL.md",
+      );
       expect(findings).toHaveLength(0);
     });
 
@@ -194,7 +216,7 @@ description: "A valid description with more than ten characters."
       );
     });
 
-    it("rejects rule file with YAML sequence array trigger (Antigravity compatibility)", () => {
+    it("rejects rule file with YAML sequence array trigger", () => {
       const content = `---
 trigger:
   - "apps/**"
