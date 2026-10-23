@@ -16,4 +16,7 @@ Domain vocabulary for DevTools packages and applications mapped across bounded c
 
 ## Architectural Decisions
 
-- [System ADRs](./docs/adr/): architectural decision records for persistent storage and cross-package boundaries.
+System-wide architectural decision records documented under [docs/adr/](./docs/adr/README.md):
+
+- [0001: Embedded Database Foundation](./docs/adr/0001-embedded-database-foundation.md): `@devtools/db` local persistence layer using `bun:sqlite` with Drizzle ORM, WAL journal mode, and crash-resilient pragmas.
+- [0002: Package Configuration Boundaries and Environment Seams](./docs/adr/0002-package-configuration-and-environment-seams.md): Centralized configuration modules and injectable `env` seams for hermetic test isolation without ambient `process.env`.
