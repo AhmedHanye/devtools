@@ -28,20 +28,28 @@ jobs:
         with:
           egress-policy: block
           allowed-endpoints: >
-            auth.docker.io:443
+            api.github.com:443
             github.com:443
-            production.cloudflare.docker.com:443
-            production.cloudfront.docker.com:443
-            registry-1.docker.io:443
+            objects.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Run actionlint with embedded ShellCheck
+      - name: Install actionlint
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color
+          gh release download v1.7.7 --repo rhysd/actionlint --pattern 'actionlint_1.7.7_linux_amd64.tar.gz' --pattern 'actionlint_1.7.7_checksums.txt'
+          grep 'actionlint_1.7.7_linux_amd64.tar.gz' actionlint_1.7.7_checksums.txt | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf actionlint_1.7.7_linux_amd64.tar.gz -C "$HOME/.local/bin" actionlint
+          rm actionlint_1.7.7_linux_amd64.tar.gz actionlint_1.7.7_checksums.txt
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run actionlint with embedded ShellCheck
+        run: actionlint -color
 
   zizmor:
     name: Zizmor Security Audit
