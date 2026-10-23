@@ -115,8 +115,7 @@ git checkout <branch_name>
 When any child ticket moves to `In Progress`, update the parent Spec to `In Progress` on the project board:
 
 ```bash
-PARENT_RESP=$(gh api repos/{owner}/{repo}/issues/<ticket_number>/parent 2>&1) || PARENT_STATUS=$?
-if [ -z "${PARENT_STATUS:-}" ]; then
+if PARENT_RESP=$(gh api repos/{owner}/{repo}/issues/<ticket_number>/parent 2>&1); then
   PARENT_NUM=$(echo "$PARENT_RESP" | jq -r .number)
   PARENT_ITEM_ID=$(gh project item-add <project_number> --owner <owner> --url "https://github.com/<owner>/<repo>/issues/${PARENT_NUM}" --format json --jq .id 2>/dev/null || true)
   if [ -n "$PARENT_ITEM_ID" ]; then

@@ -23,7 +23,7 @@ pre-commit:
       run: bun scripts/verify-staged-secrets.ts {staged_files}
 
     verify-agent-rules:
-      glob: "{.agents/**/*.{md,json},skills-lock.json}"
+      glob: "{.agents/*.{md,json},.agents/**/*.{md,json},skills-lock.json}"
       run: bun scripts/verify-agent-rules.ts {staged_files}
 
 commit-msg:
