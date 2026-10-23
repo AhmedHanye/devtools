@@ -527,7 +527,7 @@ export function discoverAgentFiles(repoRoot: string = process.cwd()): string[] {
       const fullPath = join(currentDir, entry.name);
       if (entry.isDirectory()) {
         walk(fullPath);
-      } else if (entry.name.endsWith(".md") || entry.name.endsWith(".json")) {
+      } else if (entry.name.endsWith(".md")) {
         discovered.push(toRepoRelative(fullPath, repoRoot));
       }
     }
