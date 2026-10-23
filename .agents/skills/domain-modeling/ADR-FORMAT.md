@@ -7,12 +7,12 @@ Create the `docs/adr/` directory lazily: only when the first ADR is needed.
 ## Template
 
 ```md
-# {NNNN}: {Short title of the decision}
+# {Short title of the decision}
 
 {1-3 sentences: what's the context, what did we decide, and why.}
 ```
 
-That's it. An ADR can be a single paragraph. The value is in recording *that* a decision was made and *why*, not in filling out sections.
+That's it. An ADR can be a single paragraph. The sequential number belongs exclusively in the filename slug (`docs/adr/0001-slug.md`); do not prefix the markdown H1 title with `{NNNN}:`. The value is in recording *that* a decision was made and *why*, not in filling out sections.
 
 ## Optional sections
 
@@ -43,6 +43,7 @@ If any criterion is missing, skip the ADR.
 - **Runtime execution and network boundaries**: Cross-process contracts, service communication protocols, in-process routing vs background daemons.
 - **Technology choices that carry lock-in**: Foundational runtime engines, database drivers, auth boundaries. Not routine libraries: only choices that would require substantial rewrites or data migrations to swap out.
 - **Boundary and scope decisions**: Package ownership and encapsulation boundaries where reasonable people would assume the opposite.
+- **Load-bearing rejected architectural alternatives**: Architectural options (such as cross-package boundaries, persistence models, or runtime lifecycle/process boundaries) that were investigated and deliberately rejected with non-obvious reasoning. Recording these prevents future AI sessions and developers from repeatedly re-proposing the same rejected design. Requires explicit maintainer confirmation.
 
 ### What does NOT qualify
 
@@ -50,4 +51,4 @@ If any criterion is missing, skip the ADR.
 - **Developer tooling and formatting**: Linters, formatters, compiler options, and test runner configurations.
 - **Git workflows and tracking procedures**: Branching models, ticket hierarchies, commit message rules, and PR checklists.
 - **Local code refactoring and module depth**: Function extractions, internal class design, and localized seams.
-- **Rejected refactoring proposals**: Declining a proposed code cleanup is a normal review event, not an architectural decision. Never create an ADR for a rejected refactoring candidate.
+- **Routine code cleanups and localized refactorings**: Declining a localized function extraction, rename, internal module seam, or style suggestion is an ordinary review event, not an architectural decision. Never create an ADR for routine review disagreements.

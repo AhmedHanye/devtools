@@ -22,6 +22,10 @@ _Avoid_: Bill, payment request
 **Customer**:
 A person or organization that places orders.
 _Avoid_: Client, buyer, account
+
+## Flagged ambiguities (optional)
+
+- **Order vs. Invoice**: An Order represents customer intent and commitments; an Invoice represents the post-fulfillment accounting demand for payment.
 ```
 
 ## Rules
@@ -30,6 +34,7 @@ _Avoid_: Client, buyer, account
 - **Keep definitions tight.** One or two sentences max. Define what it IS, not what it does.
 - **Only include terms specific to this project's context.** General programming concepts (timeouts, error types, utility patterns) don't belong even if the project uses them extensively.
 - **No CI/CD, lint rules, or git tracking concepts.** Verification gates belong in `.agents/rules/verification.md`. Issue hierarchies belong in `CONTRIBUTING.md`.
+- **Flagged ambiguities are strictly bounded.** Only include `## Flagged ambiguities` when an overloaded or confusable term caused genuine friction during design. Limit each entry to a maximum of two sentences explaining the boundary distinction. Never record implementation details, schema definitions, runtime specs, or ticket histories.
 
 ## Repository Location & Mapping
 
