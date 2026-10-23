@@ -1,12 +1,5 @@
 ---
-trigger:
-  - "apps/**"
-  - "packages/**"
-  - "site/**"
-  - "scripts/**"
-  - ".github/**"
-  - "package.json"
-  - "bun.lock"
+trigger: "{apps/**,packages/**,site/**,scripts/**,.github/**,package.json,bun.lock}"
 description: Change-scoped verification commands and quality checks for modified files.
 ---
 
