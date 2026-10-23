@@ -8,9 +8,9 @@ Issues and specs live as GitHub issues. Use the `gh` CLI for operations; the rep
 
 GitHub shares one number space across issues and pull requests. When inspecting a reference, resolve the number with `gh pr view <number>` first, then fall back to `gh issue view <number>`.
 
-- **Create an issue:** `gh issue create --title "..." --body "..."`
-- **Create a Spec issue:** `gh issue create --title "[Spec]: <title>" --label "type:spec" --milestone "<milestone>" --body "..."`
-- **Create a Ticket issue:** `gh issue create --title "[Slice]: <title>" --label "type:feat" --body "..."`
+- **Create an issue:** `gh issue create --title "<title>" --body "..."`
+- **Create a Spec issue:** `gh issue create --title "<title>" --label "type:spec" --milestone "<milestone>" --body "..."`
+- **Create a Ticket issue:** `gh issue create --title "<title>" --label "type:feat" --body "..."`
 - **Search issues by title:** `gh issue list --search "<title>" --json number --jq '.[0].number'`
 - **Read an issue:** `gh issue view <number> --json number,title,body,labels,state,comments`
 - **List open issues:** `gh issue list --state open --json number,title,body,labels,comments`
@@ -129,6 +129,7 @@ Parent Specs remain `In Progress` until all child tickets reach `Done` and the m
 
 ## Issue tracking conventions
 
+- **Clean title conventions**: Issue titles must not include bracketed prefixes (such as `[Spec]:`, `[Slice]:`, `[Bug]:`). Issue type and scope are tracked exclusively through GitHub labels (`type:spec`, `type:feat`, `type:bug`).
 - Tickets serve as immutable behavioral contracts once created. Requirements, failure modes, and acceptance criteria text must not be altered after work begins.
 - Updating checklist status: When task lists exist in ticket or parent Spec descriptions, contributors and agents should check off completed items (`- [ ]` to `- [x]`) using `gh issue edit <number> --body "$UPDATED_BODY"` as vertical slices and criteria are verified. Do not reword or delete the criteria text itself.
 - Post technical discoveries, blocker updates, and operational decisions as issue comments rather than editing original ticket requirements.

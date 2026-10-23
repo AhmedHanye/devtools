@@ -44,7 +44,7 @@ Branch protection enforces required review thread resolution. All comment thread
 Query open review threads, diff locations, authors, and conversation nodes via GitHub GraphQL:
 
 ```bash
-gh api graphql -F owner=':owner' -F repo=':repo' -F pr=<pr_number> -f query='
+gh api graphql -F owner='{owner}' -F repo='{repo}' -F pr=<pr_number> -f query='
   query($owner: String!, $repo: String!, $pr: Int!) {
     repository(owner: $owner, name: $repo) {
       pullRequest(number: $pr) {
