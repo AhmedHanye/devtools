@@ -63,8 +63,8 @@ Run checks across the monorepo during development:
    ```bash
    gh pr create --assignee "@me" --fill
    ```
-   Follow [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) and ensure the description includes `Closes #<ticket_number>`.
-5. **Resolve review comments:** Address reviewer and automated comments before merging.
+   Follow [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) and ensure the description includes `Closes #<ticket_number>`. Inspect the linked issue and parent Spec descriptions (`gh issue view <ticket_number>` and `gh api repos/{owner}/{repo}/issues/<ticket_number>/parent`), updating any completed checklist tasks (`- [ ]` to `- [x]`) using `gh issue edit`.
+5. **Resolve review comments:** Address reviewer and automated comments before merging. When pushing commits to an existing pull request, inspect open review threads, verify if the commits resolve the comments, post a comment referencing the commit SHA, and resolve the threads via GraphQL.
 6. **Merge via squash merge:**
    ```bash
    gh pr merge <pr_number> --squash --delete-branch
