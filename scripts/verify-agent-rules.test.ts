@@ -135,6 +135,17 @@ const nested = true;
       expect(findings).toHaveLength(1);
       expect(findings[0].rule).toBe("markdown/broken-link");
     });
+
+    it("flags relative links that exist at repo root but not from file directory", () => {
+      // package.json exists at repo root, but from .agents/skills/test/ it is ../../../package.json
+      const content = "See [package](package.json)";
+      const findings = checkMarkdownLinks(
+        content,
+        ".agents/skills/test/SKILL.md",
+      );
+      expect(findings).toHaveLength(1);
+      expect(findings[0].rule).toBe("markdown/broken-link");
+    });
   });
 
   describe("checkUnslop", () => {

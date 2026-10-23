@@ -228,18 +228,18 @@ export function checkMarkdownLinks(
       const cleanTarget = rawTarget.split("#")[0].split("?")[0];
       if (!cleanTarget) continue;
 
-      // Check both relative to current directory and relative to repo root
-      const resolvedFromDir = resolve(fileDir, cleanTarget);
-      const resolvedFromRepo = cleanTarget.startsWith("/")
+      // Relative targets resolve from the markdown file's directory.
+      // Root-relative targets (starting with '/') resolve from the repo root.
+      const resolvedPath = cleanTarget.startsWith("/")
         ? join(repoRoot, cleanTarget)
-        : resolve(repoRoot, cleanTarget);
+        : resolve(fileDir, cleanTarget);
 
-      if (!existsSync(resolvedFromDir) && !existsSync(resolvedFromRepo)) {
+      if (!existsSync(resolvedPath)) {
         findings.push({
           file: filePath,
           line: i + 1,
           rule: "markdown/broken-link",
-          message: `Relative markdown link "${rawTarget}" points to non-existent path "${toRepoRelative(resolvedFromDir, repoRoot)}"`,
+          message: `Relative markdown link "${rawTarget}" points to non-existent path "${toRepoRelative(resolvedPath, repoRoot)}"`,
           severity: "error",
         });
       }
