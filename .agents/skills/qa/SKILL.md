@@ -1,6 +1,6 @@
 ---
 name: qa
-description: Generate a pair of verification artifacts for code changes without requiring the reviewer to read code or run tests: an interactive end-to-end checklist for QA, and an architecture, diff, and logic synthesis for engineers.
+description: Generate a pair of verification artifacts for code changes without requiring the reviewer to read code or run tests - an interactive end-to-end checklist for QA, and an architecture, diff, and logic synthesis for engineers.
 disable-model-invocation: true
 ---
 
